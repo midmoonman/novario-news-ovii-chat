@@ -67,7 +67,7 @@ function ArticlePage() {
           </div>
 
           <div className="prose prose-invert max-w-none space-y-5 text-[17px] leading-[1.8] text-foreground/90">
-            {article.body.map((p, i) => (
+            {article.body.map((p: string, i: number) => (
               <p key={i} className={i === 0 ? "first-letter:serif first-letter:text-6xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:leading-none first-letter:text-primary" : ""}>
                 {p}
               </p>
