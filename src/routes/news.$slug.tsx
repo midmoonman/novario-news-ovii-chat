@@ -3,13 +3,15 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/novario/Header";
 import { BottomNav } from "@/components/novario/BottomNav";
 import { BreakingTicker } from "@/components/novario/BreakingTicker";
-import { ARTICLES, getArticleBySlug } from "@/lib/news";
+import { getArticle, getHomeFeed } from "@/server/newsapi.functions";
 
 export const Route = createFileRoute("/news/$slug")({
-  loader: ({ params }) => {
-    const article = getArticleBySlug(params.slug);
+  loader: async ({ params }) => {
+    const { article } = await getArticle({ data: { slug: params.slug } });
     if (!article) throw notFound();
-    return { article };
+    const { all } = await getHomeFeed();
+    const related = all.filter((a) => a.slug !== article.slug).slice(0, 3);
+    return { article, related };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
@@ -28,6 +30,7 @@ export const Route = createFileRoute("/news/$slug")({
     <div className="min-h-screen flex items-center justify-center text-center p-10">
       <div>
         <h1 className="serif text-3xl font-bold">Story not found</h1>
+        <p className="text-muted-foreground mt-2">It may have rolled off the live wire.</p>
         <Link to="/news" className="text-primary mt-4 inline-block">Back to Novario</Link>
       </div>
     </div>
@@ -35,8 +38,7 @@ export const Route = createFileRoute("/news/$slug")({
 });
 
 function ArticlePage() {
-  const { article } = Route.useLoaderData();
-  const related = ARTICLES.filter((a) => a.slug !== article.slug).slice(0, 3);
+  const { article, related } = Route.useLoaderData();
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
@@ -52,14 +54,17 @@ function ArticlePage() {
           <h1 className="serif text-4xl md:text-5xl font-extrabold leading-tight text-balance">{article.title}</h1>
           <p className="mt-5 text-lg text-muted-foreground leading-relaxed">{article.excerpt}</p>
 
-          <div className="mt-6 flex items-center gap-3 pb-6 border-b border-border">
-            <div className="h-10 w-10 rounded-full gradient-gold flex items-center justify-center font-bold text-primary-foreground">
-              {article.author.charAt(0)}
+          <div className="mt-6 flex items-center justify-between gap-3 pb-6 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full gradient-gold flex items-center justify-center font-bold text-primary-foreground">
+                {article.author.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <div className="font-semibold text-sm">{article.author}</div>
+                <div className="text-xs text-muted-foreground">{article.source} · via Novario</div>
+              </div>
             </div>
-            <div>
-              <div className="font-semibold text-sm">{article.author}</div>
-              <div className="text-xs text-muted-foreground">Senior Correspondent · Novario</div>
-            </div>
+            <a href={article.url} target="_blank" rel="noopener noreferrer" className="text-xs text-primary hover:underline">Read source ↗</a>
           </div>
 
           <div className="my-8 rounded-xl overflow-hidden shadow-elegant">
@@ -84,24 +89,26 @@ function ArticlePage() {
         </motion.div>
       </article>
 
-      <section className="border-t border-border bg-card/30">
-        <div className="mx-auto max-w-7xl px-4 py-12">
-          <h2 className="serif text-2xl font-bold mb-6">More from Novario</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {related.map((a) => (
-              <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group rounded-xl overflow-hidden bg-card border border-border hover:border-primary/40">
-                <div className="aspect-[16/10] overflow-hidden">
-                  <img src={a.image} alt={a.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                </div>
-                <div className="p-4">
-                  <div className="text-xs text-primary font-bold uppercase">{a.category}</div>
-                  <h3 className="serif font-bold mt-2 line-clamp-2">{a.title}</h3>
-                </div>
-              </Link>
-            ))}
+      {related.length > 0 && (
+        <section className="border-t border-border bg-card/30">
+          <div className="mx-auto max-w-7xl px-4 py-12">
+            <h2 className="serif text-2xl font-bold mb-6">More from Novario</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {related.map((a) => (
+                <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group rounded-xl overflow-hidden bg-card border border-border hover:border-primary/40">
+                  <div className="aspect-[16/10] overflow-hidden">
+                    <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  </div>
+                  <div className="p-4">
+                    <div className="text-xs text-primary font-bold uppercase">{a.category}</div>
+                    <h3 className="serif font-bold mt-2 line-clamp-2">{a.title}</h3>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <BottomNav />
     </div>

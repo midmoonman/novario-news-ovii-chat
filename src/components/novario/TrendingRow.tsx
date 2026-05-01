@@ -1,8 +1,13 @@
 import { Link } from "@tanstack/react-router";
-import { ARTICLES } from "@/lib/news";
+import { ARTICLES, type Article } from "@/lib/news";
 
-export function TrendingRow() {
-  const items = ARTICLES.filter((a) => a.trending);
+type Item = Pick<Article, "id" | "slug" | "title" | "image" | "category" | "publishedAt" | "readTime"> & { trending?: boolean };
+
+export function TrendingRow({ articles }: { articles?: Item[] }) {
+  const items: Item[] = articles && articles.length > 0
+    ? articles.slice(0, 10)
+    : (ARTICLES as Item[]).filter((a) => a.trending);
+  if (items.length === 0) return null;
   return (
     <section>
       <div className="flex items-center justify-between mb-4">
@@ -20,7 +25,7 @@ export function TrendingRow() {
             className="group relative shrink-0 w-72 rounded-xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-all"
           >
             <div className="relative h-40 overflow-hidden">
-              <img src={a.image} alt={a.title} className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
+              <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
               <div className="absolute top-2 left-2 bg-background/80 backdrop-blur rounded-full px-2 py-1 text-xs font-bold text-primary">
                 #{idx + 1}
               </div>

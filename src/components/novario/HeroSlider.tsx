@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
-import { ARTICLES } from "@/lib/news";
+import { ARTICLES, type Article } from "@/lib/news";
 
-const slides = ARTICLES.slice(0, 4);
+type Slide = Pick<Article, "id" | "slug" | "title" | "excerpt" | "image" | "category" | "author" | "publishedAt" | "readTime">;
 
-export function HeroSlider() {
+export function HeroSlider({ articles }: { articles?: Slide[] }) {
+  const slides: Slide[] = (articles && articles.length > 0 ? articles : ARTICLES).slice(0, 5);
   const [i, setI] = useState(0);
+
   useEffect(() => {
+    if (slides.length <= 1) return;
     const t = setInterval(() => setI((p) => (p + 1) % slides.length), 5500);
     return () => clearInterval(t);
-  }, []);
+  }, [slides.length]);
+
+  if (slides.length === 0) return null;
   const s = slides[i];
+
   return (
     <div className="relative h-[62vh] min-h-[420px] max-h-[640px] w-full overflow-hidden rounded-2xl shadow-elegant">
       <AnimatePresence mode="sync">
@@ -38,7 +44,7 @@ export function HeroSlider() {
               {s.title}
             </h1>
           </Link>
-          <p className="mt-3 max-w-2xl text-sm md:text-base text-white/80">{s.excerpt}</p>
+          <p className="mt-3 max-w-2xl text-sm md:text-base text-white/80 line-clamp-2">{s.excerpt}</p>
           <div className="mt-4 flex items-center gap-3 text-xs text-white/70">
             <span>{s.author}</span><span>•</span><span>{s.publishedAt}</span><span>•</span><span>{s.readTime} min read</span>
           </div>
