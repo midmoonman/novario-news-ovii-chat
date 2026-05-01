@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ARTICLES, CATEGORIES } from "@/lib/news";
 
-export function CategoryGrid() {
-  const [active, setActive] = useState<string>("Top");
+export function CategoryGrid({ initial = "Top" }: { initial?: string }) {
+  const [active, setActive] = useState<string>(initial);
+  useEffect(() => { setActive(initial); }, [initial]);
   const list = active === "Top" ? ARTICLES : ARTICLES.filter((a) => a.category === active);
   return (
     <section>
