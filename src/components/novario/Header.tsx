@@ -39,7 +39,7 @@ export function Header() {
               <Link
                 key={n.label}
                 to="/news"
-                search={n.cat ? { cat: n.cat } : { cat: undefined as unknown as string }}
+                search={{ cat: n.cat }}
                 className="hover:text-primary"
               >
                 {n.label}
@@ -59,7 +59,7 @@ export function Header() {
             <Link
               key={n.label}
               to="/news"
-              search={n.cat ? { cat: n.cat } : { cat: undefined as unknown as string }}
+              search={{ cat: n.cat }}
               className="shrink-0 hover:text-primary"
             >
               {n.label}
