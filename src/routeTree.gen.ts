@@ -10,7 +10,10 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as OviiRouteImport } from './routes/ovii'
+import { Route as NewsroomRouteImport } from './routes/newsroom'
 import { Route as NewsRouteImport } from './routes/news'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 
@@ -19,9 +22,24 @@ const OviiRoute = OviiRouteImport.update({
   path: '/ovii',
   getParentRoute: () => rootRouteImport,
 } as any)
+const NewsroomRoute = NewsroomRouteImport.update({
+  id: '/newsroom',
+  path: '/newsroom',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const NewsRoute = NewsRouteImport.update({
   id: '/news',
   path: '/news',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,34 +55,68 @@ const NewsSlugRoute = NewsSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
+  '/newsroom': typeof NewsroomRoute
   '/ovii': typeof OviiRoute
   '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
+  '/newsroom': typeof NewsroomRoute
   '/ovii': typeof OviiRoute
   '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
+  '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
+  '/newsroom': typeof NewsroomRoute
   '/ovii': typeof OviiRoute
   '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/news' | '/ovii' | '/news/$slug'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/contact'
+    | '/news'
+    | '/newsroom'
+    | '/ovii'
+    | '/news/$slug'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/news' | '/ovii' | '/news/$slug'
-  id: '__root__' | '/' | '/news' | '/ovii' | '/news/$slug'
+  to:
+    | '/'
+    | '/about'
+    | '/contact'
+    | '/news'
+    | '/newsroom'
+    | '/ovii'
+    | '/news/$slug'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/contact'
+    | '/news'
+    | '/newsroom'
+    | '/ovii'
+    | '/news/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AboutRoute: typeof AboutRoute
+  ContactRoute: typeof ContactRoute
   NewsRoute: typeof NewsRouteWithChildren
+  NewsroomRoute: typeof NewsroomRoute
   OviiRoute: typeof OviiRoute
 }
 
@@ -77,11 +129,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OviiRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/newsroom': {
+      id: '/newsroom'
+      path: '/newsroom'
+      fullPath: '/newsroom'
+      preLoaderRoute: typeof NewsroomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/news': {
       id: '/news'
       path: '/news'
       fullPath: '/news'
       preLoaderRoute: typeof NewsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -113,7 +186,10 @@ const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AboutRoute: AboutRoute,
+  ContactRoute: ContactRoute,
   NewsRoute: NewsRouteWithChildren,
+  NewsroomRoute: NewsroomRoute,
   OviiRoute: OviiRoute,
 }
 export const routeTree = rootRouteImport
