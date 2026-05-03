@@ -14,12 +14,15 @@ const NAV: { label: string; cat?: string }[] = [
 ];
 
 export function Header() {
-  const today = new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  const [today, setToday] = useState("");
+  useEffect(() => {
+    setToday(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }));
+  }, []);
   return (
     <header className="sticky top-0 z-40 backdrop-blur bg-background/80 border-b border-border">
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex items-center justify-between gap-4 py-2 text-xs text-muted-foreground border-b border-border/60">
-          <div>{today}</div>
+          <div suppressHydrationWarning>{today || "\u00A0"}</div>
           <div className="flex items-center gap-3 md:gap-6">
             <div className="hidden md:flex items-center gap-6">
               <LiveCounter />
