@@ -1,4 +1,5 @@
-import { createServerFn } from "@tanstack/react-start";
+// Converted from TanStack Start server functions to plain client-side async functions
+// NewsAPI calls are made directly from the browser (works on Netlify static hosting)
 
 export type RemoteArticle = {
   id: string;
@@ -18,17 +19,14 @@ export type RemoteArticle = {
 
 const NEWS_API_KEY = "0da1339d74e246fbb905f6b15b062a3c";
 
-// NewsAPI's free tier no longer returns results for `country=in` top-headlines.
-// We use the `everything` endpoint with curated queries per section so the
-// homepage feels like a real, multi-section news site (à la Google News).
 type Cfg = { q: string; domains?: string; sortBy?: "publishedAt" | "popularity" | "relevancy" };
 const CATEGORY_MAP: Record<string, Cfg> = {
-  Top:       { q: "India OR Modi OR Mumbai OR Delhi OR Bengaluru", domains: "thehindu.com,indianexpress.com,ndtv.com,hindustantimes.com,timesofindia.indiatimes.com,livemint.com,thehindubusinessline.com,news18.com", sortBy: "publishedAt" },
-  India:     { q: "India OR Modi OR Parliament OR Delhi OR Mumbai OR Bengaluru OR Kolkata", domains: "thehindu.com,indianexpress.com,ndtv.com,hindustantimes.com,timesofindia.indiatimes.com,news18.com,livemint.com", sortBy: "publishedAt" },
-  World:     { q: "world OR international OR UN OR global", domains: "bbc.co.uk,reuters.com,aljazeera.com,theguardian.com,apnews.com,cnn.com,nytimes.com", sortBy: "publishedAt" },
-  Business:  { q: "business OR markets OR economy OR Sensex OR Nifty OR RBI", domains: "thehindubusinessline.com,livemint.com,moneycontrol.com,business-standard.com,economictimes.indiatimes.com,reuters.com,bloomberg.com", sortBy: "publishedAt" },
-  Tech:      { q: "technology OR AI OR startup OR software OR semiconductor", domains: "techcrunch.com,theverge.com,wired.com,arstechnica.com,engadget.com,zdnet.com", sortBy: "publishedAt" },
-  Sports:    { q: "cricket OR IPL OR football OR ISL OR olympics OR badminton OR hockey", domains: "espn.com,espncricinfo.com,skysports.com,bbc.co.uk", sortBy: "publishedAt" },
+  Top:      { q: "India OR Modi OR Mumbai OR Delhi OR Bengaluru", domains: "thehindu.com,indianexpress.com,ndtv.com,hindustantimes.com,timesofindia.indiatimes.com,livemint.com,thehindubusinessline.com,news18.com", sortBy: "publishedAt" },
+  India:    { q: "India OR Modi OR Parliament OR Delhi OR Mumbai OR Bengaluru OR Kolkata", domains: "thehindu.com,indianexpress.com,ndtv.com,hindustantimes.com,timesofindia.indiatimes.com,news18.com,livemint.com", sortBy: "publishedAt" },
+  World:    { q: "world OR international OR UN OR global", domains: "bbc.co.uk,reuters.com,aljazeera.com,theguardian.com,apnews.com,cnn.com,nytimes.com", sortBy: "publishedAt" },
+  Business: { q: "business OR markets OR economy OR Sensex OR Nifty OR RBI", domains: "thehindubusinessline.com,livemint.com,moneycontrol.com,business-standard.com,economictimes.indiatimes.com,reuters.com,bloomberg.com", sortBy: "publishedAt" },
+  Tech:     { q: "technology OR AI OR startup OR software OR semiconductor", domains: "techcrunch.com,theverge.com,wired.com,arstechnica.com,engadget.com,zdnet.com", sortBy: "publishedAt" },
+  Sports:   { q: "cricket OR IPL OR football OR ISL OR olympics OR badminton OR hockey", domains: "espn.com,espncricinfo.com,skysports.com,bbc.co.uk", sortBy: "publishedAt" },
 };
 
 function slugify(s: string) {
@@ -65,7 +63,7 @@ function mapArticles(rawArticles: any[], category: string): RemoteArticle[] {
       const body = [
         desc || cleanContent,
         cleanContent && cleanContent !== desc ? cleanContent : "",
-        `This story was reported by ${a.source?.name ?? "wire services"} and curated by Novario's newsroom. Read the original report for the full account.`,
+        `This story was reported by ${a.source?.name ?? "wire services"} and curated by Novario's newsroom.`,
       ].filter(Boolean);
       return {
         id: `${category}-${i}-${slugify(title)}`,
@@ -122,14 +120,13 @@ async function fetchCategory(category: string): Promise<RemoteArticle[]> {
   return fetchEverything(params, `cat:${category}`, category);
 }
 
-export const getNews = createServerFn({ method: "GET" })
-  .inputValidator((data: { category?: string }) => ({ category: data?.category ?? "Top" }))
-  .handler(async ({ data }) => {
-    const articles = await fetchCategory(data.category);
-    return { articles, category: data.category };
-  });
+// Plain async functions replacing createServerFn
+export async function getNews(category = "Top") {
+  const articles = await fetchCategory(category);
+  return { articles, category };
+}
 
-export const getHomeFeed = createServerFn({ method: "GET" }).handler(async () => {
+export async function getHomeFeed() {
   const cats = ["Top", "India", "World", "Business", "Tech", "Sports"];
   const results = await Promise.all(cats.map((c) => fetchCategory(c)));
   const byCategory: Record<string, RemoteArticle[]> = {};
@@ -144,31 +141,26 @@ export const getHomeFeed = createServerFn({ method: "GET" }).handler(async () =>
     }
   }
   return { byCategory, all };
-});
+}
 
-export const getArticle = createServerFn({ method: "GET" })
-  .inputValidator((data: { slug: string }) => ({ slug: data.slug }))
-  .handler(async ({ data }) => {
-    const cats = ["Top", "India", "World", "Business", "Tech", "Sports"];
-    for (const c of cats) {
-      const list = await fetchCategory(c);
-      const hit = list.find((a) => a.slug === data.slug);
-      if (hit) return { article: hit };
-    }
-    return { article: null };
-  });
+export async function getArticle(slug: string) {
+  const cats = ["Top", "India", "World", "Business", "Tech", "Sports"];
+  for (const c of cats) {
+    const list = await fetchCategory(c);
+    const hit = list.find((a) => a.slug === slug);
+    if (hit) return { article: hit };
+  }
+  return { article: null };
+}
 
-export const getCityNews = createServerFn({ method: "GET" })
-  .inputValidator((data: { city: string; country?: string }) => ({
-    city: String(data.city).slice(0, 60),
-    country: data.country ? String(data.country).slice(0, 60) : "",
-  }))
-  .handler(async ({ data }) => {
-    const q = data.country ? `"${data.city}" AND "${data.country}"` : `"${data.city}"`;
-    const articles = await fetchEverything(
-      { q, sortBy: "publishedAt" },
-      `city:${data.city}:${data.country}`,
-      data.city,
-    );
-    return { articles, city: data.city };
-  });
+export async function getCityNews(city: string, country = "") {
+  const safeCity = city.slice(0, 60);
+  const safeCountry = country.slice(0, 60);
+  const q = safeCountry ? `"${safeCity}" AND "${safeCountry}"` : `"${safeCity}"`;
+  const articles = await fetchEverything(
+    { q, sortBy: "publishedAt" },
+    `city:${safeCity}:${safeCountry}`,
+    safeCity,
+  );
+  return { articles, city: safeCity };
+}

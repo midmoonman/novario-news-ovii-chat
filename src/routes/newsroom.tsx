@@ -13,12 +13,6 @@ export const Route = createFileRoute("/newsroom")({
     city: typeof s.city === "string" ? s.city : undefined,
     scope: s.scope === "world" ? "world" : "india",
   }),
-  head: () => ({
-    meta: [
-      { title: "Newsroom — City desks across India & the world | Novario" },
-      { name: "description", content: "Live, city-by-city headlines from major Indian and global cities, hand-picked by Novario editors." },
-    ],
-  }),
   component: Newsroom,
 });
 
@@ -45,7 +39,7 @@ function Newsroom() {
     let alive = true;
     setLoading(true);
     setArticles(null);
-    getCityNews({ data: { city: activeCity.city, country: activeCity.country } })
+    getCityNews(activeCity.city, activeCity.country)
       .then((res) => { if (alive) setArticles(res.articles); })
       .catch(() => { if (alive) setArticles([]); })
       .finally(() => { if (alive) setLoading(false); });

@@ -17,18 +17,12 @@ export const Route = createFileRoute("/news")({
   loaderDeps: ({ search }) => ({ cat: search.cat }),
   loader: async ({ deps }) => {
     if (deps.cat) {
-      const { articles } = await getNews({ data: { category: deps.cat } });
+      const { articles } = await getNews(deps.cat);
       return { mode: "cat" as const, cat: deps.cat, articles };
     }
     const home = await getHomeFeed();
     return { mode: "home" as const, ...home };
   },
-  head: () => ({
-    meta: [
-      { title: "Novario News — Today's premium stories" },
-      { name: "description", content: "Live breaking news, business, tech, sports and more from India and the world." },
-    ],
-  }),
   component: NewsHome,
   errorComponent: ({ error }) => <div className="p-10 text-center text-destructive">{error.message}</div>,
 });
@@ -76,7 +70,7 @@ function NewsHome() {
                 <Link to="/news" search={{ cat }} className="text-xs uppercase tracking-wider text-primary hover:underline">More {cat} →</Link>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                {list.map((a) => (
+                {list.map((a: import("@/server/newsapi.functions").RemoteArticle) => (
                   <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group rounded-xl overflow-hidden bg-card border border-border hover:border-primary/40 transition-all">
                     <div className="aspect-[16/10] overflow-hidden">
                       <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />

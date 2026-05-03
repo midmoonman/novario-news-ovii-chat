@@ -7,23 +7,12 @@ import { getArticle, getHomeFeed } from "@/server/newsapi.functions";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
-    const { article } = await getArticle({ data: { slug: params.slug } });
+    const { article } = await getArticle(params.slug);
     if (!article) throw notFound();
     const { all } = await getHomeFeed();
     const related = all.filter((a) => a.slug !== article.slug).slice(0, 3);
     return { article, related };
   },
-  head: ({ loaderData }) => ({
-    meta: loaderData
-      ? [
-          { title: `${loaderData.article.title} — Novario` },
-          { name: "description", content: loaderData.article.excerpt },
-          { property: "og:title", content: loaderData.article.title },
-          { property: "og:description", content: loaderData.article.excerpt },
-          { property: "og:image", content: loaderData.article.image },
-        ]
-      : [],
-  }),
   component: ArticlePage,
   errorComponent: ({ error }) => <div className="p-10 text-center text-destructive">{error.message}</div>,
   notFoundComponent: () => (
@@ -94,7 +83,7 @@ function ArticlePage() {
           <div className="mx-auto max-w-7xl px-4 py-12">
             <h2 className="serif text-2xl font-bold mb-6">More from Novario</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {related.map((a) => (
+              {related.map((a: import("@/server/newsapi.functions").RemoteArticle) => (
                 <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group rounded-xl overflow-hidden bg-card border border-border hover:border-primary/40">
                   <div className="aspect-[16/10] overflow-hidden">
                     <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
