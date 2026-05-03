@@ -1,0 +1,1050 @@
+/* ─── Ovii Chat Styles ─────────────────────────────────────────────────────── */
+/* Import: add to your main CSS or import in OviiChat.tsx */
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+/* ─── Root Variables ──────────────────────────────────────────────────────── */
+
+.ovii-root {
+  --bg: #0d1117;
+  --bg2: #161b22;
+  --bg3: #21262d;
+  --surface: #1c2128;
+  --surface2: #2d333b;
+  --border: #30363d;
+  --text: #e6edf3;
+  --text2: #8b949e;
+  --accent: #7c6bf8;
+  --accent2: #a78bfa;
+  --mine-bg: #2d2466;
+  --mine-text: #e0d9ff;
+  --their-bg: #1e2330;
+  --their-text: #e6edf3;
+  --green: #3fb950;
+  --blue: #58a6ff;
+  --danger: #f85149;
+  --yellow: #f0b429;
+
+  font-family: 'Nunito', sans-serif;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.ovii-root.light {
+  --bg: #f0eff5;
+  --bg2: #ffffff;
+  --bg3: #f5f3fc;
+  --surface: #ffffff;
+  --surface2: #f0eeff;
+  --border: #e0dbf5;
+  --text: #1a1228;
+  --text2: #6b6884;
+  --mine-bg: #7c6bf8;
+  --mine-text: #ffffff;
+  --their-bg: #ffffff;
+  --their-text: #1a1228;
+}
+
+/* ─── PIN Modal ──────────────────────────────────────────────────────────── */
+
+.ovii-pin-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.ovii-pin-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 40px 32px;
+  width: min(380px, 94vw);
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.ovii-pin-card.shake {
+  animation: shake 0.4s ease-in-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-10px); }
+  40% { transform: translateX(10px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+
+.ovii-pin-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.ovii-logo-text {
+  font-family: 'Space Mono', monospace;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--accent2);
+  letter-spacing: -1px;
+}
+
+.ovii-logo-dot {
+  color: var(--accent);
+  font-size: 10px;
+}
+
+.ovii-pin-subtitle {
+  color: var(--text2);
+  font-size: 13px;
+  margin-bottom: 28px;
+}
+
+.ovii-pin-dots {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 28px;
+}
+
+.ovii-pin-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  transition: all 0.15s;
+}
+
+.ovii-pin-dot.filled {
+  background: var(--accent);
+  border-color: var(--accent);
+  transform: scale(1.2);
+}
+
+.ovii-pin-pad {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.ovii-pin-key {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 20px;
+  font-family: 'Space Mono', monospace;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.12s;
+  font-weight: 700;
+}
+
+.ovii-pin-key:hover:not(.empty) {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent2);
+  transform: scale(1.06);
+}
+
+.ovii-pin-key.empty {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+}
+
+.ovii-pin-enter {
+  width: 100%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-bottom: 12px;
+}
+
+.ovii-pin-enter:hover {
+  background: var(--accent2);
+  transform: translateY(-1px);
+}
+
+.ovii-pin-forgot {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 12px;
+  cursor: pointer;
+  text-decoration: underline;
+  opacity: 0.7;
+}
+
+.ovii-pin-hint {
+  margin-top: 16px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  animation: fadeIn 0.3s;
+}
+
+.hindi-tear {
+  display: block;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent2);
+  margin-bottom: 8px;
+  letter-spacing: 2px;
+}
+
+.hindi-alpha {
+  font-size: 14px;
+  color: var(--text2);
+  letter-spacing: 4px;
+}
+
+/* ─── Avatar Modal ───────────────────────────────────────────────────────── */
+
+.ovii-avatar-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+
+.ovii-avatar-modal-card {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px;
+  width: min(420px, 94vw);
+  text-align: center;
+  animation: slideUp 0.25s ease-out;
+}
+
+.ovii-avatar-modal-card h3 {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--accent2);
+  margin-bottom: 4px;
+}
+
+.ovii-avatar-modal-card > p {
+  font-size: 12px;
+  color: var(--text2);
+  margin-bottom: 20px;
+}
+
+.ovii-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ovii-avatar-option {
+  background: var(--bg3);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 4px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ovii-avatar-option:hover {
+  border-color: var(--av-color, var(--accent));
+  transform: scale(1.08);
+  background: var(--surface2);
+}
+
+.ovii-avatar-option.selected {
+  border-color: var(--av-color, var(--accent));
+  background: color-mix(in srgb, var(--av-color, var(--accent)) 15%, var(--bg3));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--av-color, var(--accent)) 30%, transparent);
+}
+
+.ovii-avatar-option img {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+}
+
+.ovii-avatar-option span {
+  font-size: 9px;
+  color: var(--text2);
+  font-weight: 600;
+}
+
+.ovii-avatar-close {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text2);
+  border-radius: 10px;
+  padding: 10px 24px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.15s;
+}
+
+.ovii-avatar-close:hover {
+  background: var(--surface2);
+  color: var(--text);
+}
+
+/* ─── Chat Window ────────────────────────────────────────────────────────── */
+
+.ovii-chat-window {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 720px;
+  height: 100%;
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* ─── Header ─────────────────────────────────────────────────────────────── */
+
+.ovii-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 8px;
+}
+
+.ovii-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.ovii-my-avatar-btn {
+  position: relative;
+  background: none;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  overflow: visible;
+  transition: border-color 0.15s;
+}
+
+.ovii-my-avatar-btn:hover {
+  border-color: var(--accent2);
+}
+
+.ovii-my-avatar-btn img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: block;
+}
+
+.ovii-avatar-edit-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  font-size: 10px;
+  background: var(--bg2);
+  border-radius: 50%;
+  padding: 1px;
+  line-height: 1;
+}
+
+.ovii-header-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ovii-other-avatar-sm {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--green);
+}
+
+.ovii-online-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 6px var(--green);
+}
+
+.ovii-waiting {
+  font-size: 12px;
+  color: var(--text2);
+  font-style: italic;
+}
+
+.ovii-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.ovii-header-brand .ovii-logo-text {
+  font-size: 20px;
+}
+
+.ovii-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ovii-theme-toggle,
+.ovii-lock-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.15s;
+  line-height: 1;
+}
+
+.ovii-theme-toggle:hover,
+.ovii-lock-btn:hover {
+  background: var(--surface2);
+  border-color: var(--accent);
+}
+
+/* ─── Timer Bar ─────────────────────────────────────────────────────────── */
+
+.ovii-timer-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--bg2);
+  border-bottom: 1px solid var(--border);
+  font-size: 11px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.ovii-timer-bar span:first-child {
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.ovii-timer-opt {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 10px;
+  font-size: 11px;
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.12s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-weight: 600;
+}
+
+.ovii-timer-opt.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.ovii-timer-opt:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+/* ─── Messages Area ──────────────────────────────────────────────────────── */
+
+.ovii-messages-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  scroll-behavior: smooth;
+}
+
+.ovii-messages-area::-webkit-scrollbar {
+  width: 4px;
+}
+.ovii-messages-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+.ovii-messages-area::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+/* ─── Empty State ────────────────────────────────────────────────────────── */
+
+.ovii-empty-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px;
+  text-align: center;
+  color: var(--text2);
+  font-size: 13px;
+}
+
+.ovii-empty-doodle {
+  color: var(--text2);
+  opacity: 0.6;
+  margin-bottom: 8px;
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.ovii-e2e-badge {
+  font-size: 11px;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 4px 12px;
+  color: var(--green);
+}
+
+/* ─── Message Rows ────────────────────────────────────────────────────────── */
+
+.ovii-msg-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 4px;
+  animation: msgIn 0.2s ease-out;
+}
+
+@keyframes msgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ovii-msg-row.mine {
+  flex-direction: row-reverse;
+}
+
+.ovii-msg-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  margin-bottom: 2px;
+}
+
+.ovii-msg-col {
+  display: flex;
+  flex-direction: column;
+  max-width: 72%;
+  gap: 3px;
+}
+
+.ovii-msg-row.mine .ovii-msg-col {
+  align-items: flex-end;
+}
+
+/* ─── Bubbles ────────────────────────────────────────────────────────────── */
+
+.ovii-bubble {
+  padding: 10px 14px;
+  border-radius: 18px;
+  position: relative;
+  word-break: break-word;
+  line-height: 1.45;
+  font-size: 14px;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.ovii-bubble:active {
+  opacity: 0.85;
+}
+
+.ovii-bubble.mine {
+  background: var(--mine-bg);
+  color: var(--mine-text);
+  border-bottom-right-radius: 4px;
+  border-top-right-radius: 18px;
+}
+
+.ovii-bubble.theirs {
+  background: var(--their-bg);
+  color: var(--their-text);
+  border-bottom-left-radius: 4px;
+  border-top-left-radius: 18px;
+  border: 1px solid var(--border);
+}
+
+.ovii-bubble p {
+  margin: 0;
+  padding: 0;
+}
+
+.ovii-bubble-img {
+  max-width: 240px;
+  max-height: 240px;
+  border-radius: 12px;
+  display: block;
+  cursor: zoom-in;
+  object-fit: cover;
+  width: 100%;
+}
+
+.ovii-bubble-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 5px;
+  justify-content: flex-end;
+}
+
+.ovii-bubble-time {
+  font-size: 10px;
+  opacity: 0.6;
+  font-weight: 600;
+}
+
+.ovii-read-ticks .ticks {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.ovii-read-ticks .ticks.blue {
+  color: #60a5fa;
+  opacity: 1;
+}
+
+.ovii-destruct-timer {
+  font-size: 10px;
+  color: var(--yellow);
+  font-weight: 700;
+  font-family: 'Space Mono', monospace;
+}
+
+/* ─── Reactions ──────────────────────────────────────────────────────────── */
+
+.ovii-reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ovii-reactions.mine { justify-content: flex-end; }
+.ovii-reactions.theirs { justify-content: flex-start; }
+
+.ovii-reaction-badge {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 2px 8px;
+  font-size: 14px;
+  cursor: default;
+}
+
+.ovii-emoji-picker {
+  display: flex;
+  gap: 4px;
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 28px;
+  padding: 6px 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  animation: fadeIn 0.15s;
+}
+
+.ovii-emoji-picker button {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 6px;
+  transition: transform 0.1s;
+}
+
+.ovii-emoji-picker button:hover {
+  transform: scale(1.3);
+}
+
+/* ─── Typing Indicator ───────────────────────────────────────────────────── */
+
+.ovii-typing-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.ovii-typing-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+}
+
+.ovii-typing-bubble {
+  background: var(--their-bg);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  border-bottom-left-radius: 4px;
+  padding: 12px 16px;
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.typing-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text2);
+  animation: typingBounce 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingBounce {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.5; }
+  30% { transform: translateY(-6px); opacity: 1; }
+}
+
+/* ─── Voice Player ────────────────────────────────────────────────────────── */
+
+.ovii-voice-player {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.ovii-voice-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  color: currentColor;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.ovii-voice-btn:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.1);
+}
+
+.ovii-voice-waveform {
+  flex: 1;
+  cursor: pointer;
+  height: 36px;
+  display: flex;
+  align-items: center;
+}
+
+.ovii-voice-bars {
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  width: 100%;
+}
+
+.ovii-voice-bar {
+  flex: 1;
+  min-height: 4px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  transition: background 0.1s;
+}
+
+.ovii-voice-bar.played {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.ovii-voice-time {
+  font-size: 11px;
+  font-family: 'Space Mono', monospace;
+  opacity: 0.7;
+  flex-shrink: 0;
+  font-weight: 700;
+}
+
+/* ─── Input Bar ──────────────────────────────────────────────────────────── */
+
+.ovii-input-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--bg2);
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.ovii-attach-btn {
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: var(--text2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.ovii-attach-btn:hover:not(:disabled) {
+  background: var(--surface2);
+  border-color: var(--accent);
+  color: var(--accent2);
+}
+
+.ovii-attach-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ovii-uploading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.ovii-text-input {
+  flex: 1;
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  padding: 11px 16px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'Nunito', sans-serif;
+  resize: none;
+  max-height: 120px;
+  outline: none;
+  line-height: 1.4;
+  transition: border-color 0.15s;
+}
+
+.ovii-text-input::placeholder {
+  color: var(--text2);
+}
+
+.ovii-text-input:focus {
+  border-color: var(--accent);
+}
+
+.ovii-send-btn,
+.ovii-voice-btn-main {
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.ovii-send-btn:hover,
+.ovii-voice-btn-main:hover {
+  background: var(--accent2);
+  transform: scale(1.08);
+}
+
+.ovii-send-btn:disabled {
+  opacity: 0.5;
+  transform: none;
+}
+
+.ovii-voice-btn-main:active {
+  background: var(--danger);
+  transform: scale(1.15);
+}
+
+/* ─── Recording Bar ──────────────────────────────────────────────────────── */
+
+.ovii-recording-bar {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--bg3);
+  border: 1px solid var(--danger);
+  border-radius: 22px;
+  padding: 8px 14px;
+  animation: pulseRed 1s ease-in-out infinite;
+}
+
+@keyframes pulseRed {
+  0%, 100% { border-color: var(--danger); box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.3); }
+  50% { border-color: #ff7166; box-shadow: 0 0 0 4px rgba(248, 81, 73, 0); }
+}
+
+.ovii-rec-cancel {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+.ovii-rec-cancel:hover { color: var(--danger); }
+
+.ovii-rec-wave {
+  flex: 1;
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  height: 24px;
+}
+
+.ovii-rec-bar {
+  flex: 1;
+  background: var(--danger);
+  border-radius: 2px;
+  opacity: 0.7;
+  animation: recBar 0.6s ease-in-out infinite alternate;
+}
+.ovii-rec-bar:nth-child(2n) { animation-delay: 0.1s; }
+.ovii-rec-bar:nth-child(3n) { animation-delay: 0.2s; }
+.ovii-rec-bar:nth-child(4n) { animation-delay: 0.3s; }
+
+@keyframes recBar {
+  from { height: 4px; opacity: 0.4; }
+  to { height: 20px; opacity: 1; }
+}
+
+.ovii-rec-timer {
+  font-family: 'Space Mono', monospace;
+  font-size: 13px;
+  color: var(--danger);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.ovii-rec-send {
+  background: var(--accent);
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  cursor: pointer;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.ovii-rec-send:hover {
+  background: var(--accent2);
+  transform: scale(1.1);
+}
+
+/* ─── Room Full ──────────────────────────────────────────────────────────── */
+
+.ovii-room-full {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 12px;
+  color: var(--text2);
+  text-align: center;
+}
+
+.ovii-room-full .ovii-logo-text {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+/* ─── Utility ────────────────────────────────────────────────────────────── */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .ovii-pin-card { padding: 28px 20px; }
+  .ovii-avatar-grid { grid-template-columns: repeat(5, 1fr); }
+  .ovii-bubble-img { max-width: 180px; }
+  .ovii-msg-col { max-width: 80%; }
+  .ovii-header-brand { display: none; }
+}
