@@ -21,7 +21,7 @@ function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-4 font-sans tracking-tight">1. Introduction and Acceptance of Terms</h2>
             <p className="mb-4">
-              Welcome to Novario ("Novario", "we", "us", or "our"). Novario provides an advanced, premium, and login-free digital news aggregation and ephemeral communication platform (collectively, the "Service"). By accessing or using our Service in any manner, including but not limited to visiting or browsing the Novario website, you expressly agree to be bound by these Terms of Service (the "Terms").
+              Welcome to Novario ("Novario", "we", "us", or "our"). Novario provides an advanced, premium, and login-free digital news aggregation platform (the "Service"). By accessing or using our Service in any manner, including but not limited to visiting or browsing the Novario website, you expressly agree to be bound by these Terms of Service (the "Terms").
             </p>
             <p className="mb-4">
               These Terms govern your access to and use of all Novario services. If you do not agree to all the terms and conditions of this agreement, then you may not access the website or use any services. Our platform is designed with a frictionless philosophy: we believe in providing world-class information access without the barrier of account creation, paywalls, or mandatory subscriptions.
@@ -31,14 +31,13 @@ function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-4 font-sans tracking-tight">2. The Novario Experience & Login-Free Philosophy</h2>
             <p className="mb-4">
-              Novario is committed to offering a premium, unimpeded reading experience. Unlike other platforms that mandate user registration, data harvesting, or restrictive paywalls, Novario is proudly a <strong>login-free</strong> environment. 
+              Novario is committed to offering a premium, unimpeded reading experience. Unlike other platforms that mandate user registration, data harvesting, or restrictive paywalls, Novario is proudly a <strong>login-free</strong> environment.
             </p>
             <p className="mb-4">
               Our core offerings include:
             </p>
             <ul className="list-disc pl-8 space-y-2 mb-4">
               <li><strong>Zero Friction Access:</strong> Immediate access to breaking news and curated stories without the need for an account.</li>
-              <li><strong>Ephemeral Communications:</strong> Our proprietary Ovii Chat system provides secure, localized, and temporary communication channels that automatically expire, ensuring no persistent digital footprint.</li>
               <li><strong>Aggregated Intelligence:</strong> A unified, seamless reading interface that aggregates global intelligence into a single, beautiful dashboard.</li>
             </ul>
             <p className="mb-4">
@@ -64,7 +63,7 @@ function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-4 font-sans tracking-tight">4. Intellectual Property Rights</h2>
             <p className="mb-4">
-              Excluding the aggregated third-party content described in Section 3, the Novario platform itself—including its original design, source code, user interface, proprietary algorithms, logo, and the "Ovii" chat architecture—is the exclusive property of Novario Media Pvt. Ltd. and its licensors. 
+              Excluding the aggregated third-party content described in Section 3, the Novario platform itself—including its original design, source code, user interface, proprietary algorithms, and logo—is the exclusive property of Novario Media Pvt. Ltd. and its licensors.
             </p>
             <p className="mb-4">
               You are granted a limited, non-exclusive, non-transferable, and revocable license to access and use the Service strictly for your personal, non-commercial use. You may not reproduce, distribute, modify, create derivative works of, publicly display, publicly perform, republish, download, store, or transmit any of the proprietary material on our Service without our prior written consent.
@@ -74,14 +73,14 @@ function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-4 font-sans tracking-tight">5. User Conduct and Acceptable Use</h2>
             <p className="mb-4">
-              While Novario does not require user accounts, your access to the platform and use of the Ovii Chat feature is contingent upon your compliance with our acceptable use policy. You agree not to use the Service:
+              While Novario does not require user accounts, your access to the platform is contingent upon your compliance with our acceptable use policy. You agree not to use the Service:
             </p>
             <ul className="list-disc pl-8 space-y-2 mb-4">
               <li>In any way that violates any applicable federal, state, local, or international law or regulation.</li>
               <li>To transmit, or procure the sending of, any advertising or promotional material, including any "junk mail", "chain letter", "spam", or any other similar solicitation.</li>
               <li>To impersonate or attempt to impersonate Novario, a Novario employee, another user, or any other person or entity.</li>
               <li>To engage in any conduct that restricts or inhibits anyone's use or enjoyment of the Service, or which, as determined by us, may harm Novario or users of the Service.</li>
-              <li>To attempt to bypass, disable, or interfere with our API rate-limiting mechanisms or reverse-engineer the Ovii ephemeral chat protocols.</li>
+              <li>To attempt to bypass, disable, or interfere with our API rate-limiting mechanisms or reverse-engineer any proprietary platform protocols.</li>
             </ul>
             <p className="mb-4">
               We reserve the right to block IP addresses or terminate access to our platform for any user who violates these conduct guidelines, without prior notice.
@@ -91,7 +90,7 @@ function TermsPage() {
           <section>
             <h2 className="text-2xl font-bold text-foreground mb-4 font-sans tracking-tight">6. Disclaimer of Warranties</h2>
             <p className="mb-4">
-              YOUR USE OF THE SERVICE, ITS CONTENT, AND ANY ITEMS OBTAINED THROUGH THE SERVICE IS AT YOUR OWN RISK. THE SERVICE AND ITS CONTENT ARE PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS, WITHOUT ANY WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. 
+              YOUR USE OF THE SERVICE, ITS CONTENT, AND ANY ITEMS OBTAINED THROUGH THE SERVICE IS AT YOUR OWN RISK. THE SERVICE AND ITS CONTENT ARE PROVIDED ON AN "AS IS" AND "AS AVAILABLE" BASIS, WITHOUT ANY WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED.
             </p>
             <p className="mb-4">
               NEITHER NOVARIO NOR ANY PERSON ASSOCIATED WITH NOVARIO MAKES ANY WARRANTY OR REPRESENTATION WITH RESPECT TO THE COMPLETENESS, SECURITY, RELIABILITY, QUALITY, ACCURACY, OR AVAILABILITY OF THE SERVICE OR THE THIRD-PARTY CONTENT AGGREGATED THEREIN.
