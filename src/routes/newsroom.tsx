@@ -39,7 +39,7 @@ function Newsroom() {
     let alive = true;
     setLoading(true);
     setArticles(null);
-    getCityNews(activeCity.city, activeCity.country)
+    getCityNews(activeCity.city)
       .then((res) => { if (alive) setArticles(res.articles); })
       .catch(() => { if (alive) setArticles([]); })
       .finally(() => { if (alive) setLoading(false); });
