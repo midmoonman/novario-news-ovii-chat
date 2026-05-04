@@ -161,15 +161,17 @@ function AvatarPicker({
   current,
   onSelect,
   onClose,
+  mandatory = false,
 }: {
   current: string;
   onSelect: (id: string) => void;
-  onClose: () => void;
+  onClose?: () => void;
+  mandatory?: boolean;
 }) {
   return (
     <div className="ovii-avatar-modal">
       <div className="ovii-avatar-modal-card">
-        <h3>Choose Your Avatar</h3>
+        <h3>{mandatory ? "Select Your Avatar" : "Choose Your Avatar"}</h3>
         <p>Your identity in this chat</p>
         <div className="ovii-avatar-grid">
           {AVATARS.map((av) => (
@@ -178,7 +180,7 @@ function AvatarPicker({
               className={`ovii-avatar-option ${current === av.id ? "selected" : ""}`}
               onClick={() => {
                 onSelect(av.id);
-                onClose();
+                if (onClose) onClose();
               }}
               style={{ "--av-color": av.color } as React.CSSProperties}
             >
@@ -187,9 +189,11 @@ function AvatarPicker({
             </button>
           ))}
         </div>
-        <button className="ovii-avatar-close" onClick={onClose}>
-          ✕ Close
-        </button>
+        {!mandatory && onClose && (
+          <button className="ovii-avatar-close" onClick={onClose}>
+            ✕ Close
+          </button>
+        )}
       </div>
     </div>
   );
@@ -455,7 +459,9 @@ export default function OviiChat({ roomId = "ovii-default" }: OviiChatProps) {
   const [otherTyping, setOtherTyping] = useState(false);
   const [otherAvatarId, setOtherAvatarId] = useState<string | null>(null);
   const [myAvatarId, setMyAvatarId] = useState<string>(getRandomAvatar().id);
+  const [hasSelectedAvatar, setHasSelectedAvatar] = useState(false);
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
+  const [isTypingLocal, setIsTypingLocal] = useState(false);
   const [destructTimer, setDestructTimer] = useState(45);
   const [roomFull, setRoomFull] = useState(false);
   const [isDark, setIsDark] = useState(true);
@@ -512,7 +518,10 @@ export default function OviiChat({ roomId = "ovii-default" }: OviiChatProps) {
 
     // Load saved avatar
     const savedAvatar = localStorage.getItem(`ovii-avatar-${uid}`);
-    if (savedAvatar) setMyAvatarId(savedAvatar);
+    if (savedAvatar) {
+      setMyAvatarId(savedAvatar);
+      setHasSelectedAvatar(true);
+    }
 
     // Publish my presence
     await setDoc(
@@ -608,15 +617,26 @@ export default function OviiChat({ roomId = "ovii-default" }: OviiChatProps) {
   const handleTyping = async (val: string) => {
     setText(val);
     if (!userId) return;
-    await updateDoc(doc(db, "ovii-presence", `${roomId}-${userId}`), {
-      typing: val.length > 0,
-    }).catch(() => {});
-    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
-    typingTimerRef.current = setTimeout(async () => {
-      await updateDoc(doc(db, "ovii-presence", `${roomId}-${userId}`), {
-        typing: false,
+
+    const isTypingNow = val.length > 0;
+    
+    if (isTypingNow !== isTypingLocal) {
+      setIsTypingLocal(isTypingNow);
+      updateDoc(doc(db, "ovii-presence", `${roomId}-${userId}`), {
+        typing: isTypingNow,
       }).catch(() => {});
-    }, 2000);
+    }
+
+    if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
+    
+    if (isTypingNow) {
+      typingTimerRef.current = setTimeout(() => {
+        setIsTypingLocal(false);
+        updateDoc(doc(db, "ovii-presence", `${roomId}-${userId}`), {
+          typing: false,
+        }).catch(() => {});
+      }, 2000);
+    }
   };
 
   // ─── Send Text ──────────────────────────────────────────────────────────────
@@ -667,7 +687,7 @@ export default function OviiChat({ roomId = "ovii-default" }: OviiChatProps) {
     setIsUploading(true);
     try {
       const storageRef = ref(storage, `ovii/${roomId}/${Date.now()}-${file.name}`);
-      await uploadBytes(storageRef, file);
+      await uploadBytes(storageRef, file, { contentType: file.type });
       const url = await getDownloadURL(storageRef);
 
       const msg = {
@@ -736,7 +756,7 @@ export default function OviiChat({ roomId = "ovii-default" }: OviiChatProps) {
         try {
           const ext = supportedMime.includes("ogg") ? "ogg" : supportedMime.includes("mp4") ? "mp4" : "webm";
           const storageRef = ref(storage, `ovii/${roomId}/voice-${Date.now()}.${ext}`);
-          await uploadBytes(storageRef, blob);
+          await uploadBytes(storageRef, blob, { contentType: blob.type });
           const url = await getDownloadURL(storageRef);
 
           const msg = {
@@ -854,6 +874,7 @@ export default function OviiChat({ roomId = "ovii-default" }: OviiChatProps) {
 
   const updateAvatar = (id: string) => {
     setMyAvatarId(id);
+    setHasSelectedAvatar(true);
     if (userId) {
       localStorage.setItem(`ovii-avatar-${userId}`, id);
       updateDoc(doc(db, "ovii-presence", `${roomId}-${userId}`), {
@@ -898,8 +919,17 @@ export default function OviiChat({ roomId = "ovii-default" }: OviiChatProps) {
         <PinModal onUnlock={() => setLocked(false)} showForgot={true} />
       )}
 
-      {/* Avatar Picker Modal */}
-      {showAvatarPicker && (
+      {/* Mandatory Initial Avatar Picker */}
+      {!locked && !hasSelectedAvatar && (
+        <AvatarPicker
+          current={myAvatarId}
+          onSelect={updateAvatar}
+          mandatory={true}
+        />
+      )}
+
+      {/* Manual Avatar Picker Modal */}
+      {showAvatarPicker && hasSelectedAvatar && (
         <AvatarPicker
           current={myAvatarId}
           onSelect={updateAvatar}

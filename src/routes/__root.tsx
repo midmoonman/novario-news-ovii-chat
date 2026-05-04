@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
 import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
+import { PasswordModal } from "@/components/novario/PasswordModal";
+import { OViiChat } from "@/components/novario/OViiChat";
 
 function NotFoundComponent() {
   return (
@@ -21,6 +24,29 @@ function NotFoundComponent() {
 }
 
 export const Route = createRootRoute({
-  component: () => <Outlet />,
+  component: RootComponent,
   notFoundComponent: NotFoundComponent,
 });
+
+function RootComponent() {
+  const [showOvii, setShowOvii] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
+
+  useEffect(() => {
+    const handleOpen = () => setShowOvii(true);
+    window.addEventListener("open-ovii", handleOpen);
+    return () => window.removeEventListener("open-ovii", handleOpen);
+  }, []);
+
+  return (
+    <>
+      <Outlet />
+      {showOvii && !unlocked && (
+        <PasswordModal onUnlock={() => setUnlocked(true)} />
+      )}
+      {showOvii && unlocked && (
+        <OViiChat onLock={() => { setUnlocked(false); setShowOvii(false); }} />
+      )}
+    </>
+  );
+}

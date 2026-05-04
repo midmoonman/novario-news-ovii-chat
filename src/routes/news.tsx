@@ -1,9 +1,12 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Header } from "@/components/novario/Header";
 import { BottomNav } from "@/components/novario/BottomNav";
 import { BreakingTicker } from "@/components/novario/BreakingTicker";
 import { HeroSlider } from "@/components/novario/HeroSlider";
 import { TrendingRow } from "@/components/novario/TrendingRow";
+import { TrendingPeople } from "@/components/novario/TrendingPeople";
 import { CategoryGrid } from "@/components/novario/CategoryGrid";
 import { getHomeFeed, getNews } from "@/server/newsapi.functions";
 import { CATEGORIES } from "@/lib/news";
@@ -29,10 +32,28 @@ export const Route = createFileRoute("/news")({
 
 function NewsHome() {
   const data = Route.useLoaderData();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      window.location.reload();
+    }, 15 * 60 * 1000); // 15 minutes
+    return () => clearInterval(interval);
+  }, []);
+
+  if (pathname !== "/news" && pathname !== "/news/") {
+    return <Outlet />;
+  }
 
   if (data.mode === "cat") {
     return (
-      <div className="min-h-screen bg-background text-foreground flex flex-col">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -10 }}
+        transition={{ duration: 0.3 }}
+        className="min-h-screen bg-background text-foreground flex flex-col"
+      >
         <Header />
         <BreakingTicker />
         <main className="mx-auto max-w-7xl w-full px-4 py-8 flex-1">
@@ -46,18 +67,25 @@ function NewsHome() {
           <CategoryGrid initial={data.cat} articles={data.articles} categories={[data.cat]} />
         </main>
         <BottomNav />
-      </div>
+      </motion.div>
     );
   }
 
   const heroPool = data.all.slice(0, 8);
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.3 }}
+      className="min-h-screen bg-background text-foreground flex flex-col"
+    >
       <Header />
       <BreakingTicker />
       <main className="mx-auto max-w-7xl w-full px-4 py-6 space-y-12 flex-1">
         <HeroSlider articles={heroPool} />
         <TrendingRow articles={data.all.slice(0, 12)} />
+        <TrendingPeople />
 
         {/* Per-section strips so the homepage isn't repetitive */}
         {(["India", "World", "Business", "Tech", "Sports"] as const).map((cat) => {
@@ -92,6 +120,6 @@ function NewsHome() {
         </div>
       </main>
       <BottomNav />
-    </div>
+    </motion.div>
   );
 }

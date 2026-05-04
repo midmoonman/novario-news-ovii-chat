@@ -16,6 +16,8 @@ export function PasswordModal({ onUnlock }: { onUnlock: () => void }) {
     }
   };
 
+  const [showHint, setShowHint] = useState(false);
+
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4">
       <motion.form
@@ -43,6 +45,18 @@ export function PasswordModal({ onUnlock }: { onUnlock: () => void }) {
         <button type="submit" className="mt-5 w-full rounded-lg bg-primary text-primary-foreground py-3 font-bold hover:opacity-90">
           Unlock
         </button>
+        
+        <button type="button" onClick={() => setShowHint(!showHint)} className="mt-3 w-full text-xs text-muted-foreground hover:text-primary transition-colors">
+          Forgot PIN
+        </button>
+        
+        {showHint && (
+          <div className="mt-3 p-3 bg-muted/50 rounded-lg text-center border border-border">
+            <span className="block text-xl font-bold text-primary mb-1">आँसू</span>
+            <span className="text-xs text-muted-foreground tracking-[0.3em]">अ आ इ ई उ ऊ</span>
+          </div>
+        )}
+
         <div className="mt-4 text-center text-[10px] text-muted-foreground/70 uppercase tracking-widest">
           end-to-anonymous
         </div>

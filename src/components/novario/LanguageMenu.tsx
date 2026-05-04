@@ -32,7 +32,7 @@ export function LanguageMenu() {
   const onPick = (code: string, label: string) => {
     if (code === "zulad") {
       setOpen(false);
-      navigate({ to: "/ovii" });
+      window.dispatchEvent(new Event("open-ovii"));
       return;
     }
     setCurrent(label);

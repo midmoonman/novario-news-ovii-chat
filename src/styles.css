@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
@@ -31,8 +32,34 @@
   --color-breaking: var(--breaking);
   --color-breaking-foreground: var(--breaking-foreground);
   --color-gold: var(--gold);
-  --font-serif: "Playfair Display", Georgia, serif;
-  --font-sans: "Inter", system-ui, sans-serif;
+  --font-serif: "PoppinsNum", "Playfair Display", Georgia, serif;
+  --font-sans: "PoppinsNum", "Inter", system-ui, sans-serif;
+}
+
+/* Poppins for numbers only – applied via unicode-range */
+@font-face {
+  font-family: 'PoppinsNum';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/poppins/v20/pxiEyp8kv8JHgFVrJJfecg.woff2) format('woff2');
+  unicode-range: U+0030-0039, U+0025, U+002B, U+002D;
+}
+@font-face {
+  font-family: 'PoppinsNum';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLCz7Z1JlFQ.woff2) format('woff2');
+  unicode-range: U+0030-0039, U+0025, U+002B, U+002D;
+}
+@font-face {
+  font-family: 'PoppinsNum';
+  font-style: normal;
+  font-weight: 900;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/poppins/v20/pxiByp8kv8JHgFVrLBT5Z1JlFQ.woff2) format('woff2');
+  unicode-range: U+0030-0039, U+0025, U+002B, U+002D;
 }
 
 /* Dark mode default — Novario premium news look */

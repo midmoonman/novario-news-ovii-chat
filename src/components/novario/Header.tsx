@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { WeatherWidget } from "./WeatherWidget";
 import { LiveCounter } from "./LiveCounter";
 import { LanguageMenu } from "./LanguageMenu";
@@ -15,6 +15,7 @@ const NAV: { label: string; cat?: string }[] = [
 
 export function Header() {
   const [today, setToday] = useState("");
+  const navigate = useNavigate();
   useEffect(() => {
     setToday(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }));
   }, []);
@@ -51,10 +52,28 @@ export function Header() {
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <button className="hidden sm:inline-flex items-center justify-center h-9 w-9 rounded-full border border-border hover:border-primary/50">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <div className="hidden sm:flex items-center rounded-full border border-border overflow-hidden focus-within:border-primary/50 transition-colors h-9">
+              <span className="pl-3 text-muted-foreground">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+              </span>
+              <input
+                type="text"
+                placeholder="Search..."
+                className="bg-transparent border-none focus:outline-none px-2 w-32 text-sm"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    const q = e.currentTarget.value.trim();
+                    if (q) navigate({ to: "/news", search: { cat: q } });
+                  }
+                }}
+              />
+            </div>
+            <button 
+              onClick={() => alert("Subscribe feature coming soon!")}
+              className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"
+            >
+              Subscribe
             </button>
-            <button className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90">Subscribe</button>
           </div>
         </div>
         {/* Mobile category nav */}

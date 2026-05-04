@@ -3,7 +3,11 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/novario/Header";
 import { BottomNav } from "@/components/novario/BottomNav";
 import { BreakingTicker } from "@/components/novario/BreakingTicker";
+import { useState } from "react";
 import { getArticle, getHomeFeed } from "@/server/newsapi.functions";
+import { LiveIllustration } from "@/components/novario/LiveIllustration";
+import { ArticleTimeline } from "@/components/novario/ArticleTimeline";
+import { ShareCard } from "@/components/novario/ShareCard";
 
 export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
@@ -28,13 +32,23 @@ export const Route = createFileRoute("/news/$slug")({
 
 function ArticlePage() {
   const { article, related } = Route.useLoaderData();
+  const [isShareOpen, setShareOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
-      <Header />
-      <BreakingTicker />
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.4 }}
+      className="min-h-screen bg-background text-foreground flex flex-col relative"
+    >
+      <LiveIllustration category={article.category} />
+      
+      <div className="z-10 flex flex-col flex-1">
+        <Header />
+        <BreakingTicker />
 
-      <article className="mx-auto max-w-3xl w-full px-4 pt-10 pb-16 flex-1">
+        <article className="mx-auto max-w-3xl w-full px-4 pt-10 pb-16 flex-1">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
           <div className="flex items-center gap-3 text-xs uppercase tracking-wider mb-4">
             <span className="bg-primary text-primary-foreground rounded-full px-3 py-1 font-bold">{article.category}</span>
@@ -60,18 +74,18 @@ function ArticlePage() {
             <img src={article.image} alt={article.title} className="w-full h-auto" />
           </div>
 
-          <div className="prose prose-invert max-w-none space-y-5 text-[17px] leading-[1.8] text-foreground/90">
-            {article.body.map((p: string, i: number) => (
-              <p key={i} className={i === 0 ? "first-letter:serif first-letter:text-6xl first-letter:font-bold first-letter:float-left first-letter:mr-3 first-letter:leading-none first-letter:text-primary" : ""}>
-                {p}
-              </p>
-            ))}
+          <div className="max-w-none text-[18px] leading-[1.8] text-foreground/90 font-serif">
+            <ArticleTimeline paragraphs={article.body} />
           </div>
 
           <div className="mt-10 pt-6 border-t border-border flex items-center justify-between text-sm">
             <div className="flex gap-3">
-              <button className="rounded-full border border-border px-4 py-2 hover:border-primary/50">Share</button>
-              <button className="rounded-full border border-border px-4 py-2 hover:border-primary/50">Save</button>
+              <button 
+                onClick={() => setShareOpen(true)}
+                className="rounded-full border border-primary text-primary hover:bg-primary hover:text-primary-foreground px-6 py-2 transition-colors font-bold"
+              >
+                Share
+              </button>
             </div>
             <Link to="/news" className="text-primary hover:underline">More stories →</Link>
           </div>
@@ -99,7 +113,15 @@ function ArticlePage() {
         </section>
       )}
 
+      </div>
       <BottomNav />
-    </div>
+      <ShareCard 
+        isOpen={isShareOpen} 
+        onClose={() => setShareOpen(false)} 
+        title={article.title} 
+        image={article.image} 
+        category={article.category} 
+      />
+    </motion.div>
   );
 }
