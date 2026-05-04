@@ -63,7 +63,8 @@ export function LanguageMenu() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15 }}
-            className="absolute right-0 mt-2 w-80 max-w-[92vw] rounded-xl border border-border bg-card shadow-elegant z-50 overflow-hidden"
+            className="fixed left-2 right-2 mt-2 w-auto sm:absolute sm:left-auto sm:right-0 sm:w-80 sm:max-w-[92vw] rounded-xl border border-border bg-card shadow-elegant z-50 overflow-hidden"
+            style={{ top: ref.current ? ref.current.getBoundingClientRect().bottom + 8 : undefined }}
           >
             <div className="p-3 border-b border-border">
               <input
