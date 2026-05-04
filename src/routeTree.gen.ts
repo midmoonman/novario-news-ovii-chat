@@ -14,6 +14,8 @@ import { Route as NewsroomRouteImport } from './routes/newsroom'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as TermsRouteImport } from './routes/terms'
+import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 
@@ -42,6 +44,16 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -56,6 +68,8 @@ const NewsSlugRoute = NewsSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/terms': typeof TermsRoute
+  '/privacy': typeof PrivacyRoute
   '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
   '/newsroom': typeof NewsroomRoute
@@ -65,6 +79,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/terms': typeof TermsRoute
+  '/privacy': typeof PrivacyRoute
   '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
   '/newsroom': typeof NewsroomRoute
@@ -75,6 +91,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/terms': typeof TermsRoute
+  '/privacy': typeof PrivacyRoute
   '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
   '/newsroom': typeof NewsroomRoute
@@ -86,6 +104,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/terms'
+    | '/privacy'
     | '/contact'
     | '/news'
     | '/newsroom'
@@ -95,6 +115,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/about'
+    | '/terms'
+    | '/privacy'
     | '/contact'
     | '/news'
     | '/newsroom'
@@ -104,6 +126,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/about'
+    | '/terms'
+    | '/privacy'
     | '/contact'
     | '/news'
     | '/newsroom'
@@ -114,6 +138,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  TermsRoute: typeof TermsRoute
+  PrivacyRoute: typeof PrivacyRoute
   ContactRoute: typeof ContactRoute
   NewsRoute: typeof NewsRouteWithChildren
   NewsroomRoute: typeof NewsroomRoute
@@ -157,6 +183,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/terms': {
+      id: '/terms'
+      path: '/terms'
+      fullPath: '/terms'
+      preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacy': {
+      id: '/privacy'
+      path: '/privacy'
+      fullPath: '/privacy'
+      preLoaderRoute: typeof PrivacyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -187,6 +227,8 @@ const NewsRouteWithChildren = NewsRoute._addFileChildren(NewsRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  TermsRoute: TermsRoute,
+  PrivacyRoute: PrivacyRoute,
   ContactRoute: ContactRoute,
   NewsRoute: NewsRouteWithChildren,
   NewsroomRoute: NewsroomRoute,

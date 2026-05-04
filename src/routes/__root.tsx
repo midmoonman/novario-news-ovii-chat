@@ -39,7 +39,7 @@ function RootComponent() {
   }, []);
 
   return (
-    <>
+    <div className="w-full overflow-x-hidden relative flex flex-col min-h-screen">
       <Outlet />
       {showOvii && !unlocked && (
         <PasswordModal onUnlock={() => setUnlocked(true)} />
@@ -47,6 +47,6 @@ function RootComponent() {
       {showOvii && unlocked && (
         <OViiChat onLock={() => { setUnlocked(false); setShowOvii(false); }} />
       )}
-    </>
+    </div>
   );
 }
