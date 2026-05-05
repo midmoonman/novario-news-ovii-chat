@@ -115,10 +115,18 @@ function readTime(text: string) {
   return Math.max(2, Math.round(words / 200));
 }
 
-export function getGradientFallback(seed: string) {
-  // Ultra-premium dark neutral gradient (midnight blue to zinc black).
-  // No random colors generated, meaning absolutely zero chance of green.
-  return `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500"><defs><radialGradient id="r" cx="50%" cy="50%" r="75%"><stop offset="0%" stop-color="%231a1a2e"/><stop offset="100%" stop-color="%2309090b"/></radialGradient><pattern id="g" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/></pattern></defs><rect width="800" height="500" fill="%2309090b"/><rect width="800" height="500" fill="url(%23r)"/><rect width="800" height="500" fill="url(%23g)"/></svg>`;
+/**
+ * Last-resort image fallback: a REAL stock photo from Picsum, seeded by the article title.
+ * NEVER returns a gradient or SVG placeholder.
+ */
+export function getPicsumFallback(seed: string): string {
+  // Create a deterministic hash from the seed so the same title always gets the same photo
+  let hash = 0;
+  for (let i = 0; i < seed.length; i++) {
+    hash = ((hash << 5) - hash + seed.charCodeAt(i)) | 0;
+  }
+  const id = Math.abs(hash) % 1000;
+  return `https://picsum.photos/seed/${id}/800/500`;
 }
 
 // ── Cache ──
@@ -186,7 +194,7 @@ export async function fetchGuardianNews(query: string, category: string, page = 
       let image = item.fields?.thumbnail || "";
       if (!image) {
         const bingImg = await fetchBingImage(title);
-        image = bingImg || getGradientFallback(title);
+        image = bingImg || getPicsumFallback(title);
       }
 
       const article: RemoteArticle = {
@@ -270,7 +278,7 @@ export async function fetchWikipediaFallback(query: string, category: string): P
     let wikiImage = pageObj.thumbnail?.source || "";
     if (!wikiImage) {
       const bingImg = await fetchBingImage(title);
-      wikiImage = bingImg || getGradientFallback(query);
+      wikiImage = bingImg || getPicsumFallback(query);
     }
 
     const article: RemoteArticle = {
@@ -324,7 +332,7 @@ export async function fetchWebSearchFallback(query: string, category: string): P
       title,
       excerpt,
       body,
-      image: getGradientFallback(query),
+      image: getPicsumFallback(query),
       category: category || "Web Search",
       author: "DuckDuckGo Results",
       publishedAt: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }),
@@ -394,7 +402,7 @@ export async function fetchGoogleNewsRSS(query: string, fallbackImage?: string):
       // If we still have no image, use Bing Image Search with the article title
       if (!image || image.includes(GENERIC_UNSPLASH_ID)) {
         const bingImg = await fetchBingImage(title);
-        image = bingImg || fallbackImage || getGradientFallback(title);
+        image = bingImg || fallbackImage || getPicsumFallback(title);
       }
 
       const sourceName = item.author?.split(" - ").pop()?.trim() || item.source?.title || "News";
@@ -555,7 +563,29 @@ export async function getNews(category = "Top", page = 1) {
   const standardCats = ["Top", "India", "World", "Business", "Tech", "Sports", "Entertainment", "Science", "Health"];
   
   if (standardCats.includes(category)) {
-    const articles = await fetchGuardianNews(category === "India" ? "India" : "", category === "Top" || category === "India" ? "" : category, page);
+    // India: query Guardian's world section with India tag for relevant, non-repetitive results
+    let articles: RemoteArticle[];
+    if (category === "India") {
+      articles = await fetchGuardianNews("India", "world", page);
+    } else {
+      articles = await fetchGuardianNews(category === "Top" ? "" : "", category === "Top" ? "" : category, page);
+    }
+
+    // De-duplicate by title similarity
+    const seen = new Set<string>();
+    articles = articles.filter(a => {
+      const normalized = a.title.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+      const words = normalized.split(/\s+/);
+      // Check if >70% of words match any already-seen title
+      for (const seenTitle of seen) {
+        const seenWords = seenTitle.split(/\s+/);
+        const overlap = words.filter(w => seenWords.includes(w)).length;
+        if (overlap / Math.max(words.length, 1) > 0.7) return false;
+      }
+      seen.add(normalized);
+      return true;
+    });
+
     return { articles, category };
   } else {
     // ── STRICT RULE: custom search always returns bio first, then recent news ──
@@ -601,8 +631,8 @@ export async function getNews(category = "Top", page = 1) {
           } else if (tmdbImages.length > 0) {
             bio[0].image = tmdbImages[0];
           } else {
-             // NO STOCK PHOTOS ALLOWED: Use an elegant abstract gradient instead of alphabets
-             bio[0].image = getGradientFallback(category);
+             // NO STOCK PHOTOS ALLOWED: Use an elegant abstract photo instead
+              bio[0].image = getPicsumFallback(category);
           }
           articlesBySlug.set(bio[0].slug, bio[0]);
         }
@@ -619,7 +649,7 @@ export async function getNews(category = "Top", page = 1) {
            }
            // Last resort: Bing Image Search using the article title
            const bingImg = await fetchBingImage(a.title + " " + category);
-           return { ...a, image: bingImg || getGradientFallback(category + i) };
+           return { ...a, image: bingImg || getPicsumFallback(category + i) };
         }
         return a;
       }));
@@ -649,7 +679,7 @@ export async function getNews(category = "Top", page = 1) {
               return { ...a, image: tmdbImages[hash] };
            }
            const bingImg = await fetchBingImage(a.title + " " + category);
-           return { ...a, image: bingImg || getGradientFallback(category + i) };
+           return { ...a, image: bingImg || getPicsumFallback(category + i) };
         }
         return a;
       }));

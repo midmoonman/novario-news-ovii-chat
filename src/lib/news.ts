@@ -1,4 +1,4 @@
-import { fetchBingImage } from "../server/newsapi.functions";
+import { fetchBingImage, getPicsumFallback } from "../server/newsapi.functions";
 
 export type Article = {
   id: string;
@@ -160,7 +160,7 @@ export async function initArticleImages() {
     ARTICLES.map(async (article) => {
       if (article.image === "__bing__") {
         const img = await fetchBingImage(article.title);
-        article.image = img || "";
+        article.image = img || getPicsumFallback(article.title);
       }
     })
   );
