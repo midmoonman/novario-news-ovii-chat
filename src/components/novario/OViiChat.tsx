@@ -232,16 +232,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
     const handleBeforeUnload = () => cleanupPresence();
     const handlePageHide = () => cleanupPresence();
-    const handleVisibilityForPresence = () => {
-      if (document.visibilityState === 'hidden') {
-        cleanupPresence();
-      } else if (document.visibilityState === 'visible' && currentUid) {
-        // Re-establish presence when returning
-        setDoc(doc(db, "ovii", ROOM, "presence", currentUid), {
-          uid: currentUid, avatar, name, lastSeen: serverTimestamp(), typing: false, recording: false
-        }, { merge: true }).catch(() => {});
-      }
-    };
 
     (async () => {
       try {
@@ -272,10 +262,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         setUid(u.uid);
         setCount(Math.min(2, fresh.docs.length + (fresh.docs.find((d) => d.id === u.uid) ? 0 : 1)));
 
-        // Register cleanup listeners
+        // Register cleanup listeners (only on actual close, NOT on visibility hidden)
         window.addEventListener("beforeunload", handleBeforeUnload);
         window.addEventListener("pagehide", handlePageHide);
-        document.addEventListener("visibilitychange", handleVisibilityForPresence);
 
         // heartbeat every 15s (reduced from 20s for tighter stale detection)
         heartbeatId = setInterval(() => {
@@ -309,12 +298,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           });
           
           // In-chat system message diff logic (WhatsApp style)
+          currentOnline.forEach(user => {
+            if (user.uid !== u.uid && !prevOnlineRef.current.has(user.uid)) {
+              setSystemMsgs(prev => [...prev, { id: crypto.randomUUID(), text: `${user.name} is online`, ts: Date.now() }]);
+            }
+          });
           if (prevOnlineRef.current.size > 0) {
-            currentOnline.forEach(user => {
-              if (user.uid !== u.uid && !prevOnlineRef.current.has(user.uid)) {
-                setSystemMsgs(prev => [...prev, { id: crypto.randomUUID(), text: `${user.name} is online`, ts: Date.now() }]);
-              }
-            });
             prevOnlineRef.current.forEach((prevName, prevUid) => {
               if (prevUid !== u.uid && !currentOnlineIds.has(prevUid)) {
                 setSystemMsgs(prev => [...prev, { id: crypto.randomUUID(), text: `${prevName} went offline`, ts: Date.now() }]);
@@ -377,7 +366,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       if (heartbeatId) clearInterval(heartbeatId);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handlePageHide);
-      document.removeEventListener("visibilitychange", handleVisibilityForPresence);
       cleanupPresence();
     };
   }, [avatar]);
@@ -388,12 +376,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     window.addEventListener("pointerdown", bump);
     window.addEventListener("keydown", bump);
     
-    const handleVisibility = () => {
-      if (document.visibilityState === 'hidden') {
-        onLock();
-      }
-    };
-    document.addEventListener("visibilitychange", handleVisibility);
+    // On mobile, visibilityState changes when keyboard opens — do NOT lock on hidden.
+    // Only lock on inactivity timeout.
+    // Removed: document.addEventListener("visibilitychange", handleVisibility);
 
     const t = setInterval(() => {
       if (Date.now() - lastActivity.current > 180_000) onLock();
@@ -401,7 +386,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     return () => {
       window.removeEventListener("pointerdown", bump);
       window.removeEventListener("keydown", bump);
-      document.removeEventListener("visibilitychange", handleVisibility);
       clearInterval(t);
     };
   }, [onLock]);
@@ -962,7 +946,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   }
                 }
               }}
-              placeholder={uid ? "Message... (Paste GIFs from keyboard)" : "Connecting…"}
+              placeholder={uid ? "Message..." : "Connecting…"}
               disabled={!uid || !!error}
               className="flex-1 min-w-0 h-10 rounded-full bg-muted/60 border border-transparent px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-background transition-all"
             />
