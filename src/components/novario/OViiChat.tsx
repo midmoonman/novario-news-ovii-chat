@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
@@ -96,19 +96,18 @@ const AudioPlayer = ({ src, id }: { src: string, id: string }) => {
   };
 
   return (
-    <div className="flex items-center gap-2 min-w-[200px] sm:min-w-[240px]">
-      <button onClick={toggle} className="w-8 h-8 rounded-full bg-primary-foreground/20 flex items-center justify-center shrink-0 hover:bg-primary-foreground/30 transition-colors">
+    <div className="flex items-center gap-3 min-w-[200px] sm:min-w-[240px]">
+      <button onClick={toggle} className="w-10 h-10 rounded-full bg-primary-foreground/15 flex items-center justify-center shrink-0 hover:bg-primary-foreground/25 transition-colors">
         {playing ? <Pause className="w-4 h-4 fill-current text-current" /> : <Play className="w-4 h-4 fill-current text-current ml-0.5" />}
       </button>
-      <div className="flex-1" ref={containerRef} />
-      <div className="flex items-center gap-1.5 shrink-0">
-        <button onClick={toggleSpeed} className="text-[9px] font-bold bg-primary-foreground/15 px-2 py-0.5 rounded-full text-current hover:bg-primary-foreground/25 transition-colors border border-primary-foreground/10">
-          {speed}x
-        </button>
-        <span className="text-[10px] font-medium opacity-80 tabular-nums">
-          {fmt(playing ? currentTime : duration)}
-        </span>
-      </div>
+      <div className="flex-1 min-w-0" ref={containerRef} />
+      <span className="text-[11px] font-semibold opacity-90 tabular-nums bg-primary-foreground/10 px-2 py-0.5 rounded-md shrink-0">
+        {fmt(playing ? currentTime : duration)}
+      </span>
+      <button onClick={toggleSpeed} className="text-[11px] font-bold bg-transparent px-2.5 py-1 rounded-full text-current hover:bg-primary-foreground/15 transition-colors border border-current/30 flex items-center gap-0.5 shrink-0">
+        {speed}x
+        <ChevronDown className="w-3 h-3 opacity-60" />
+      </button>
     </div>
   );
 };
@@ -454,6 +453,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
   };
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const onText = async (e?: React.FormEvent | React.KeyboardEvent) => {
     if (e) e.preventDefault();
     const v = text.trim();
@@ -462,6 +463,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setIsTyping(false);
     if (typingTimer.current) clearTimeout(typingTimer.current);
     setPres({ typing: false });
+
+    // Keep keyboard open by refocusing input immediately
+    requestAnimationFrame(() => {
+      inputRef.current?.focus();
+    });
 
     // Auto-detect GIF/image URLs and send as image type
     const isImageUrl = /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(v);
@@ -658,10 +664,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       )}
 
       {showFolder && (
-        <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl flex flex-col">
-          <div className="p-4 border-b border-border flex items-center justify-between">
-            <h2 className="text-lg font-bold flex items-center gap-2"><Folder className="w-5 h-5 text-primary"/> Media Folder</h2>
-            <button onClick={() => setShowFolder(false)} className="text-muted-foreground hover:text-foreground"><X className="w-6 h-6"/></button>
+        <div className="absolute inset-0 z-50 bg-background/98 backdrop-blur-xl flex flex-col">
+          <div className="p-4 border-b border-border/60 flex items-center justify-between">
+            <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5" style={{ fontFamily: 'Poppins, Inter, sans-serif' }}>
+              <Folder className="w-5 h-5 text-destructive"/> MY FILES
+            </h2>
+            <button onClick={() => setShowFolder(false)} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+              <X className="w-5 h-5"/>
+            </button>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-6">
             {voiceMsgs.length === 0 ? (
@@ -674,12 +684,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                  return acc;
                }, {} as Record<string, Msg[]>)).map(([date, msgs]) => (
                  <div key={date} className="space-y-3">
-                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{date}</h3>
+                   <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">{date}</h3>
                    {msgs.map(m => (
-                    <div key={m.id} className="bg-card border border-border p-3 rounded-xl flex items-center justify-between gap-3 shadow-sm">
-                      <AudioPlayer src={m.content} id={m.id} />
-                      <button onClick={() => downloadVoice(m.content, m.id)} className="p-2 bg-muted hover:bg-accent rounded-full text-muted-foreground hover:text-primary transition-colors shrink-0" aria-label="Download voice note">
-                        <Download className="w-4 h-4" />
+                    <div key={m.id} className="bg-card/80 border border-border/50 p-3.5 rounded-2xl flex items-center gap-3 shadow-sm">
+                      <div className="flex-1 min-w-0">
+                        <AudioPlayer src={m.content} id={m.id} />
+                      </div>
+                      <button onClick={() => downloadVoice(m.content, m.id)} className="p-2.5 bg-muted/60 hover:bg-accent rounded-full text-muted-foreground hover:text-primary transition-colors shrink-0" aria-label="Download voice note">
+                        <Download className="w-4.5 h-4.5" />
                       </button>
                     </div>
                    ))}
@@ -690,25 +702,33 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         </div>
       )}
 
-      <header className="border-b border-border px-4 py-3 flex items-center justify-between bg-background/95 backdrop-blur-sm z-10">
+      <header className="border-b border-border/60 px-4 py-3 flex items-center justify-between bg-background/95 backdrop-blur-md z-10 shrink-0">
         <div className="flex items-center gap-3">
           <div className="h-9 w-9 rounded-full gradient-gold flex items-center justify-center text-lg overflow-hidden border border-border">
             {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : null}
           </div>
           <div>
-            <div className="serif font-bold">OVii</div>
+            <div className="font-bold text-[15px]" style={{ fontFamily: 'Poppins, Inter, sans-serif' }}>OVii</div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
               <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse-dot" />
               {onlineUsers.length > 0 ? onlineUsers.map(u => u.uid === uid ? "You" : u.name).join(", ") : "Connecting..."}
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-muted-foreground">
-          <button onClick={() => setShowFolder(true)} className="hover:text-primary transition-colors p-1 relative" aria-label="Media Folder">
+        <div className="flex items-center gap-2 text-muted-foreground">
+          <button 
+            onClick={() => { window.location.href = '/news'; }}
+            className="hover:text-primary transition-colors p-1.5 rounded-full hover:bg-muted" 
+            aria-label="Switch to News"
+            title="Switch to News"
+          >
+            <ArrowLeftRight className="w-5 h-5" />
+          </button>
+          <button onClick={() => setShowFolder(true)} className="hover:text-primary transition-colors p-1.5 rounded-full hover:bg-muted relative" aria-label="My Files">
             <Folder className="w-5 h-5" />
             {unreadVoice > 0 && <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{unreadVoice}</span>}
           </button>
-          <button onClick={onLock} className="text-xs font-medium hover:text-primary transition-colors uppercase tracking-wider px-2 py-1 rounded-md bg-accent/50 hover:bg-accent">Lock</button>
+          <button onClick={onLock} className="text-xs font-semibold hover:text-primary transition-colors uppercase tracking-wider px-3 py-1.5 rounded-full bg-muted/60 hover:bg-muted border border-border/50">Lock</button>
         </div>
       </header>
 
@@ -898,6 +918,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               <Mic className="w-5 h-5" />
             </button>
             <input
+              ref={inputRef}
               id="ovii-chat-input"
               name={`ovii_nocomplete_${Date.now()}`}
               type="text"
@@ -950,7 +971,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               disabled={!uid || !!error}
               className="flex-1 min-w-0 h-10 rounded-full bg-muted/60 border border-transparent px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-background transition-all"
             />
-            <button type="button" onClick={() => onText()} disabled={!text.trim()} className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 disabled:scale-95 transition-all shadow-sm">
+            <button type="button" onClick={() => onText()} disabled={!text.trim()} className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 disabled:scale-95 transition-all shadow-md">
               <Send className="w-4 h-4 ml-0.5" />
             </button>
           </>
