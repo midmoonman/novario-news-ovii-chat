@@ -11,6 +11,10 @@
     </linearGradient>
   </defs>
   <rect width="512" height="512" rx="96" fill="url(#bg)"/>
-  <text x="256" y="320" text-anchor="middle" font-family="Georgia, serif" font-weight="800" font-size="240" fill="url(#gold)" letter-spacing="-8">NA</text>
-  <rect x="64" y="380" width="384" height="3" rx="1.5" fill="#f59e0b" opacity="0.4"/>
+  <!-- Nov -->
+  <text x="256" y="280" text-anchor="middle" font-family="Georgia, 'Playfair Display', serif" font-weight="800" font-size="140" fill="#f0f0f0" letter-spacing="-4">Nov</text>
+  <!-- a (gold accent) -->
+  <text x="256" y="400" text-anchor="middle" font-family="Georgia, 'Playfair Display', serif" font-weight="800" font-size="140" fill="url(#gold)" letter-spacing="-4">ario</text>
+  <!-- Subtle line -->
+  <rect x="100" y="430" width="312" height="2.5" rx="1.25" fill="#f59e0b" opacity="0.3"/>
 </svg>

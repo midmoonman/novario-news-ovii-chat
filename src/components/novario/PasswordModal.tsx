@@ -20,8 +20,9 @@ export function PasswordModal({ onUnlock }: { onUnlock: () => void }) {
 
   return (
     <div className="fixed inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4">
-      <motion.div
+      <motion.form
         key={shake}
+        onSubmit={submit}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0, x: shake > 0 ? [0, -10, 10, -8, 8, 0] : 0 }}
         transition={{ duration: 0.45 }}
@@ -32,48 +33,16 @@ export function PasswordModal({ onUnlock }: { onUnlock: () => void }) {
           <h1 className="serif text-2xl font-bold">OVii</h1>
           <p className="text-xs text-muted-foreground mt-1">Private channel · enter key to continue</p>
         </div>
-        {/* 
-          IMPORTANT: This is NOT a login form. We use a plain div instead of <form>
-          and a text input with masking to prevent Chrome from treating this as a
-          credential and offering "Save password" / showing the password bar on the
-          next page (the chat input).
-        */}
         <input
-          type="text"
-          inputMode="numeric"
+          type="password"
           autoFocus
-          autoComplete="off"
-          data-1p-ignore="true"
-          data-lpignore="true"
-          data-protonpass-ignore="true"
-          data-form-type="other"
-          value={val.replace(/./g, '•')}
-          onChange={(e) => {
-            // Extract only the newly typed character (last char if adding)
-            const raw = e.target.value;
-            // If user is typing, the last char is the real one, rest are bullets
-            if (raw.length > val.length) {
-              // Character added
-              const newChar = raw.slice(-1);
-              setVal(val + newChar);
-            } else {
-              // Character deleted
-              setVal(val.slice(0, raw.length));
-            }
-            setErr("");
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              submit(e as any);
-            }
-          }}
+          value={val}
+          onChange={(e) => { setVal(e.target.value); setErr(""); }}
           placeholder="••••••"
           className="w-full text-center tracking-[0.6em] text-lg rounded-lg bg-background border border-border px-4 py-3 focus:border-primary focus:outline-none"
-          style={{ WebkitTextSecurity: 'disc' } as any}
         />
         {err && <div className="mt-3 text-xs text-destructive text-center">{err}</div>}
-        <button type="button" onClick={(e) => submit(e as any)} className="mt-5 w-full rounded-lg bg-primary text-primary-foreground py-3 font-bold hover:opacity-90">
+        <button type="submit" className="mt-5 w-full rounded-lg bg-primary text-primary-foreground py-3 font-bold hover:opacity-90">
           Unlock
         </button>
         
@@ -91,7 +60,7 @@ export function PasswordModal({ onUnlock }: { onUnlock: () => void }) {
         <div className="mt-4 text-center text-[10px] text-muted-foreground/70 uppercase tracking-widest">
           end-to-anonymous
         </div>
-      </motion.div>
+      </motion.form>
     </div>
   );
 }
