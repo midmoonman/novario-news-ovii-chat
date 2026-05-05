@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Link2, X, Play, Pause, XCircle } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
@@ -101,13 +101,13 @@ const AudioPlayer = ({ src, id }: { src: string, id: string }) => {
         {playing ? <Pause className="w-4 h-4 fill-current text-current" /> : <Play className="w-4 h-4 fill-current text-current ml-0.5" />}
       </button>
       <div className="flex-1" ref={containerRef} />
-      <div className="flex flex-col items-end gap-0.5 shrink-0">
-        <button onClick={toggleSpeed} className="text-[9px] font-bold bg-primary-foreground/10 px-1.5 rounded text-current hover:bg-primary-foreground/20 transition-colors">
+      <div className="flex items-center gap-1.5 shrink-0">
+        <button onClick={toggleSpeed} className="text-[9px] font-bold bg-primary-foreground/15 px-2 py-0.5 rounded-full text-current hover:bg-primary-foreground/25 transition-colors border border-primary-foreground/10">
           {speed}x
         </button>
-        <div className="text-[10px] font-medium opacity-80 tabular-nums">
+        <span className="text-[10px] font-medium opacity-80 tabular-nums">
           {fmt(playing ? currentTime : duration)}
-        </div>
+        </span>
       </div>
     </div>
   );
@@ -193,7 +193,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [onlineUsers, setOnlineUsers] = useState<{uid: string, name: string}[]>([]);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [systemMsgs, setSystemMsgs] = useState<{id: string, text: string, ts: number}[]>([]);
-  const prevOnlineRef = useRef<Set<string>>(new Set());
+  const prevOnlineRef = useRef<Map<string, string>>(new Map());
   
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
   const cancelRecRef = useRef(false);
@@ -315,13 +315,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 setSystemMsgs(prev => [...prev, { id: crypto.randomUUID(), text: `${user.name} is online`, ts: Date.now() }]);
               }
             });
-            prevOnlineRef.current.forEach(uid => {
-              if (uid !== u.uid && !currentOnlineIds.has(uid)) {
-                setSystemMsgs(prev => [...prev, { id: crypto.randomUUID(), text: `A user went offline`, ts: Date.now() }]);
+            prevOnlineRef.current.forEach((prevName, prevUid) => {
+              if (prevUid !== u.uid && !currentOnlineIds.has(prevUid)) {
+                setSystemMsgs(prev => [...prev, { id: crypto.randomUUID(), text: `${prevName} went offline`, ts: Date.now() }]);
               }
             });
           }
-          prevOnlineRef.current = currentOnlineIds;
+          // Store uid→name mapping for next diff
+          const nextMap = new Map<string, string>();
+          currentOnline.forEach(user => nextMap.set(user.uid, user.name));
+          prevOnlineRef.current = nextMap;
 
           setOnlineUsers(currentOnline);
           setTypingUsers(t);
@@ -475,7 +478,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setIsTyping(false);
     if (typingTimer.current) clearTimeout(typingTimer.current);
     setPres({ typing: false });
-    await send("text", v.slice(0, 1000));
+
+    // Auto-detect GIF/image URLs and send as image type
+    const isImageUrl = /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(v);
+    if (isImageUrl) {
+      await send("image", v);
+    } else {
+      await send("text", v.slice(0, 1000));
+    }
   };
 
   const uploadToCloudinary = async (file: File | Blob) => {
@@ -508,13 +518,20 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     const items = e.clipboardData.items;
+    // Check for image file pastes first (e.g. screenshots, copied images)
     for (let i = 0; i < items.length; i++) {
       if (items[i].type.startsWith("image/")) {
         e.preventDefault();
         const file = items[i].getAsFile();
         if (file) onImage(file);
-        break;
+        return;
       }
+    }
+    // Check for pasted GIF/image URLs from keyboard GIF panels
+    const pastedText = e.clipboardData.getData("text/plain")?.trim();
+    if (pastedText && /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(pastedText)) {
+      e.preventDefault();
+      send("image", pastedText);
     }
   };
 
@@ -581,8 +598,23 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setPres({ recording: false });
   };
 
-  const copyLink = (url: string) => {
-    navigator.clipboard.writeText(url);
+  const downloadVoice = async (url: string, msgId: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = `voice-note-${msgId.slice(0, 8)}.webm`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(blobUrl);
+      toast.success("Download started");
+    } catch {
+      // Fallback: open in new tab
+      window.open(url, '_blank');
+    }
   };
 
   // Only show text/image messages + the most recent voice note in the main chat
@@ -660,10 +692,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                  <div key={date} className="space-y-3">
                    <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider">{date}</h3>
                    {msgs.map(m => (
-                    <div key={m.id} className="bg-card border border-border p-3 rounded-xl flex items-center justify-between gap-4 shadow-sm">
+                    <div key={m.id} className="bg-card border border-border p-3 rounded-xl flex items-center justify-between gap-3 shadow-sm">
                       <AudioPlayer src={m.content} id={m.id} />
-                      <button onClick={() => copyLink(m.content)} className="p-2 bg-muted hover:bg-accent rounded-full text-muted-foreground hover:text-primary transition-colors shrink-0">
-                        <Link2 className="w-4 h-4" />
+                      <button onClick={() => downloadVoice(m.content, m.id)} className="p-2 bg-muted hover:bg-accent rounded-full text-muted-foreground hover:text-primary transition-colors shrink-0" aria-label="Download voice note">
+                        <Download className="w-4 h-4" />
                       </button>
                     </div>
                    ))}
