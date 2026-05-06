@@ -90,28 +90,28 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
   const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
-    <div className={`flex items-center gap-3 w-full max-w-[280px] p-2.5 rounded-2xl border transition-all ${
+    <div className={`flex items-center gap-4 w-full max-w-[300px] p-3.5 rounded-2xl border transition-all ${
       mine ? "bg-m3-surface-container-high/60 border-white/5 shadow-elegant" : "bg-m3-other-container/30 border-primary/20 shadow-glow-orange"
     }`}>
-      <button onClick={toggle} className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${
+      <button onClick={toggle} className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${
         mine ? "bg-primary/10 border-primary/20" : "bg-primary/20 border-primary/40"
       }`}>
-        {playing ? <Pause className="w-4 h-4 fill-primary text-primary" /> : <Play className="w-4 h-4 fill-primary text-primary ml-0.5" />}
+        {playing ? <Pause className="w-5 h-5 fill-primary text-primary" /> : <Play className="w-5 h-5 fill-primary text-primary ml-0.5" />}
       </button>
-      <div className="flex-1 min-w-0 flex flex-col gap-1">
+      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
         <div
           className={`w-full transition-all duration-300 ${playing ? "waveform-playing opacity-100" : "opacity-80"}`}
-          style={{ height: 28, overflow: "hidden" }}
+          style={{ height: 30, overflow: "hidden" }}
           ref={containerRef}
         />
         <div className="flex items-center justify-between px-0.5">
-          <span className={`text-[10px] font-bold tabular-nums ${mine ? "text-primary" : "text-primary"}`}>
+          <span className={`text-[11px] font-black tabular-nums tracking-wide ${mine ? "text-primary" : "text-primary"}`}>
             {fmt(playing ? currentTime : duration)}
           </span>
-          <div className="flex items-center gap-1.5">
-            {timeStr && <span className={`text-[9px] font-bold tabular-nums opacity-60 ${mine ? "text-foreground" : "text-primary"}`}>{timeStr}</span>}
+          <div className="flex items-center gap-2.5">
+            {timeStr && <span className={`text-[10px] font-bold tabular-nums opacity-50 ${mine ? "text-foreground" : "text-primary"}`}>{timeStr}</span>}
             {mine && <MsgTick status={status} />}
-            <button onClick={toggleSpeed} className="text-[9px] font-black px-1.5 py-0.5 rounded text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
+            <button onClick={toggleSpeed} className="text-[10px] font-black px-2 py-0.5 rounded-md text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors ml-1">
               {speed}x
             </button>
           </div>
@@ -937,9 +937,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 />
 
                 {recording ? (
-                  <div className="flex-1 flex items-center gap-1.5 bg-m3-surface-container-high/90 backdrop-blur-xl rounded-[28px] px-2.5 h-11 border border-primary/20 shadow-elegant overflow-hidden max-w-full">
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="w-1.5 h-1.5 bg-destructive rounded-full shadow-[0_0_8px_red] animate-pulse shrink-0" />
+                  <div className="flex-1 flex items-center gap-3 bg-m3-surface-container-high/90 backdrop-blur-xl rounded-[28px] px-4 h-12 border border-primary/20 shadow-elegant overflow-hidden max-w-full">
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className="w-2 h-2 bg-destructive rounded-full shadow-[0_0_10px_red] animate-pulse shrink-0" />
                       <RecordingVisualizer />
                     </div>
                     <motion.div
@@ -947,13 +947,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       dragConstraints={{ right: 0 }}
                       dragElastic={0.1}
                       onDrag={(_, info) => { if (info.offset.x < -60) cancelRec(); }}
-                      className="flex-1 flex items-center justify-center gap-1 cursor-grab active:cursor-grabbing select-none min-w-0"
+                      className="flex-1 flex items-center justify-center gap-1.5 cursor-grab active:cursor-grabbing select-none min-w-0"
                     >
-                      <ChevronLeft className="w-3 h-3 text-muted-foreground/40 shrink-0 animate-pulse" />
-                      <span className="text-muted-foreground/40 text-[8px] font-black uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis">Slide to cancel</span>
+                      <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 animate-pulse" />
+                      <span className="text-muted-foreground/40 text-[10px] font-black uppercase tracking-widest whitespace-nowrap overflow-hidden text-ellipsis">Slide to cancel</span>
                     </motion.div>
-                    <button type="button" onClick={stopAndSendRec} className="shrink-0 h-8 px-3 rounded-full bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-wider hover:bg-primary/90 transition-all shadow-glow flex items-center gap-1 active:scale-95">
-                      <Send className="w-3 h-3" /> Send
+                    <button type="button" onClick={stopAndSendRec} className="shrink-0 h-9 px-4 rounded-full bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-wider hover:bg-primary/90 transition-all shadow-glow flex items-center gap-1.5 active:scale-95">
+                      <Send className="w-3.5 h-3.5" /> Send
                     </button>
                   </div>
                 ) : (
