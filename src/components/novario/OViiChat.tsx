@@ -105,11 +105,11 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
           ref={containerRef}
         />
         <div className="flex items-center justify-between px-0.5">
-          <span className={`text-[10px] font-bold tabular-nums ${mine ? "text-primary" : "text-black/60"}`}>
+          <span className={`text-[10px] font-bold tabular-nums ${mine ? "text-primary" : "text-primary"}`}>
             {fmt(playing ? currentTime : duration)}
           </span>
           <div className="flex items-center gap-1.5">
-            {timeStr && <span className={`text-[9px] font-bold tabular-nums opacity-60 ${mine ? "text-foreground" : "text-black"}`}>{timeStr}</span>}
+            {timeStr && <span className={`text-[9px] font-bold tabular-nums opacity-60 ${mine ? "text-foreground" : "text-primary"}`}>{timeStr}</span>}
             {mine && <MsgTick status={status} />}
             <button onClick={toggleSpeed} className="text-[9px] font-black px-1.5 py-0.5 rounded text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
               {speed}x
@@ -836,7 +836,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
 
                                 <div className="flex items-end gap-1 self-end mt-1 opacity-80 scale-90 shrink-0">
-                                  <span className={`text-[9px] font-bold tabular-nums ${mine ? "text-primary" : "text-black/60"}`}>
+                                  <span className={`text-[9px] font-bold tabular-nums ${mine ? "text-primary" : "text-primary/70"}`}>
                                     {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                   </span>
                                   {mine && <MsgTick status={m.status} />}
