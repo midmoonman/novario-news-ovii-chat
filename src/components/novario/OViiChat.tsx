@@ -17,6 +17,7 @@ type Msg = {
   name?: string;
   type: "text" | "image" | "voice";
   content: string;
+  caption?: string;
   createdAt?: Timestamp;
   status?: "sending" | "sent" | "delivered" | "read";
   replyTo?: { id: string, content: string, avatar: string, name?: string };
@@ -508,6 +509,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
   };
 
+  const sendImage = async (url: string, caption?: string) => {
+    if (!uid || !url) return;
+    lastActivity.current = Date.now();
+    const msgData: any = { uid, avatar, name, type: "image", content: url, caption, status: "sent", createdAt: Timestamp.now() };
+    await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
+  };
+
   const onText = async (e?: React.FormEvent | React.KeyboardEvent) => {
     if (e) e.preventDefault();
     const v = text.trim();
@@ -542,8 +550,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (!uid) return;
     if (file.size > 8 * 1024 * 1024) { setError("Image too large (max 8MB)"); return; }
     try {
+      const cap = prompt("Enter a caption (optional):") || "";
       const url = await uploadToCloudinary(file);
-      await send("image", url);
+      await sendImage(url, cap);
     } catch (e: any) { setError("Image upload failed: " + (e.message || "Unknown error")); }
   };
 
@@ -878,7 +887,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }
                               }
                             }}
-                            className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[520px] ${mine ? "ml-auto" : "mr-auto"}`}
+                            className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[70%] ${mine ? "ml-auto" : "mr-auto"}`}
                           >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                               }`}>
@@ -916,8 +925,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 >
                                   <div className="relative flex flex-col">
                                     {m.type === "image" && (
-                                      <div className="mb-0 overflow-hidden rounded-[20px]">
-                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[480px] shadow-sm block" />
+                                      <div className="mb-0 overflow-hidden rounded-[18px] relative">
+                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[600px] shadow-sm block" />
+                                        {m.caption && (
+                                          <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
+                                            {m.caption}
+                                          </div>
+                                        )}
                                       </div>
                                     )}
 
