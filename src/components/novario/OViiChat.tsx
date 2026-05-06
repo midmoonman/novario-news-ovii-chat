@@ -855,7 +855,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
 
                                 <div className="flex items-end gap-1 self-end mt-1 opacity-80 scale-90 shrink-0">
-                                  <span className={`text-[9px] font-bold tabular-nums ${mine ? "text-primary" : "text-primary/70"}`}>
+                                  <span className={`text-[9px] font-bold tabular-nums ${mine ? "text-primary" : "text-black/60"}`}>
                                     {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                   </span>
                                   {mine && <MsgTick status={m.status} />}
