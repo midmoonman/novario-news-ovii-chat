@@ -711,7 +711,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                    {msgs.map(m => (
                     <div key={m.id} className="bg-card/80 border border-border/50 p-3.5 rounded-2xl flex items-center gap-3 shadow-sm">
                       <div className="flex-1 min-w-0">
-                        <AudioPlayer src={m.content} id={m.id} />
+                        <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} />
                       </div>
                       <button onClick={() => downloadVoice(m.content, m.id)} className="p-2.5 bg-muted/60 hover:bg-accent rounded-full text-muted-foreground hover:text-primary transition-colors shrink-0" aria-label="Download voice note">
                         <Download className="w-4.5 h-4.5" />
