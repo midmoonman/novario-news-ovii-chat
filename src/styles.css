@@ -111,20 +111,14 @@
   * { border-color: var(--color-border); }
 
   html {
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
-    position: fixed;
+    scroll-behavior: smooth;
   }
   body {
-    overflow: hidden;
-    height: 100%;
-    width: 100%;
-    position: fixed;
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
   }
 
   /* ─── Chat root: fills the entire screen, clips everything ─────────────
