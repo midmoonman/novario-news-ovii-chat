@@ -888,7 +888,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }
                               }
                             }}
-                            className={`relative flex gap-2 group max-w-[85%] sm:max-w-[75%]`}
+                            className={`relative flex gap-2 group max-w-[85%] sm:max-w-[75%] ${mine ? "ml-auto" : "mr-auto"}`}
                           >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${
                               mine ? "-right-12 pl-4" : "-left-12 pr-4"
