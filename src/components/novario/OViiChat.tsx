@@ -121,8 +121,8 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between mt-1">
+          <div className="flex items-center gap-2">
             <span className="text-[11px] tabular-nums opacity-60">
               {fmt(playing ? currentTime : duration)}
             </span>
@@ -132,7 +132,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {mine && (
               <div className="opacity-60 scale-90">
                 <MsgTick status={status} />
@@ -140,8 +140,8 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
             )}
             <button 
               onClick={toggleSpeed} 
-              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all active:scale-95 ${
-                isDarkMode ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"
+              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all active:scale-95 ${
+                isDarkMode ? "bg-white/5 border-white/10 text-white/70" : "bg-black/5 border-black/10 text-black/60"
               }`}
             >
               {speed}x
@@ -975,96 +975,125 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) onImage(f); e.target.value = ""; }}
                 />
 
-                <div className={`flex-1 flex flex-col min-w-0 rounded-[24px] shadow-sm overflow-hidden ${
-                  isDarkMode ? "bg-[#2a3942]" : "bg-white"
-                }`}>
-                  <AnimatePresence>
-                    {replyingTo && (
-                      <motion.div
-                        initial={{ opacity: 0, height: 0 }}
-                        animate={{ opacity: 1, height: "auto" }}
-                        exit={{ opacity: 0, height: 0 }}
-                        className={`px-3 py-2 border-b flex items-center justify-between ${
-                          isDarkMode ? "bg-black/20 border-white/5" : "bg-black/5 border-black/5"
-                        }`}
-                      >
-                        <div className="flex items-center gap-3 overflow-hidden flex-1">
-                          <div className="w-1 bg-[#25d366] h-8 rounded-full shrink-0" />
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-[10px] font-bold text-[#25d366] uppercase tracking-wide">{replyingTo.name || "User"}</span>
-                            <div className={`truncate text-[12px] italic ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
-                              {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
-                            </div>
-                          </div>
-                        </div>
-                        <button onClick={() => setReplyingTo(null)} className="p-1 text-muted-foreground hover:text-destructive">
-                          <X className="w-4 h-4" />
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div className="flex items-center px-1">
-                    <button type="button" className={`p-2.5 rounded-full transition-colors ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
-                      <span className="text-xl">😊</span>
-                    </button>
-                    
-                    <input
-                      ref={inputRef}
-                      type="text"
-                      autoComplete="off"
-                      value={text}
-                      onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) onText(e); }}
-                      onPaste={handlePaste}
-                      onChange={(e) => {
-                        const val = e.target.value;
-                        setText(val);
-                        if (uid) {
-                          const typingNow = val.length > 0;
-                          if (typingNow !== isTyping) { setIsTyping(typingNow); setPres({ typing: typingNow }); }
-                          if (typingTimer.current) clearTimeout(typingTimer.current);
-                          if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
-                        }
-                      }}
-                      placeholder="Type a message"
-                      disabled={!uid || !!error}
-                      className={`flex-1 bg-transparent py-3 px-2 text-[15px] focus:outline-none placeholder:opacity-50 ${
-                        isDarkMode ? "text-white" : "text-black"
-                      }`}
-                    />
-
-                    <button type="button" onClick={() => fileRef.current?.click()} className={`p-2.5 rounded-full transition-colors ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
-                      <Folder className="w-6 h-6 rotate-[-45deg]" />
-                    </button>
-                    <button type="button" className={`p-2.5 rounded-full transition-colors ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
-                      <ImageIcon className="w-6 h-6" />
-                    </button>
-                  </div>
-                </div>
-
                 {recording ? (
-                  <div className="flex items-center gap-3 bg-[#25d366] rounded-full p-2 pr-4 shadow-lg animate-in zoom-in-50 duration-200">
-                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white">
-                      <Mic className="w-6 h-6" />
-                    </div>
-                    <div className="flex items-center gap-4 text-white">
+                  /* ── Recording state: swipe-to-cancel with green skin ── */
+                  <div className={`flex-1 flex items-center gap-3 rounded-[28px] px-4 h-[52px] overflow-hidden ${
+                    isDarkMode ? "bg-[#2a3942]" : "bg-white"
+                  }`}>
+                    <div className="flex items-center gap-2.5 shrink-0">
+                      <span className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_red] animate-pulse shrink-0" />
                       <RecordingVisualizer />
-                      <button onClick={stopAndSendRec} className="font-bold text-sm">Send</button>
-                      <button onClick={cancelRec} className="text-white/80"><X className="w-5 h-5" /></button>
                     </div>
+                    <motion.div
+                      drag="x"
+                      dragConstraints={{ right: 0 }}
+                      dragElastic={0.1}
+                      onDrag={(_, info) => { if (info.offset.x < -60) cancelRec(); }}
+                      className="flex-1 flex items-center justify-center gap-1.5 cursor-grab active:cursor-grabbing select-none min-w-0"
+                    >
+                      <ChevronLeft className={`w-3.5 h-3.5 shrink-0 animate-pulse ${
+                        isDarkMode ? "text-white/30" : "text-black/30"
+                      }`} />
+                      <span className={`text-[11px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis ${
+                        isDarkMode ? "text-white/30" : "text-black/30"
+                      }`}>Slide to cancel</span>
+                    </motion.div>
+                    <button
+                      type="button"
+                      onClick={stopAndSendRec}
+                      className="shrink-0 h-9 px-4 rounded-full bg-[#00a884] text-white text-[11px] font-bold flex items-center gap-1.5 active:scale-95 transition-all"
+                    >
+                      <Send className="w-3.5 h-3.5" /> Send
+                    </button>
                   </div>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (text.trim()) onText();
-                      else startRec();
-                    }}
-                    onPointerDown={(e) => { if (!text.trim()) { e.preventDefault(); startRec(); } }}
-                    className="w-11 h-11 shrink-0 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-sm active:scale-90 transition-all"
-                  >
-                    {text.trim() ? <Send className="w-5 h-5 fill-white" /> : <Mic className="w-5 h-5 fill-white" />}
-                  </button>
+                  /* ── Normal state: image + mic + text input ── */
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className={`h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                        isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
+                      }`}
+                      aria-label="Attach image"
+                    >
+                      <ImageIcon className="w-6 h-6" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onPointerDown={(e) => { e.preventDefault(); startRec(); }}
+                      className={`h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                        isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
+                      }`}
+                      aria-label="Tap to record"
+                    >
+                      <Mic className="w-6 h-6" />
+                    </button>
+
+                    <div className={`flex-1 flex items-center rounded-[24px] px-4 h-[52px] ${
+                      isDarkMode ? "bg-[#2a3942]" : "bg-white"
+                    }`}>
+                      <AnimatePresence mode="wait">
+                        {replyingTo && (
+                          <motion.div
+                            key="reply"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="flex items-center gap-2 w-full"
+                          >
+                            <div className="w-0.5 bg-[#25d366] h-7 rounded-full shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[10px] font-bold text-[#25d366] truncate">{replyingTo.name || "User"}</div>
+                              <div className={`text-[11px] italic truncate ${
+                                isDarkMode ? "text-white/50" : "text-black/50"
+                              }`}>
+                                {replyingTo.type === "text" ? replyingTo.content : replyingTo.type === "image" ? "Photo" : "Voice Note"}
+                              </div>
+                            </div>
+                            <button onClick={() => setReplyingTo(null)} className="shrink-0 p-1">
+                              <X className={`w-3.5 h-3.5 ${ isDarkMode ? "text-white/40" : "text-black/40" }`} />
+                            </button>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                      <input
+                        ref={inputRef}
+                        type="text"
+                        autoComplete="off"
+                        value={text}
+                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) onText(e); }}
+                        onPaste={handlePaste}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setText(val);
+                          if (uid) {
+                            const typingNow = val.length > 0;
+                            if (typingNow !== isTyping) { setIsTyping(typingNow); setPres({ typing: typingNow }); }
+                            if (typingTimer.current) clearTimeout(typingTimer.current);
+                            if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
+                          }
+                        }}
+                        placeholder="Type a message"
+                        disabled={!uid || !!error}
+                        className={`flex-1 bg-transparent py-3 text-[15px] focus:outline-none placeholder:opacity-40 ${
+                          isDarkMode ? "text-white" : "text-black"
+                        }`}
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => { if (text.trim()) onText(); }}
+                      disabled={!text.trim()}
+                      className={`h-11 w-11 shrink-0 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-sm active:scale-90 transition-all ${
+                        !text.trim() ? "opacity-0 scale-90 pointer-events-none" : "opacity-100 scale-100"
+                      }`}
+                    >
+                      <Send className="w-5 h-5 fill-white" />
+                    </button>
+                  </>
                 )}
               </div>
             </div>
