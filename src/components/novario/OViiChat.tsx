@@ -39,8 +39,8 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
     
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: mine ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.25)',
-      progressColor: mine ? 'oklch(0.72 0.18 35)' : 'rgba(0,0,0,0.6)',
+      waveColor: 'oklch(0.72 0.18 35 / 0.3)',
+      progressColor: 'oklch(0.72 0.18 35)',
       cursorWidth: 0,
       barWidth: 2,
       barGap: 2,
@@ -671,15 +671,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   return (
     <div 
-      className="ovii-chat-root flex flex-col bg-background"
-      style={{
-        height: `${vpHeight}px`,
-        backgroundImage: "radial-gradient(circle at 50% 0%, oklch(0.2 0.05 250 / 0.4), transparent 50%), radial-gradient(circle at 100% 100%, oklch(0.72 0.18 35 / 0.05), transparent 50%)",
-        overscrollBehavior: 'none'
-      }}
-      onDragOver={(e) => e.preventDefault()}
-      onDrop={handleDrop}
+      className="ovii-chat-root bg-background"
+      style={{ height: `${vpHeight}px` }}
     >
+      <div 
+        className="ovii-chat-inner flex flex-col h-full w-full overflow-x-hidden relative"
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+      >
       <Toaster position="top-center" />
       {showAvatarPicker && (
         <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4">
@@ -1100,6 +1099,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             </button>
           </>
         )}
+      </div>
       </div>
     </div>
   );
