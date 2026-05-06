@@ -847,7 +847,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             ) : (
                               <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
                                 ${mine
-                                  ? "bg-m3-surface-container-high text-foreground " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
+                                  ? "bg-gradient-to-br from-[oklch(0.6_0.15_40)] to-[oklch(0.7_0.18_45)] text-black shadow-elegant border-none " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
                                   : "bg-gradient-to-br from-[oklch(0.7_0.18_45)] to-[oklch(0.85_0.15_55)] text-black shadow-glow-orange border-none " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
                                 }`}
                               >
@@ -855,10 +855,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
 
                                 <div className="flex items-end gap-1 self-end mt-1 opacity-80 scale-90 shrink-0">
-                                  <span className={`text-[9px] font-bold tabular-nums ${mine ? "text-primary" : "text-black/60"}`}>
+                                  <span className="text-[9px] font-bold tabular-nums text-black/60">
                                     {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                   </span>
-                                  {mine && <MsgTick status={m.status} />}
+                                  {mine && (
+                                    <div className="text-black/60">
+                                      <MsgTick status={m.status} />
+                                    </div>
+                                  )}
                                 </div>
 
                                 {/* Desktop hover reply button */}
