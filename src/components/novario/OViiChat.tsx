@@ -781,6 +781,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 <Folder className="w-5 h-5" />
                 {unreadVoice > 0 && <span className="absolute top-1 right-1 bg-[#25d366] text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm">{unreadVoice}</span>}
               </button>
+               <button
+                onClick={async () => {
+                  if (confirm("Permanently clear all chat history?")) {
+                    const q = query(collection(db, ROOM));
+                    const snapshot = await getDocs(q);
+                    snapshot.forEach((d) => deleteDoc(d.ref));
+                    toast.success("Database cleared successfully");
+                  }
+                }}
+                className={`p-1.5 rounded-full transition-all ${isDarkMode ? "hover:bg-white/10 text-white/40 hover:text-red-400" : "hover:bg-black/5 text-black/30 hover:text-red-500"}`}
+                title="Clear Database"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+
               <button
                 onClick={onLock}
                 className={`ml-1 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border ${isDarkMode
