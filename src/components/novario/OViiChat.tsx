@@ -96,18 +96,21 @@ const AudioPlayer = ({ src, id }: { src: string, id: string }) => {
   };
 
   return (
-    <div className="flex items-center gap-3 min-w-[200px] sm:min-w-[240px]">
-      <button onClick={toggle} className="w-10 h-10 rounded-full bg-primary-foreground/15 flex items-center justify-center shrink-0 hover:bg-primary-foreground/25 transition-colors">
-        {playing ? <Pause className="w-4 h-4 fill-current text-current" /> : <Play className="w-4 h-4 fill-current text-current ml-0.5" />}
+    <div className="flex items-center gap-4 min-w-[220px] sm:min-w-[260px] bg-m3-surface-container-high/40 p-2 rounded-2xl border border-white/5">
+      <button onClick={toggle} className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 hover:bg-primary/20 transition-all active:scale-90 border border-primary/20 shadow-glow">
+        {playing ? <Pause className="w-5 h-5 fill-primary text-primary" /> : <Play className="w-5 h-5 fill-primary text-primary ml-1" />}
       </button>
-      <div className="flex-1 min-w-0" ref={containerRef} />
-      <span className="text-[11px] font-semibold opacity-90 tabular-nums bg-primary-foreground/10 px-2 py-0.5 rounded-md shrink-0">
-        {fmt(playing ? currentTime : duration)}
-      </span>
-      <button onClick={toggleSpeed} className="text-[11px] font-bold bg-transparent px-2.5 py-1 rounded-full text-current hover:bg-primary-foreground/15 transition-colors border border-current/30 flex items-center gap-0.5 shrink-0">
-        {speed}x
-        <ChevronDown className="w-3 h-3 opacity-60" />
-      </button>
+      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+        <div className="flex-1 min-w-0" ref={containerRef} />
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[10px] font-black opacity-60 tabular-nums uppercase tracking-widest text-primary">
+            {fmt(playing ? currentTime : duration)}
+          </span>
+          <button onClick={toggleSpeed} className="text-[9px] font-black bg-primary/10 px-2 py-0.5 rounded-md text-primary hover:bg-primary/20 transition-colors border border-primary/20">
+            {speed}x
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
@@ -702,15 +705,19 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         </div>
       )}
 
-      <header className="border-b border-border/60 px-4 py-3 flex items-center justify-between bg-background/95 backdrop-blur-md z-10 shrink-0">
+      <header className="border-b border-border/40 px-4 py-3 flex items-center justify-between bg-background/80 backdrop-blur-xl z-20 shrink-0 sticky top-0">
         <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full gradient-gold flex items-center justify-center text-lg overflow-hidden border border-border">
-            {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : null}
+          <div className="h-10 w-10 rounded-full gradient-gold p-[2px] shadow-glow">
+            <div className="h-full w-full rounded-full bg-background overflow-hidden border border-background">
+              {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : null}
+            </div>
           </div>
           <div>
-            <div className="font-bold text-[15px]" style={{ fontFamily: 'Poppins, Inter, sans-serif' }}>OVii</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-2">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse-dot" />
+            <div className="font-black text-lg tracking-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              ovii<span className="text-primary">.</span>
+            </div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 font-bold">
+              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
               {onlineUsers.length > 0 ? onlineUsers.map(u => u.uid === uid ? "You" : u.name).join(", ") : "Connecting..."}
             </div>
           </div>
@@ -718,17 +725,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         <div className="flex items-center gap-2 text-muted-foreground">
           <button 
             onClick={() => { window.location.href = '/news'; }}
-            className="hover:text-primary transition-colors p-1.5 rounded-full hover:bg-muted" 
+            className="hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10" 
             aria-label="Switch to News"
-            title="Switch to News"
           >
             <ArrowLeftRight className="w-5 h-5" />
           </button>
-          <button onClick={() => setShowFolder(true)} className="hover:text-primary transition-colors p-1.5 rounded-full hover:bg-muted relative" aria-label="My Files">
+          <button onClick={() => setShowFolder(true)} className="hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10 relative">
             <Folder className="w-5 h-5" />
-            {unreadVoice > 0 && <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full">{unreadVoice}</span>}
+            {unreadVoice > 0 && <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-glow">{unreadVoice}</span>}
           </button>
-          <button onClick={onLock} className="text-xs font-semibold hover:text-primary transition-colors uppercase tracking-wider px-3 py-1.5 rounded-full bg-muted/60 hover:bg-muted border border-border/50">Lock</button>
+          <button onClick={onLock} className="text-[10px] font-bold hover:text-primary transition-colors uppercase tracking-widest px-3 py-1.5 rounded-full bg-muted/40 hover:bg-muted border border-border/30">Lock</button>
         </div>
       </header>
 
@@ -761,52 +767,74 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             const mine = m.uid === uid;
             const prevMsg = chatMsgs[i - 1];
             const isConsecutive = prevMsg && prevMsg.uid === m.uid;
+            const nextMsg = chatMsgs[i + 1];
+            const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
             
             return (
               <motion.div
                 key={m.id}
-                initial={{ opacity: 0, y: 8, scale: 0.95 }}
+                initial={{ opacity: 0, y: 12, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ duration: 0.25 }}
-                className={`flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? 'mt-3' : ''}`}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ type: "spring", damping: 20, stiffness: 200 }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 60 }}
+                dragElastic={0.2}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x > 40) {
+                    setReplyingTo(m);
+                    toast.info(`Replying to ${m.name || "message"}`);
+                  }
+                }}
+                className={`flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? 'mt-4' : 'mt-0.5'}`}
               >
                 {!mine && (
-                  <div className="flex flex-col items-center mt-auto gap-1 w-7 shrink-0">
-                    {!isConsecutive && <img src={m.avatar} className="h-7 w-7 rounded-full bg-muted object-cover border border-border" alt="" />}
+                  <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                    {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
                   </div>
                 )}
-                <div className={`max-w-[85%] ${mine ? "items-end" : "items-start"} flex flex-col gap-1`}>
-                  {!mine && !isConsecutive && m.name && <span className="text-[10px] font-bold text-muted-foreground ml-1">{m.name}</span>}
+                <div className={`max-w-[85%] ${mine ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
+                  {!mine && !isConsecutive && m.name && <span className="text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
                   
                   {m.replyTo && (
-                    <div className="bg-accent/50 px-3 py-2 rounded-lg text-xs opacity-80 flex items-center gap-2 mb-1 border-l-2 border-primary">
-                      <img src={m.replyTo.avatar} className="w-4 h-4 rounded-full" alt=""/>
-                      <div className="flex flex-col">
-                        {m.replyTo.name && <span className="text-[9px] font-bold text-primary">{m.replyTo.name}</span>}
-                        <span className="truncate max-w-[120px] italic">{m.replyTo.content}</span>
+                    <div className="bg-m3-surface-container-high/50 px-3 py-2 rounded-t-xl rounded-b-sm text-xs opacity-80 flex items-center gap-2 border-l-4 border-primary/60 mb-0.5 mx-1">
+                      <img src={m.replyTo.avatar} className="w-5 h-5 rounded-full border border-border/20" alt=""/>
+                      <div className="flex flex-col min-w-0">
+                        {m.replyTo.name && <span className="text-[9px] font-black text-primary uppercase tracking-tighter">{m.replyTo.name}</span>}
+                        <span className="truncate max-w-[140px] italic text-[11px]">{m.replyTo.content}</span>
                       </div>
                     </div>
                   )}
-                  <div className={`rounded-2xl px-3 py-2 text-sm break-words relative flex items-center gap-2 ${mine ? "bg-primary text-primary-foreground rounded-br-sm" : "bg-card border border-border rounded-bl-sm"}`}>
+                  <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
+                    ${mine 
+                      ? "bg-m3-primary-container text-m3-on-primary-container " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
+                      : "bg-m3-surface-container text-foreground border border-border/10 " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
+                    }`}>
                     {m.type === "text" && <span>{m.content}</span>}
-                    {m.type === "image" && <img src={m.content} alt="" className="rounded-lg max-w-[240px]" />}
+                    {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
                     {m.type === "voice" && <AudioPlayer src={m.content} id={m.id} />}
                     
-                    {/* Hover actions */}
-                    <div className={`absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} flex items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
-                      <button onClick={() => setReplyingTo(m)} className="p-1.5 rounded-full bg-background/80 hover:bg-background shadow-sm border border-border text-muted-foreground hover:text-primary">
-                        <Reply className="w-3 h-3" />
+                    {/* Tick and Time */}
+                    <div className="flex items-end gap-1 self-end mt-1 opacity-70 scale-90 shrink-0">
+                      <span className="text-[9px] font-medium tabular-nums">
+                        {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
+                      </span>
+                      {mine && <MsgTick status={m.status} />}
+                    </div>
+
+                    {/* Desktop Hover Action */}
+                    <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
+                      <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
+                        <Reply className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
-                  <div className={`flex items-center gap-1 px-1 ${mine ? 'justify-end' : 'justify-start'}`}>
-                    <span className="text-[9px] text-muted-foreground/60">
-                      {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
-                    </span>
-                    {mine && <MsgTick status={m.status} />}
-                  </div>
                 </div>
+                {mine && (
+                  <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                    {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
+                  </div>
+                )}
               </motion.div>
             );
           })}
@@ -856,31 +884,33 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         )}
       </AnimatePresence>
 
-      <div className="px-3">
+      <div className="px-3 pb-2">
         <AnimatePresence>
           {replyingTo && (
             <motion.div 
               initial={{ opacity: 0, y: 10, height: 0 }}
               animate={{ opacity: 1, y: 0, height: 'auto' }}
               exit={{ opacity: 0, y: 10, height: 0 }}
-              className="bg-accent/80 backdrop-blur-md rounded-t-xl p-3 border-x border-t border-border flex items-center justify-between"
+              className="bg-m3-surface-container-high/90 backdrop-blur-xl rounded-t-3xl p-4 border-x border-t border-border/20 flex items-center justify-between shadow-elegant"
             >
-              <div className="flex items-center gap-3 overflow-hidden">
-                <Reply className="w-4 h-4 text-primary shrink-0" />
-                <div className="w-1 bg-primary h-8 rounded-full shrink-0" />
-                <div className="truncate text-sm text-muted-foreground italic max-w-[200px]">
-                  {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
+              <div className="flex items-center gap-4 overflow-hidden">
+                <div className="w-1.5 bg-primary h-10 rounded-full shrink-0 shadow-glow" />
+                <div className="flex flex-col min-w-0">
+                  <span className="text-[10px] font-black text-primary uppercase tracking-widest">{replyingTo.name || "User"}</span>
+                  <div className="truncate text-xs text-muted-foreground italic opacity-70">
+                    {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
+                  </div>
                 </div>
               </div>
-              <button onClick={() => setReplyingTo(null)} className="p-1 hover:bg-background/50 rounded-full text-muted-foreground hover:text-foreground transition-colors shrink-0">
-                <XCircle className="w-5 h-5" />
+              <button onClick={() => setReplyingTo(null)} className="p-2 hover:bg-background/50 rounded-full text-muted-foreground hover:text-destructive transition-colors shrink-0 active:scale-90">
+                <XCircle className="w-6 h-6" />
               </button>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <div className={`border-t border-border p-3 flex items-center gap-2 bg-background/95 backdrop-blur-sm z-10 shrink-0 ${replyingTo ? 'border-t-0 rounded-b-xl' : ''}`}>
+      <div className={`border-t border-border/20 p-3 flex items-center gap-2 bg-background/80 backdrop-blur-xl z-20 shrink-0 ${replyingTo ? 'border-t-0 rounded-b-3xl' : ''}`}>
         <input
           ref={fileRef}
           type="file"
@@ -890,52 +920,39 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         />
         
         {recording ? (
-          <div className="flex-1 flex items-center justify-between bg-muted rounded-full px-4 h-11">
-            <div className="flex items-center gap-2 text-destructive font-bold text-sm animate-pulse">
-              <Mic className="w-4 h-4" />
+          <div className="flex-1 flex items-center justify-between bg-m3-primary-container/20 rounded-[28px] px-4 h-12 border border-primary/30">
+            <div className="flex items-center gap-3 text-primary font-black text-xs uppercase tracking-widest animate-pulse">
+              <span className="w-2 h-2 bg-destructive rounded-full shadow-[0_0_10px_red]" />
               Recording...
             </div>
-            <div className="flex items-center gap-2">
-              <button type="button" onClick={cancelRec} className="text-muted-foreground hover:text-destructive p-1.5 transition-colors" aria-label="Cancel recording">
-                <Trash2 className="w-5 h-5" />
+            <div className="flex items-center gap-3">
+              <button type="button" onClick={cancelRec} className="text-[10px] font-black text-muted-foreground uppercase tracking-widest hover:text-destructive p-2 transition-colors">
+                Cancel
               </button>
-              <button type="button" onClick={stopAndSendRec} className="h-8 px-4 rounded-full bg-primary text-primary-foreground text-xs font-bold hover:bg-primary/90 transition-colors shadow-sm flex items-center gap-1" aria-label="Send recording">
-                <Send className="w-3.5 h-3.5" /> Send
+              <button type="button" onClick={stopAndSendRec} className="h-9 px-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-glow flex items-center gap-2 active:scale-95">
+                <Send className="w-4 h-4" /> Send
               </button>
             </div>
           </div>
         ) : (
           <>
-            <button type="button" onClick={() => fileRef.current?.click()} className="h-10 w-10 shrink-0 rounded-full text-muted-foreground hover:bg-accent hover:text-foreground flex items-center justify-center transition-colors" aria-label="Attach image">
-              <ImageIcon className="w-5 h-5" />
+            <button type="button" onClick={() => fileRef.current?.click()} className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all active:scale-90" aria-label="Attach image">
+              <ImageIcon className="w-6 h-6" />
             </button>
             <button
               type="button"
-              onClick={startRec}
-              className="h-10 w-10 shrink-0 rounded-full text-muted-foreground hover:bg-accent hover:text-foreground flex items-center justify-center transition-colors"
+              onPointerDown={(e) => { e.preventDefault(); startRec(); }}
+              className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all active:scale-90"
               aria-label="Tap to record"
             >
-              <Mic className="w-5 h-5" />
+              <Mic className="w-6 h-6" />
             </button>
             <input
               ref={inputRef}
               id="ovii-chat-input"
               name={`ovii_nocomplete_${Date.now()}`}
               type="text"
-              role="textbox"
-              inputMode="text"
-              autoComplete="new-password"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              data-lpignore="true"
-              data-1p-ignore="true"
-              data-bwignore="true"
-              data-protonpass-ignore="true"
-              data-form-type="other"
-              data-credential="false"
-              aria-autocomplete="none"
-              x-autocompletetype="off"
+              autoComplete="off"
               value={text}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
@@ -943,12 +960,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 }
               }}
               onPaste={handlePaste}
-              onFocus={(e) => {
-                // Aggressively prevent Chrome autofill popup
-                e.target.setAttribute('autocomplete', 'new-password');
-                e.target.setAttribute('readonly', 'true');
-                setTimeout(() => e.target.removeAttribute('readonly'), 50);
-              }}
               onChange={(e) => {
                 const val = e.target.value;
                 setText(val);
@@ -969,10 +980,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               }}
               placeholder={uid ? "Message..." : "Connecting…"}
               disabled={!uid || !!error}
-              className="flex-1 min-w-0 h-10 rounded-full bg-muted/60 border border-transparent px-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-background transition-all"
+              className="flex-1 min-w-0 h-11 rounded-[28px] bg-m3-surface-container-high border border-border/10 px-5 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-m3-surface-container transition-all placeholder:text-muted-foreground/30"
             />
-            <button type="button" onClick={() => onText()} disabled={!text.trim()} className="h-10 w-10 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 disabled:scale-95 transition-all shadow-md">
-              <Send className="w-4 h-4 ml-0.5" />
+            <button 
+              type="button" 
+              onClick={() => onText()} 
+              disabled={!text.trim()} 
+              className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 disabled:scale-95 transition-all shadow-glow active:scale-90"
+            >
+              <Send className="w-5 h-5 ml-0.5" />
             </button>
           </>
         )}
