@@ -55,7 +55,6 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
     waveRef.current = ws;
     ws.on("ready", () => setDuration(ws.getDuration()));
     ws.on("audioprocess", () => setCurrentTime(ws.getCurrentTime()));
-    ws.on("seek", () => setCurrentTime(ws.getCurrentTime()));
     ws.on("finish", () => { setPlaying(false); setCurrentTime(ws.getDuration()); });
     const stopOthers = (e: any) => {
       if (e.detail !== id && ws.isPlaying()) { ws.pause(); setPlaying(false); }
@@ -699,7 +698,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} />
+                <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} isDarkMode={isDarkMode} />
               </div>
             </motion.div>
           )}
@@ -964,15 +963,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 )}
               </AnimatePresence>
 
-              {/* Reply preview bar */}
-              <div className="px-3 pb-0">
-                <AnimatePresence>
-                  {replyingTo && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10, height: 0 }}
-                      animate={{ opacity: 1, y: 0, height: "auto" }}
-                      exit={{ opacity: 0, y: 10, height: 0 }}
-                      className="bg-m3-surface-container-high/95 backdrop-blur-2xl rounded-t-2xl px-3 py-2 border-x border-t bor              {/* Input bar */}
+              {/* Input bar */}
               <div className={`p-2 pb-safe flex items-center gap-2 z-20 shrink-0 ${
                 isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
               }`}>
@@ -1076,7 +1067,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </button>
                 )}
               </div>
-            </div>
             </div>
 
             {/* ── Desktop Sidebar (hidden on mobile via CSS/Tailwind) ── */}
