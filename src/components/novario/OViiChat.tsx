@@ -96,17 +96,17 @@ const AudioPlayer = ({ src, id, mine }: { src: string, id: string, mine: boolean
   };
 
   return (
-    <div className={`flex items-center gap-4 min-w-[220px] sm:min-w-[260px] p-2 rounded-2xl border ${mine ? "bg-m3-surface-container-high/40 border-white/5" : "bg-white/10 border-black/5"}`}>
-      <button onClick={toggle} className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${mine ? "bg-primary/10 border-primary/20" : "bg-black/10 border-black/10"}`}>
-        {playing ? <Pause className={`w-5 h-5 ${mine ? "fill-primary text-primary" : "fill-black text-black"}`} /> : <Play className={`w-5 h-5 ml-1 ${mine ? "fill-primary text-primary" : "fill-black text-black"}`} />}
+    <div className={`flex items-center gap-4 min-w-[220px] sm:min-w-[260px] p-2 rounded-2xl border transition-all ${mine ? "bg-m3-surface-container-high/40 border-white/5" : "bg-m3-other-container/40 border-primary/20 shadow-glow-orange"}`}>
+      <button onClick={toggle} className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${mine ? "bg-primary/10 border-primary/20" : "bg-primary/20 border-primary/40"}`}>
+        {playing ? <Pause className="w-5 h-5 fill-primary text-primary" /> : <Play className="w-5 h-5 fill-primary text-primary ml-1" />}
       </button>
       <div className="flex-1 min-w-0 flex flex-col gap-1.5">
         <div className="flex-1 min-w-0" ref={containerRef} />
         <div className="flex items-center justify-between px-1">
-          <span className={`text-[10px] font-black opacity-60 tabular-nums uppercase tracking-widest ${mine ? "text-primary" : "text-black/60"}`}>
+          <span className="text-[10px] font-black opacity-60 tabular-nums uppercase tracking-widest text-primary">
             {fmt(playing ? currentTime : duration)}
           </span>
-          <button onClick={toggleSpeed} className={`text-[9px] font-black px-2 py-0.5 rounded-md transition-colors border ${mine ? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" : "bg-black/10 text-black hover:bg-black/20 border-black/10"}`}>
+          <button onClick={toggleSpeed} className="text-[9px] font-black bg-primary/10 px-2 py-0.5 rounded-md text-primary hover:bg-primary/20 transition-colors border border-primary/20">
             {speed}x
           </button>
         </div>
@@ -646,6 +646,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         height: `${vpHeight}px`,
         overflow: 'hidden',
         backgroundImage: "radial-gradient(circle at 50% 0%, oklch(0.2 0.05 250 / 0.4), transparent 50%), radial-gradient(circle at 100% 100%, oklch(0.72 0.18 35 / 0.05), transparent 50%)",
+        overscrollBehavior: 'none'
       }}
       onDragOver={(e) => e.preventDefault()}
       onDrop={handleDrop}
@@ -760,7 +761,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
       <div 
         ref={scrollRef} 
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col touch-pan-y"
         style={{ overscrollBehavior: 'contain' }}
         onScroll={(e) => {
           const t = e.currentTarget;
@@ -835,13 +836,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
                     ${mine 
                       ? "bg-m3-surface-container-high text-foreground " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
-                      : "bg-[oklch(0.7_0.18_45)] text-[oklch(0.1_0.05_45)] shadow-[0_0_20px_oklch(0.7_0.18_45_/_0.3)] font-medium " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
+                      : "bg-m3-other-container text-foreground shadow-glow-orange border border-primary/20 " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
                     }`}>
                     {m.type === "text" && <span>{m.content}</span>}
                     {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
                     {m.type === "voice" && <AudioPlayer src={m.content} id={m.id} mine={mine} />}
                     
-                    <div className={`flex items-end gap-1 self-end mt-1 opacity-70 scale-90 shrink-0 ${mine ? "" : "text-black"}`}>
+                    <div className="flex items-end gap-1 self-end mt-1 opacity-70 scale-90 shrink-0">
                       <span className="text-[9px] font-black tabular-nums">
                         {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
                       </span>
