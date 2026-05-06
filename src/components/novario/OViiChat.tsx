@@ -895,7 +895,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }
                               }
                             }}
-                            className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[900px] ${mine ? "ml-auto" : "mr-auto"}`}
+                            className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[95%] ${mine ? "ml-auto" : "mr-auto"}`}
                           >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                               }`}>
@@ -1130,7 +1130,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           
                           // Correct autogrow: reset to auto then measure scrollHeight
                           e.target.style.height = "auto";
-                          const nextH = Math.max(44, Math.min(e.target.scrollHeight, 250));
+                          const nextH = Math.max(44, Math.min(e.target.scrollHeight, 350));
                           setInputHeight(nextH);
 
                           if (uid) {
