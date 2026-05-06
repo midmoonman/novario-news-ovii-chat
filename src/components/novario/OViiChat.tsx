@@ -232,6 +232,7 @@ function FilesList({ voiceMsgs, uid, downloadVoice, isDarkMode }: { voiceMsgs: M
 export function OViiChat({ onLock }: { onLock: () => void }) {
   const [uid, setUid] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [inputHeight, setInputHeight] = useState(44);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("ovii_dark_mode");
     return saved === null ? true : saved === "true";
@@ -534,7 +535,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     requestAnimationFrame(() => inputRef.current?.focus());
     const isImageUrl = /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(v);
     if (isImageUrl) await send("image", v);
-    else await send("text", v.slice(0, 1000));
+    else await send("text", v.slice(0, 5000));
+    setInputHeight(44); // Reset height after send
   };
 
   const uploadToCloudinary = async (file: File | Blob) => {
@@ -906,7 +908,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               </div>
                             )}
 
-                            <div className={`max-w-[85%] lg:max-w-[65%] ${mine ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
+                            <div className={`flex-1 min-w-0 ${mine ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
                               {!mine && !isConsecutive && m.name && <span className="text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
 
                               {m.replyTo && (
@@ -1125,11 +1127,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         onChange={(e) => {
                           const val = e.target.value;
                           setText(val);
-
-                          // Auto-expand logic
+                          
+                          // Correct autogrow: reset to auto then measure scrollHeight
                           e.target.style.height = "auto";
-                          const newHeight = Math.min(e.target.scrollHeight, 150);
-                          e.target.style.height = `${newHeight}px`;
+                          const nextH = Math.max(44, Math.min(e.target.scrollHeight, 250));
+                          setInputHeight(nextH);
 
                           if (uid) {
                             const typingNow = val.length > 0;
@@ -1138,9 +1140,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                           }
                         }}
-                        className={`flex-1 bg-transparent px-4 py-3 text-[15.5px] leading-[1.5] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto max-h-[200px] scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
+                        className={`flex-1 bg-transparent px-4 py-3 text-[15.5px] leading-[1.5] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
                           }`}
-                        style={{ height: "44px" }}
+                        style={{ height: `${inputHeight}px` }}
                       />
                     </div>
 
