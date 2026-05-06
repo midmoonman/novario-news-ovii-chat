@@ -26,7 +26,7 @@ const ROOM = "ovii-room";
 
 const STOP_AUDIO_EVENT = "ovii_stop_audio";
 
-const AudioPlayer = ({ src, id }: { src: string, id: string }) => {
+const AudioPlayer = ({ src, id, mine }: { src: string, id: string, mine: boolean }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveRef = useRef<WaveSurfer | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -96,17 +96,17 @@ const AudioPlayer = ({ src, id }: { src: string, id: string }) => {
   };
 
   return (
-    <div className="flex items-center gap-4 min-w-[220px] sm:min-w-[260px] bg-m3-surface-container-high/40 p-2 rounded-2xl border border-white/5">
-      <button onClick={toggle} className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0 hover:bg-primary/20 transition-all active:scale-90 border border-primary/20 shadow-glow">
-        {playing ? <Pause className="w-5 h-5 fill-primary text-primary" /> : <Play className="w-5 h-5 fill-primary text-primary ml-1" />}
+    <div className={`flex items-center gap-4 min-w-[220px] sm:min-w-[260px] p-2 rounded-2xl border ${mine ? "bg-m3-surface-container-high/40 border-white/5" : "bg-white/10 border-black/5"}`}>
+      <button onClick={toggle} className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${mine ? "bg-primary/10 border-primary/20" : "bg-black/10 border-black/10"}`}>
+        {playing ? <Pause className={`w-5 h-5 ${mine ? "fill-primary text-primary" : "fill-black text-black"}`} /> : <Play className={`w-5 h-5 ml-1 ${mine ? "fill-primary text-primary" : "fill-black text-black"}`} />}
       </button>
       <div className="flex-1 min-w-0 flex flex-col gap-1.5">
         <div className="flex-1 min-w-0" ref={containerRef} />
         <div className="flex items-center justify-between px-1">
-          <span className="text-[10px] font-black opacity-60 tabular-nums uppercase tracking-widest text-primary">
+          <span className={`text-[10px] font-black opacity-60 tabular-nums uppercase tracking-widest ${mine ? "text-primary" : "text-black/60"}`}>
             {fmt(playing ? currentTime : duration)}
           </span>
-          <button onClick={toggleSpeed} className="text-[9px] font-black bg-primary/10 px-2 py-0.5 rounded-md text-primary hover:bg-primary/20 transition-colors border border-primary/20">
+          <button onClick={toggleSpeed} className={`text-[9px] font-black px-2 py-0.5 rounded-md transition-colors border ${mine ? "bg-primary/10 text-primary hover:bg-primary/20 border-primary/20" : "bg-black/10 text-black hover:bg-black/20 border-black/10"}`}>
             {speed}x
           </button>
         </div>
@@ -807,16 +807,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   )}
                   <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
                     ${mine 
-                      ? "bg-m3-primary-container text-m3-on-primary-container " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
-                      : "bg-m3-surface-container text-foreground border border-border/10 " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
+                      ? "bg-m3-surface-container-high text-foreground " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
+                      : "bg-[oklch(0.7_0.18_45)] text-[oklch(0.1_0.05_45)] shadow-[0_0_20px_oklch(0.7_0.18_45_/_0.3)] font-medium " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
                     }`}>
                     {m.type === "text" && <span>{m.content}</span>}
                     {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
-                    {m.type === "voice" && <AudioPlayer src={m.content} id={m.id} />}
+                    {m.type === "voice" && <AudioPlayer src={m.content} id={m.id} mine={mine} />}
                     
-                    {/* Tick and Time */}
-                    <div className="flex items-end gap-1 self-end mt-1 opacity-70 scale-90 shrink-0">
-                      <span className="text-[9px] font-medium tabular-nums">
+                    <div className={`flex items-end gap-1 self-end mt-1 opacity-70 scale-90 shrink-0 ${mine ? "" : "text-black"}`}>
+                      <span className="text-[9px] font-black tabular-nums">
                         {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
                       </span>
                       {mine && <MsgTick status={m.status} />}
