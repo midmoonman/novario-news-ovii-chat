@@ -878,7 +878,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }
                               }
                             }}
-                            className={`relative flex gap-2 group w-fit max-w-[85%] sm:max-w-[75%] ${mine ? "ml-auto" : "mr-auto"}`}
+                            className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[520px] ${mine ? "ml-auto" : "mr-auto"}`}
                           >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                               }`}>
@@ -908,7 +908,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[20px] ${m.type === "image" ? "p-1" : "px-4 py-2.5"} text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
+                                  className={`rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-4 py-2.5"} text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                       : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
@@ -916,8 +916,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 >
                                   <div className="relative flex flex-col">
                                     {m.type === "image" && (
-                                      <div className="mb-0 overflow-hidden rounded-[14px]">
-                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[400px] shadow-sm block" />
+                                      <div className="mb-0 overflow-hidden rounded-[20px]">
+                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[480px] shadow-sm block" />
                                       </div>
                                     )}
 
