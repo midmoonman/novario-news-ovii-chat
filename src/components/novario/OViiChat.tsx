@@ -23,9 +23,13 @@ type Msg = {
 };
 
 const ROOM = "ovii-room";
-
 const STOP_AUDIO_EVENT = "ovii_stop_audio";
 
+// ─── Detect if we're on a touch/mobile device ───────────────────────────────
+const isMobileDevice = () =>
+  typeof window !== "undefined" && window.innerWidth < 768;
+
+// ─── AudioPlayer ─────────────────────────────────────────────────────────────
 const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveRef = useRef<WaveSurfer | null>(null);
@@ -36,11 +40,10 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
 
   useEffect(() => {
     if (!containerRef.current) return;
-    
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: 'oklch(0.75 0.2 45 / 0.5)',
-      progressColor: 'oklch(0.75 0.2 45)',
+      waveColor: "oklch(0.75 0.2 45 / 0.5)",
+      progressColor: "oklch(0.75 0.2 45)",
       cursorWidth: 0,
       barWidth: 2,
       barGap: 3,
@@ -48,36 +51,25 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
       height: 28,
       normalize: true,
     });
-    
     ws.load(src);
     waveRef.current = ws;
-
-    ws.on('ready', () => setDuration(ws.getDuration()));
-    ws.on('timeupdate', () => setCurrentTime(ws.getCurrentTime()));
-    ws.on('finish', () => { setPlaying(false); setCurrentTime(ws.getDuration()); });
-
+    ws.on("ready", () => setDuration(ws.getDuration()));
+    ws.on("timeupdate", () => setCurrentTime(ws.getCurrentTime()));
+    ws.on("finish", () => { setPlaying(false); setCurrentTime(ws.getDuration()); });
     const stopOthers = (e: any) => {
-      if (e.detail !== id && ws.isPlaying()) {
-        ws.pause();
-        setPlaying(false);
-      }
+      if (e.detail !== id && ws.isPlaying()) { ws.pause(); setPlaying(false); }
     };
     window.addEventListener(STOP_AUDIO_EVENT, stopOthers);
-
     return () => {
       window.removeEventListener(STOP_AUDIO_EVENT, stopOthers);
       ws.destroy();
     };
-  }, [src, id, mine]);
+  }, [src, id]);
 
   const toggle = () => {
     if (!waveRef.current) return;
-    if (playing) {
-      waveRef.current.pause();
-    } else {
-      window.dispatchEvent(new CustomEvent(STOP_AUDIO_EVENT, { detail: id }));
-      waveRef.current.play();
-    }
+    if (playing) { waveRef.current.pause(); }
+    else { window.dispatchEvent(new CustomEvent(STOP_AUDIO_EVENT, { detail: id })); waveRef.current.play(); }
     setPlaying(!playing);
   };
 
@@ -92,10 +84,10 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
     if (!s || isNaN(s)) return "0:00";
     const m = Math.floor(s / 60);
     const ss = Math.floor(s % 60);
-    return `${m}:${ss < 10 ? '0' : ''}${ss}`;
+    return `${m}:${ss < 10 ? "0" : ""}${ss}`;
   };
 
-  const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || "";
+  const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
     <div className={`flex items-center gap-3 w-full max-w-[280px] p-2.5 rounded-2xl border transition-all ${
@@ -107,17 +99,19 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
         {playing ? <Pause className="w-4 h-4 fill-primary text-primary" /> : <Play className="w-4 h-4 fill-primary text-primary ml-0.5" />}
       </button>
       <div className="flex-1 min-w-0 flex flex-col gap-1">
-        {/* Waveform */}
-        <div className={`w-full transition-all duration-300 ${playing ? 'waveform-playing opacity-100' : 'opacity-80'}`} style={{ height: 28 }} ref={containerRef} />
-        {/* Bottom row: time + speed + ticks */}
+        <div
+          className={`w-full transition-all duration-300 ${playing ? "waveform-playing opacity-100" : "opacity-80"}`}
+          style={{ height: 28, overflow: "hidden" }}
+          ref={containerRef}
+        />
         <div className="flex items-center justify-between px-0.5">
-          <span className={`text-[10px] font-bold tabular-nums ${ mine ? "text-primary" : "text-black/60" }`}>
+          <span className={`text-[10px] font-bold tabular-nums ${mine ? "text-primary" : "text-black/60"}`}>
             {fmt(playing ? currentTime : duration)}
           </span>
           <div className="flex items-center gap-1.5">
-            {timeStr && <span className={`text-[9px] font-bold tabular-nums opacity-60 ${ mine ? "text-foreground" : "text-black" }`}>{timeStr}</span>}
+            {timeStr && <span className={`text-[9px] font-bold tabular-nums opacity-60 ${mine ? "text-foreground" : "text-black"}`}>{timeStr}</span>}
             {mine && <MsgTick status={status} />}
-            <button onClick={toggleSpeed} className={`text-[9px] font-black px-1.5 py-0.5 rounded text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors`}>
+            <button onClick={toggleSpeed} className="text-[9px] font-black px-1.5 py-0.5 rounded text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors">
               {speed}x
             </button>
           </div>
@@ -127,30 +121,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
   );
 };
 
-const RemainingTime = ({ msg }: { msg: Msg }) => {
-  const [, setTick] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setTick(n => n + 1), 10000); // 10s tick is enough to avoid lag, or 1s for precise
-    return () => clearInterval(t);
-  }, []);
-
-  const remaining = () => {
-    const t = msg.createdAt?.toMillis?.() ?? Date.now();
-    const limit = msg.type === "voice" ? 8 * 24 * 60 * 60 * 1000 : 5 * 60_000;
-    return Math.max(0, Math.ceil((t + limit - Date.now()) / 1000));
-  };
-  
-  const formatTime = (seconds: number) => {
-    if (seconds >= 86400) return `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h`;
-    if (seconds >= 3600) return `${Math.floor(seconds / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
-    if (seconds > 60) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
-    return `${seconds}s`;
-  };
-
-  return <>{formatTime(remaining())}</>;
-};
-
-// WhatsApp-style tick component — single SVG unit, no gap, no duplication
+// ─── MsgTick ─────────────────────────────────────────────────────────────────
 const MsgTick = ({ status }: { status?: string }) => {
   if (status === "sending") return <svg className="w-3 h-3 text-muted-foreground/60" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" /></svg>;
   if (status === "sent") return (
@@ -173,47 +144,80 @@ const MsgTick = ({ status }: { status?: string }) => {
   return null;
 };
 
-const RecordingVisualizer = () => {
-  return (
-    <div className="flex items-center gap-0.5 h-4">
-      {[...Array(8)].map((_, i) => (
-        <motion.div
-          key={i}
-          animate={{ height: [4, 12, 4] }}
-          transition={{
-            duration: 0.5,
-            repeat: Infinity,
-            delay: i * 0.05,
-            ease: "easeInOut"
-          }}
-          className="w-1 bg-primary rounded-full"
-        />
-      ))}
-    </div>
-  );
-};
+// ─── RecordingVisualizer ──────────────────────────────────────────────────────
+const RecordingVisualizer = () => (
+  <div className="flex items-center gap-0.5 h-4">
+    {[...Array(8)].map((_, i) => (
+      <motion.div
+        key={i}
+        animate={{ height: [4, 12, 4] }}
+        transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.05, ease: "easeInOut" }}
+        className="w-1 bg-primary rounded-full"
+      />
+    ))}
+  </div>
+);
 
+// ─── FilesList ────────────────────────────────────────────────────────────────
+function FilesList({ voiceMsgs, uid, downloadVoice }: { voiceMsgs: Msg[], uid: string | null, downloadVoice: (u: string, i: string) => void }) {
+  if (voiceMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs">No saved voice notes.</p>;
+
+  const groups = voiceMsgs.reduce((acc, m) => {
+    const date = m.createdAt?.toDate().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) || "Today";
+    if (!acc[date]) acc[date] = [];
+    acc[date].push(m);
+    return acc;
+  }, {} as Record<string, Msg[]>);
+
+  return (
+    <>
+      {Object.entries(groups).map(([date, msgs]) => (
+        <div key={date} className="space-y-3">
+          <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
+          {msgs.map(m => (
+            <div key={m.id} className="bg-card/40 border border-border/20 p-2.5 rounded-xl flex items-center gap-2 shadow-sm hover:bg-card/60 transition-colors group">
+              <div className="flex-1 min-w-0 scale-90 origin-left">
+                <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} />
+              </div>
+              <button
+                onClick={() => downloadVoice(m.content, m.id)}
+                className="p-2 bg-muted/40 hover:bg-primary/20 rounded-full text-muted-foreground hover:text-primary transition-all shrink-0 opacity-0 group-hover:opacity-100"
+                aria-label="Download voice note"
+              >
+                <Download className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          ))}
+        </div>
+      ))}
+    </>
+  );
+}
+
+// ─── OViiChat ─────────────────────────────────────────────────────────────────
 export function OViiChat({ onLock }: { onLock: () => void }) {
   const [uid, setUid] = useState<string | null>(null);
-  // Track exact visible viewport height to handle keyboard open/close
-  const [vpHeight, setVpHeight] = useState<number>(() => window.visualViewport?.height ?? window.innerHeight);
+
+  // ── Viewport height: ONLY used on mobile to compensate for software keyboard ──
+  // On desktop we let position:fixed + inset:0 do the work (no zoom whitespace).
+  const [mobileKeyboardOffset, setMobileKeyboardOffset] = useState(0);
 
   const [deviceId] = useState(() => {
     let id = localStorage.getItem("ovii_device_id");
     if (!id) {
       id = Math.random().toString(36).substring(2, 15);
       localStorage.setItem("ovii_device_id", id);
-      localStorage.removeItem("ovii-avatar-choice"); // ensure new users pick avatar
+      localStorage.removeItem("ovii-avatar-choice");
     }
     return id;
   });
-  
+
   const isReturning = !!localStorage.getItem("ovii-avatar-choice") && !!localStorage.getItem("ovii-name");
   const [avatar, setAvatar] = useState<string>(() => localStorage.getItem("ovii-avatar-choice") || "");
   const [name, setName] = useState<string>(() => localStorage.getItem("ovii-name") || "");
   const [showAvatarPicker, setShowAvatarPicker] = useState(!isReturning);
   const [inputName, setInputName] = useState(name);
-  
+
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
@@ -224,14 +228,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Msg | null>(null);
   const [showFolder, setShowFolder] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState<{uid: string, name: string, avatar?: string}[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<{ uid: string, name: string, avatar?: string }[]>([]);
   const [showScrollDown, setShowScrollDown] = useState(false);
-  const [systemMsgs, setSystemMsgs] = useState<{id: string, text: string, ts: number, type: 'join'|'leave'}[]>([]);
+  const [systemMsgs, setSystemMsgs] = useState<{ id: string, text: string, ts: number, type: "join" | "leave" }[]>([]);
   const [otherLastSeen, setOtherLastSeen] = useState<number | null>(null);
   const [otherName, setOtherName] = useState<string | null>(null);
   const [otherOnline, setOtherOnline] = useState(false);
   const prevOnlineRef = useRef<Map<string, string>>(new Map());
-  
+
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
   const cancelRecRef = useRef(false);
   const recRef = useRef<MediaRecorder | null>(null);
@@ -240,6 +244,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastActivity = useRef<number>(Date.now());
   const chunksRef = useRef<Blob[]>([]);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const scrollToBottom = (instant = false) => {
     if (scrollRef.current) {
@@ -250,23 +255,19 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     }
   };
 
-  // Auth + presence (max 2 users)
+  // ── Auth + presence ──────────────────────────────────────────────────────
   useEffect(() => {
-    if (!avatar) return; // wait for avatar selection
+    if (!avatar) return;
     let unsubMsgs = () => {};
     let unsubPresence = () => {};
     let alive = true;
     let heartbeatId: NodeJS.Timeout | null = null;
     let currentUid: string | null = null;
 
-    // Synchronous presence cleanup for browser close
     const cleanupPresence = () => {
       if (!currentUid) return;
-      // Use sendBeacon for reliable cleanup on tab/browser close
-      // Also attempt direct delete as fallback
       deleteDoc(doc(db, "ovii", ROOM, "presence", currentUid)).catch(() => {});
     };
-
     const handleBeforeUnload = () => cleanupPresence();
     const handlePageHide = () => cleanupPresence();
 
@@ -276,15 +277,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (!alive) return;
         currentUid = u.uid;
 
-        // presence cleanup: remove stale (>30s) presence docs — aggressive to avoid ghosts
         const presCol = collection(db, "ovii", ROOM, "presence");
         const snap = await getDocs(presCol);
         const now = Date.now();
         for (const d of snap.docs) {
           const ts = (d.data().lastSeen as Timestamp | undefined)?.toMillis() ?? 0;
-          if (now - ts > 30_000 && d.id !== u.uid) {
-            await deleteDoc(d.ref).catch(() => {});
-          }
+          if (now - ts > 30_000 && d.id !== u.uid) await deleteDoc(d.ref).catch(() => {});
         }
         const fresh = await getDocs(presCol);
         const others = fresh.docs.filter((d) => d.id !== u.uid).length;
@@ -299,11 +297,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         setUid(u.uid);
         setCount(Math.min(2, fresh.docs.length + (fresh.docs.find((d) => d.id === u.uid) ? 0 : 1)));
 
-        // Register cleanup listeners (only on actual close, NOT on visibility hidden)
         window.addEventListener("beforeunload", handleBeforeUnload);
         window.addEventListener("pagehide", handlePageHide);
 
-        // heartbeat every 15s (reduced from 20s for tighter stale detection)
         heartbeatId = setInterval(() => {
           setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
             uid: u.uid, avatar, name, lastSeen: serverTimestamp(),
@@ -313,7 +309,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         unsubPresence = onSnapshot(presCol, (s) => {
           const t: string[] = [];
           const r: string[] = [];
-          const currentOnline: {uid: string, name: string, avatar?: string}[] = [];
+          const currentOnline: { uid: string, name: string, avatar?: string }[] = [];
           const currentOnlineIds = new Set<string>();
           const now = Date.now();
 
@@ -329,24 +325,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             if (d.id !== u.uid) {
               if (data.typing) t.push(data.avatar);
               if (data.recording) r.push(data.avatar);
-              // Track the other person's name and last seen
               setOtherName(data.name || "User");
               setOtherLastSeen(lastSeen);
               setOtherOnline(true);
             }
           });
 
-          // Check if the other user went offline
-          const otherStillOnline = [...currentOnlineIds].some(id => id !== u.uid);
-          if (!otherStillOnline) {
-            setOtherOnline(false);
-          }
-          
-          // Show toast-style system messages — auto-dismiss after 6s
+          if (![...currentOnlineIds].some(id => id !== u.uid)) setOtherOnline(false);
+
           currentOnline.forEach(user => {
             if (user.uid !== u.uid && !prevOnlineRef.current.has(user.uid)) {
               const id = crypto.randomUUID();
-              setSystemMsgs(prev => [...prev, { id, text: `${user.name} is online`, ts: Date.now(), type: 'join' }]);
+              setSystemMsgs(prev => [...prev, { id, text: `${user.name} is online`, ts: Date.now(), type: "join" }]);
               setTimeout(() => setSystemMsgs(prev => prev.filter(m => m.id !== id)), 6000);
             }
           });
@@ -354,15 +344,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             prevOnlineRef.current.forEach((prevName, prevUid) => {
               if (prevUid !== u.uid && !currentOnlineIds.has(prevUid)) {
                 const id = crypto.randomUUID();
-                // Mark last seen time
-                const lastSeenMs = Date.now();
-                setOtherLastSeen(lastSeenMs);
-                setSystemMsgs(prev => [...prev, { id, text: `${prevName} went offline`, ts: Date.now(), type: 'leave' }]);
+                setOtherLastSeen(Date.now());
+                setSystemMsgs(prev => [...prev, { id, text: `${prevName} went offline`, ts: Date.now(), type: "leave" }]);
                 setTimeout(() => setSystemMsgs(prev => prev.filter(m => m.id !== id)), 6000);
               }
             });
           }
-          // Store uid→name mapping for next diff
           const nextMap = new Map<string, string>();
           currentOnline.forEach(user => nextMap.set(user.uid, user.name));
           prevOnlineRef.current = nextMap;
@@ -373,31 +360,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           setCount(currentOnline.length);
         });
 
-        // messages stream
         const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "asc"));
         unsubMsgs = onSnapshot(q, { includeMetadataChanges: true }, (s) => {
           const list: Msg[] = s.docs.map((d) => {
             const data = d.data() as any;
             const msg: Msg = { id: d.id, ...data };
-            if (d.metadata.hasPendingWrites && msg.uid === u.uid) {
-              msg.status = "sending";
-            }
+            if (d.metadata.hasPendingWrites && msg.uid === u.uid) msg.status = "sending";
             return msg;
           });
           setMsgs(list);
           const tnow = Date.now();
           for (const m of list) {
-            // mark as read if received
             if (m.uid !== u.uid && m.status !== "read" && !s.metadata.hasPendingWrites) {
-              setDoc(doc(db, "ovii", ROOM, "messages", m.id), { status: "read" }, { merge: true }).catch(()=>{});
+              setDoc(doc(db, "ovii", ROOM, "messages", m.id), { status: "read" }, { merge: true }).catch(() => {});
             }
             const ts = m.createdAt?.toMillis?.() ?? 0;
             if (!ts) continue;
-            // 8 days for voice, 5 minutes for everything else
             const limit = m.type === "voice" ? 8 * 24 * 60 * 60 * 1000 : 5 * 60_000;
-            if (tnow - ts > limit) {
-              deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => {});
-            }
+            if (tnow - ts > limit) deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => {});
           }
         });
 
@@ -407,10 +387,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           deleteDoc(doc(db, "ovii", ROOM, "presence", u.uid)).catch(() => {});
         };
       } catch (e: unknown) {
-        const msg = e instanceof Error ? e.message : "Connection failed";
-        setError(msg);
+        setError(e instanceof Error ? e.message : "Connection failed");
       }
     })();
+
     return () => {
       alive = false;
       unsubMsgs();
@@ -422,16 +402,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     };
   }, [avatar]);
 
-  // Inactivity & Device lock (Priority 4)
+  // ── Inactivity lock ──────────────────────────────────────────────────────
   useEffect(() => {
     const bump = () => { lastActivity.current = Date.now(); };
     window.addEventListener("pointerdown", bump);
     window.addEventListener("keydown", bump);
-    
-    // On mobile, visibilityState changes when keyboard opens — do NOT lock on hidden.
-    // Only lock on inactivity timeout.
-    // Removed: document.addEventListener("visibilitychange", handleVisibility);
-
     const t = setInterval(() => {
       if (Date.now() - lastActivity.current > 180_000) onLock();
     }, 5_000);
@@ -442,49 +417,33 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     };
   }, [onLock]);
 
-  // Robust dynamic height tracking (Priority 1)
+  // ── Mobile keyboard compensation (ONLY on mobile) ────────────────────────
+  // Desktop: position:fixed + inset:0 handles everything — no JS height needed.
+  // Mobile: track visualViewport to shrink the scroll area when keyboard opens.
   useEffect(() => {
+    if (!isMobileDevice()) return; // ← desktop: skip entirely
+
     const vv = window.visualViewport;
-    
-    const syncLayout = () => {
-      // Always match the EXACT visible pixels
-      const h = vv ? vv.height : window.innerHeight;
-      setVpHeight(h);
-      
-      // Snap to bottom to maintain anchor
+    const syncKeyboard = () => {
+      if (!vv) return;
+      const keyboardHeight = window.innerHeight - vv.height;
+      setMobileKeyboardOffset(Math.max(0, keyboardHeight));
       requestAnimationFrame(() => scrollToBottom(true));
-      
-      // Reset any unintentional window scrolling
       if (window.scrollY !== 0) window.scrollTo(0, 0);
     };
 
-    vv?.addEventListener("resize", syncLayout);
-    vv?.addEventListener("scroll", syncLayout);
-    window.addEventListener("resize", syncLayout);
-    window.addEventListener("orientationchange", syncLayout);
-    window.addEventListener("focus", syncLayout);
-    document.addEventListener("visibilitychange", syncLayout);
-
-    syncLayout();
-
-    // Secondary check for slow browser height updates
-    const t = setInterval(syncLayout, 2000);
+    vv?.addEventListener("resize", syncKeyboard);
+    vv?.addEventListener("scroll", syncKeyboard);
+    syncKeyboard();
 
     return () => {
-      vv?.removeEventListener("resize", syncLayout);
-      vv?.removeEventListener("scroll", syncLayout);
-      window.removeEventListener("resize", syncLayout);
-      window.removeEventListener("orientationchange", syncLayout);
-      window.removeEventListener("focus", syncLayout);
-      document.removeEventListener("visibilitychange", syncLayout);
-      clearInterval(t);
+      vv?.removeEventListener("resize", syncKeyboard);
+      vv?.removeEventListener("scroll", syncKeyboard);
     };
   }, []);
 
-  // Scroll to bottom on new messages
-  useEffect(() => {
-    scrollToBottom();
-  }, [msgs.length]);
+  // ── Scroll to bottom on new messages ────────────────────────────────────
+  useEffect(() => { scrollToBottom(); }, [msgs.length]);
 
   const setPres = (data: any) => {
     if (uid) setDoc(doc(db, "ovii", ROOM, "presence", uid), data, { merge: true }).catch(() => {});
@@ -499,14 +458,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         id: replyingTo.id,
         content: replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note"),
         avatar: replyingTo.avatar,
-        name: replyingTo.name
+        name: replyingTo.name,
       };
       setReplyingTo(null);
     }
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
   };
-
-  const inputRef = useRef<HTMLInputElement>(null);
 
   const onText = async (e?: React.FormEvent | React.KeyboardEvent) => {
     if (e) e.preventDefault();
@@ -516,33 +473,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setIsTyping(false);
     if (typingTimer.current) clearTimeout(typingTimer.current);
     setPres({ typing: false });
-
-    // Keep keyboard open by refocusing input immediately
-    requestAnimationFrame(() => {
-      inputRef.current?.focus();
-    });
-
-    // Auto-detect GIF/image URLs and send as image type
+    requestAnimationFrame(() => inputRef.current?.focus());
     const isImageUrl = /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(v);
-    if (isImageUrl) {
-      await send("image", v);
-    } else {
-      await send("text", v.slice(0, 1000));
-    }
+    if (isImageUrl) await send("image", v);
+    else await send("text", v.slice(0, 1000));
   };
 
   const uploadToCloudinary = async (file: File | Blob) => {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("upload_preset", "dte6c221f");
-    const res = await fetch(`https://api.cloudinary.com/v1_1/dte6c221f/auto/upload`, {
-      method: "POST",
-      body: formData,
-    });
-    if (!res.ok) {
-      const err = await res.json();
-      throw new Error(err.error?.message || "Upload failed");
-    }
+    const res = await fetch(`https://api.cloudinary.com/v1_1/dte6c221f/auto/upload`, { method: "POST", body: formData });
+    if (!res.ok) { const err = await res.json(); throw new Error(err.error?.message || "Upload failed"); }
     const data = await res.json();
     return data.secure_url;
   };
@@ -553,24 +495,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     try {
       const url = await uploadToCloudinary(file);
       await send("image", url);
-    } catch (e: any) {
-      console.error("Image upload failed:", e);
-      setError("Image upload failed: " + (e.message || "Unknown error"));
-    }
+    } catch (e: any) { setError("Image upload failed: " + (e.message || "Unknown error")); }
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
-    const items = e.clipboardData.items;
-    // Check for image file pastes first (e.g. screenshots, copied images)
-    for (let i = 0; i < items.length; i++) {
-      if (items[i].type.startsWith("image/")) {
+    for (let i = 0; i < e.clipboardData.items.length; i++) {
+      if (e.clipboardData.items[i].type.startsWith("image/")) {
         e.preventDefault();
-        const file = items[i].getAsFile();
+        const file = e.clipboardData.items[i].getAsFile();
         if (file) onImage(file);
         return;
       }
     }
-    // Check for pasted GIF/image URLs from keyboard GIF panels
     const pastedText = e.clipboardData.getData("text/plain")?.trim();
     if (pastedText && /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(pastedText)) {
       e.preventDefault();
@@ -581,14 +517,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     const url = e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain");
-    if (url && (url.includes(".gif") || url.includes("images") || url.includes("media"))) {
-      await send("image", url);
-      return;
-    }
+    if (url && (url.includes(".gif") || url.includes("images") || url.includes("media"))) { await send("image", url); return; }
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) {
-      onImage(file);
-    }
+    if (file && file.type.startsWith("image/")) onImage(file);
   };
 
   const startRec = async () => {
@@ -604,28 +535,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           const blob = new Blob(chunksRef.current, { type: "video/webm" });
           const url = await uploadToCloudinary(blob);
           await send("voice", url);
-        } catch (e: any) {
-          console.error("Voice upload failed:", e);
-          setError("Voice upload failed: " + (e.message || "Unknown error"));
-        }
+        } catch (e: any) { setError("Voice upload failed: " + (e.message || "Unknown error")); }
       };
       recRef.current = rec;
       rec.start();
       setRecording(true);
       setPres({ recording: true });
       cancelRecRef.current = false;
-      
       setTimeout(() => {
-        if (rec.state === "recording") {
-          rec.stop();
-          setRecording(false);
-          setPres({ recording: false });
-        }
+        if (rec.state === "recording") { rec.stop(); setRecording(false); setPres({ recording: false }); }
       }, 10 * 60 * 1000);
-    } catch (e: any) {
-      console.error("Mic error:", e);
-      setError("Microphone permission denied");
-    }
+    } catch (e: any) { setError("Microphone permission denied"); }
   };
 
   const stopAndSendRec = () => {
@@ -646,21 +566,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = `voice-note-${msgId.slice(0, 8)}.webm`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      const a = document.createElement("a");
+      a.href = blobUrl; a.download = `voice-note-${msgId.slice(0, 8)}.webm`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
       toast.success("Download started");
-    } catch {
-      // Fallback: open in new tab
-      window.open(url, '_blank');
-    }
+    } catch { window.open(url, "_blank"); }
   };
 
-  // Only show text/image messages + the most recent voice note in the main chat
   const voiceMsgs = msgs.filter(m => m.type === "voice");
   const latestVoice = voiceMsgs.length > 0 ? voiceMsgs[voiceMsgs.length - 1] : null;
   const chatMsgs = [
@@ -669,494 +582,457 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   ].sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
   const unreadVoice = voiceMsgs.length;
 
+  // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
+  const rootStyle: React.CSSProperties = isMobileDevice() && mobileKeyboardOffset > 0
+    ? { paddingBottom: mobileKeyboardOffset }
+    : {};
+
   return (
-    <div 
-      className="ovii-chat-root bg-background"
-      style={{ height: `${vpHeight}px` }}
-    >
-      <Toaster position="top-center" />
-      {showAvatarPicker && (
-        <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-elegant text-center">
-            <h2 className="text-xl font-bold mb-2">Select Your Identity</h2>
-            <p className="text-xs text-muted-foreground mb-4">Enter your name and pick an avatar.</p>
-            <input 
-              type="text" 
-              placeholder="Your Name" 
-              maxLength={20}
-              value={inputName} 
-              onChange={e => setInputName(e.target.value)}
-              className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm mb-6 focus:outline-none focus:ring-2 focus:ring-primary/40 text-center"
-            />
-            <div className="grid grid-cols-4 gap-4 mb-6">
-              {AVATARS.map((av) => (
-                <button
-                  key={av.id}
-                  disabled={!inputName.trim()}
-                  onClick={() => {
-                    setAvatar(av.url);
-                    setName(inputName.trim());
-                    localStorage.setItem("ovii-avatar-choice", av.url);
-                    localStorage.setItem("ovii-name", inputName.trim());
-                    setShowAvatarPicker(false);
-                  }}
-                  className="rounded-full overflow-hidden border-2 border-transparent hover:border-primary transition-all hover:scale-110 disabled:opacity-30 disabled:hover:scale-100 disabled:hover:border-transparent"
-                >
-                  <img src={av.url} alt={av.name} className="w-full h-auto" />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
+    <>
+      {/*
+        ARCHITECTURE:
+        .ovii-chat-root     → position:fixed; inset:0; overflow:hidden (CSS in styles.css)
+          .ovii-chat-frame  → desktop: centered card with max-width; mobile: full-bleed
+            header          → shrink-0
+            .ovii-body      → flex-1; overflow:hidden; display:flex
+              .ovii-msgs-col → flex-1; overflow:hidden; flex-col
+                scroll area → flex-1; overflow-y:auto; overflow-x:hidden
+              .ovii-sidebar  → desktop only, 380px
+            input bar       → shrink-0
+      */}
+      <div className="ovii-chat-root bg-background" style={rootStyle}>
+        <Toaster position="top-center" />
 
-      {/* Mobile Folder Overlay — Slide from right */}
-      <AnimatePresence>
-        {showFolder && (
-          <motion.div 
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            className="absolute inset-0 z-50 bg-background/98 backdrop-blur-xl flex lg:hidden flex-col"
-          >
-            <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/80 backdrop-blur-md sticky top-0 z-10">
-              <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5" style={{ fontFamily: 'Poppins, Inter, sans-serif' }}>
-                <Folder className="w-5 h-5 text-destructive"/> MY FILES
-              </h2>
-              <button onClick={() => setShowFolder(false)} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
-                <X className="w-5 h-5"/>
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-6">
-              <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <div 
-        className={`ovii-chat-inner flex flex-col h-full w-full overflow-x-hidden relative transition-all duration-500 ${showFolder ? 'has-sidebar' : ''}`}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
-      >
-        <header className="border-b border-border/40 px-4 py-3 flex items-center justify-between bg-background/80 backdrop-blur-xl z-20 shrink-0 sticky top-0">
-          <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full gradient-gold p-[2px] shadow-glow">
-            <div className="h-full w-full rounded-full bg-background overflow-hidden border border-background">
-              {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : null}
-            </div>
-          </div>
-          <div>
-            <div className="font-black text-lg tracking-tight" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              ovii<span className="text-primary">.</span>
-            </div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 font-bold">
-              {recordingUsers.length > 0 ? (
-                <><span className="w-1.5 h-1.5 bg-destructive rounded-full animate-pulse" />Recording...</>
-              ) : typingUsers.length > 0 ? (
-                <><span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />Typing...</>
-              ) : otherOnline ? (
-                <><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />{otherName || "Online"}</>
-              ) : otherLastSeen ? (
-                <><span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full" />
-                Last seen {(() => {
-                  const diff = Date.now() - otherLastSeen;
-                  if (diff < 60000) return "just now";
-                  if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`;
-                  if (diff < 86400000) return new Date(otherLastSeen).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-                  return new Date(otherLastSeen).toLocaleDateString();
-                })()}</>
-              ) : (
-                <><span className="w-1.5 h-1.5 bg-muted-foreground/30 rounded-full" />Waiting...</>
-              )}
-            </div>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-muted-foreground">
-          <button 
-            onClick={() => { window.location.href = '/news'; }}
-            className="hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10" 
-            aria-label="Switch to News"
-          >
-            <ArrowLeftRight className="w-5 h-5" />
-          </button>
-          <button onClick={() => setShowFolder(true)} className="hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10 relative">
-            <Folder className="w-5 h-5" />
-            {unreadVoice > 0 && <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-glow">{unreadVoice}</span>}
-          </button>
-          <button onClick={onLock} className="text-[10px] font-bold hover:text-primary transition-colors uppercase tracking-widest px-3 py-1.5 rounded-full bg-muted/40 hover:bg-muted border border-border/30">Lock</button>
-        </div>
-      </header>
-
-      {/* Main Body with Sidebar integration */}
-      <div className="flex-1 flex min-h-0 overflow-hidden relative">
-        <div className="flex-1 flex flex-col min-w-0 relative h-full">
-          {/* Floating toast notifications for join/leave — do NOT stack in messages */}
-          <AnimatePresence>
-            {systemMsgs.length > 0 && (
-              <motion.div
-                key="toast-stack"
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="absolute top-[10px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 pointer-events-none"
-              >
-                {systemMsgs.slice(-1).map(sm => (
-                  <div key={sm.id} className={`text-[11px] font-bold px-4 py-1.5 rounded-full backdrop-blur-xl shadow-elegant border ${
-                    sm.type === 'join'
-                      ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
-                      : 'bg-muted/60 text-muted-foreground border-border/30'
-                  }`}>
-                    {sm.type === 'join' ? '🟢' : '⚫'} {sm.text}
-                  </div>
+        {/* ── Avatar Picker Overlay ── */}
+        {showAvatarPicker && (
+          <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4">
+            <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-elegant text-center">
+              <h2 className="text-xl font-bold mb-2">Select Your Identity</h2>
+              <p className="text-xs text-muted-foreground mb-4">Enter your name and pick an avatar.</p>
+              <input
+                type="text"
+                placeholder="Your Name"
+                maxLength={20}
+                value={inputName}
+                onChange={e => setInputName(e.target.value)}
+                className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm mb-6 focus:outline-none focus:ring-2 focus:ring-primary/40 text-center"
+              />
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                {AVATARS.map((av) => (
+                  <button
+                    key={av.id}
+                    disabled={!inputName.trim()}
+                    onClick={() => {
+                      setAvatar(av.url);
+                      setName(inputName.trim());
+                      localStorage.setItem("ovii-avatar-choice", av.url);
+                      localStorage.setItem("ovii-name", inputName.trim());
+                      setShowAvatarPicker(false);
+                    }}
+                    className="rounded-full overflow-hidden border-2 border-transparent hover:border-primary transition-all hover:scale-110 disabled:opacity-30 disabled:hover:scale-100 disabled:hover:border-transparent"
+                  >
+                    <img src={av.url} alt={av.name} className="w-full h-auto" />
+                  </button>
                 ))}
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <div 
-            ref={scrollRef} 
-            className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col touch-pan-y"
-            style={{ overscrollBehavior: 'contain' }}
-            onScroll={(e) => {
-              const t = e.currentTarget;
-              const isAtBottom = t.scrollHeight - t.scrollTop <= t.clientHeight + 80;
-              setShowScrollDown(!isAtBottom);
-            }}
-          >
-        {/* Spacer pushes messages to bottom when few messages exist */}
-        <div className="flex-1" />
-        
-        {error && <div className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-md p-3 mb-3">{error}</div>}
-        {!error && chatMsgs.length === 0 && (
-          <div className="h-full flex items-center justify-center text-center text-muted-foreground text-sm my-auto">
-            <div>
-              <div className="text-4xl mb-2">👋</div>
-              No messages yet.
+              </div>
             </div>
           </div>
         )}
 
-        <div className="space-y-1 flex flex-col justify-end shrink-0 relative">
-          <AnimatePresence>
-          {chatMsgs.map((m, i) => {
-            const mine = m.uid === uid;
-            const prevMsg = chatMsgs[i - 1];
-            const isConsecutive = prevMsg && prevMsg.uid === m.uid;
-            const nextMsg = chatMsgs[i + 1];
-            const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
-            
-            return (
-              <motion.div
-                key={m.id}
-                initial={{ opacity: 0, y: 12, scale: 0.9 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                transition={{ type: "spring", damping: 20, stiffness: 200 }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 100 }}
-                dragElastic={0.1}
-                onDrag={(e, info) => {
-                   // Optional: visual feedback during drag
-                }}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x > 60) {
-                    setReplyingTo(m);
-                    // No toast on swipe — the preview bar below is enough feedback
-                  }
-                }}
-                className={`relative flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? 'mt-4' : 'mt-0.5'}`}
-              >
-                {/* Swipe Indicator Background */}
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 opacity-0 group-active:opacity-100 transition-opacity">
-                   <Reply className="w-5 h-5 text-primary/40" />
-                </div>
-                {!mine && (
-                  <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
-                    {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
-                  </div>
-                )}
-                <div className={`max-w-[85%] md:max-w-[70%] ${mine ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
-                  {!mine && !isConsecutive && m.name && <span className="text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
-                  
-                  {m.replyTo && (
-                    <div className="bg-m3-surface-container-high/50 px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden">
-                      <img src={m.replyTo.avatar} className="w-4 h-4 rounded-full border border-border/20 shrink-0" alt=""/>
-                      <div className="flex flex-col min-w-0">
-                        {m.replyTo.name && <span className="text-[8px] font-black text-primary uppercase tracking-tighter truncate">{m.replyTo.name}</span>}
-                        <span className="truncate italic text-[10px] leading-tight">{m.replyTo.content}</span>
-                      </div>
-                    </div>
-                  )}
-                  {m.type === "voice" ? (
-                    <AudioPlayer
-                      src={m.content}
-                      id={m.id}
-                      mine={mine}
-                      status={m.status}
-                      createdAt={m.createdAt}
-                    />
-                  ) : (
-                    <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
-                      ${mine 
-                        ? "bg-m3-surface-container-high text-foreground " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
-                        : "bg-m3-other-container bg-gradient-to-br from-[oklch(0.7_0.18_45)] to-[oklch(0.85_0.15_55)] text-black shadow-glow-orange border-none " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
-                      }`}>
-                      {m.type === "text" && <span>{m.content}</span>}
-                      {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
-                      
-                      <div className="flex items-end gap-1 self-end mt-1 opacity-80 scale-90 shrink-0">
-                        <span className={`text-[9px] font-bold tabular-nums ${mine ? 'text-primary' : 'text-black/60'}`}>
-                          {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
-                        </span>
-                        {mine && <MsgTick status={m.status} />}
-                      </div>
-
-                      {/* Desktop Hover Action */}
-                      <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
-                        <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
-                          <Reply className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-                {mine && (
-                  <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
-                    {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
-                  </div>
-                )}
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-
-        {typingUsers.length > 0 && (
-          <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
-             <img src={typingUsers[0]} className="h-7 w-7 rounded-full bg-muted object-cover shrink-0 border border-border" alt="" />
-             <div className="text-xs bg-card border border-border px-3 py-2.5 rounded-2xl rounded-bl-sm flex gap-1 items-center">
-               <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{animationDelay: '0ms'}}></span>
-               <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{animationDelay: '150ms'}}></span>
-               <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{animationDelay: '300ms'}}></span>
-             </div>
-          </div>
-         )}
-         {recordingUsers.length > 0 && (
-           <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
-              <img src={recordingUsers[0]} className="h-7 w-7 rounded-full bg-muted object-cover shrink-0 border border-border" alt="" />
-              <div className="text-xs font-medium text-destructive bg-card border border-border px-3 py-1.5 rounded-2xl rounded-bl-sm flex gap-2 items-center animate-pulse">
-                <Mic className="w-3.5 h-3.5" /> Recording...
-              </div>
-           </div>
-         )}
-         {/* System messages removed from inline stack — handled by floating toast above */}
-         <div ref={messagesEndRef} className="h-0 w-full shrink-0" />
-        </div>
-      </div>
-
-      <AnimatePresence>
-        {showScrollDown && (
-          <motion.button 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
-            onClick={() => scrollToBottom()}
-            className="absolute bottom-[80px] right-4 bg-primary text-primary-foreground p-2 rounded-full shadow-lg z-20 flex items-center gap-1 px-3 text-xs font-bold"
-          >
-            New message ↓
-          </motion.button>
-        )}
-      </AnimatePresence>
-
-      <div className="px-3 pb-2">
-        <AnimatePresence>
-          {replyingTo && (
-            <motion.div 
-              initial={{ opacity: 0, y: 10, height: 0 }}
-              animate={{ opacity: 1, y: 0, height: 'auto' }}
-              exit={{ opacity: 0, y: 10, height: 0 }}
-              className="bg-m3-surface-container-high/95 backdrop-blur-2xl rounded-t-2xl px-3 py-2 border-x border-t border-border/10 flex items-center justify-between shadow-elegant relative overflow-hidden"
-            >
-              <div className="flex items-center gap-3 overflow-hidden flex-1">
-                <div className="w-1 bg-primary h-8 rounded-full shrink-0 shadow-glow" />
-                <div className="flex flex-col min-w-0">
-                  <span className="text-[9px] font-black text-primary uppercase tracking-widest">{replyingTo.name || "User"}</span>
-                  <div className="truncate text-[11px] text-muted-foreground italic opacity-90 leading-tight">
-                    {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
-                  </div>
-                </div>
-              </div>
-              <button onClick={() => setReplyingTo(null)} className="p-1.5 hover:bg-background/40 rounded-full text-muted-foreground hover:text-destructive transition-colors shrink-0 active:scale-90 ml-2">
-                <XCircle className="w-5 h-5" />
-              </button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-
-      <div className={`border-t border-border/20 p-3 pb-safe flex items-center gap-2 bg-background/80 backdrop-blur-xl z-20 shrink-0 ${replyingTo ? 'border-t-0 rounded-b-3xl' : ''}`}>
-        <input
-          ref={fileRef}
-          type="file"
-          accept="image/*,.gif"
-          className="hidden"
-          onChange={(e) => { const f = e.target.files?.[0]; if (f) onImage(f); e.target.value = ""; }}
-        />
-        
-        {recording ? (
-          <div className="flex-1 flex items-center gap-1.5 bg-m3-surface-container-high/90 backdrop-blur-xl rounded-[28px] px-2.5 h-11 border border-primary/20 shadow-elegant overflow-hidden max-w-full">
-            {/* Left: live indicator */}
-            <div className="flex items-center gap-1.5 shrink-0">
-              <span className="w-1.5 h-1.5 bg-destructive rounded-full shadow-[0_0_8px_red] animate-pulse shrink-0" />
-              <RecordingVisualizer />
-              <span className="text-destructive font-black text-[8px] uppercase tracking-wider hidden xs:inline">Live</span>
-            </div>
-
-            {/* Center: slide to cancel — draggable */}
-            <motion.div 
-              drag="x"
-              dragConstraints={{ right: 0 }}
-              dragElastic={0.1}
-              onDrag={(_, info) => {
-                if (info.offset.x < -60) {
-                  cancelRec();
-                }
-              }}
-              className="flex-1 flex items-center justify-center gap-1 cursor-grab active:cursor-grabbing select-none min-w-0"
-            >
-              <ChevronLeft className="w-3 h-3 text-muted-foreground/40 shrink-0 animate-pulse" />
-              <span className="text-muted-foreground/40 text-[8px] font-black uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis">Slide to cancel</span>
-            </motion.div>
-
-            {/* Right: send button */}
-            <button type="button" onClick={stopAndSendRec} className="shrink-0 h-8 px-3 rounded-full bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-wider hover:bg-primary/90 transition-all shadow-glow flex items-center gap-1 active:scale-95">
-              <Send className="w-3 h-3" /> Send
-            </button>
-          </div>
-        ) : (
-          <>
-            <button type="button" onClick={() => fileRef.current?.click()} className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all active:scale-90" aria-label="Attach image">
-              <ImageIcon className="w-6 h-6" />
-            </button>
-            <button
-              type="button"
-              onPointerDown={(e) => { e.preventDefault(); startRec(); }}
-              className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all active:scale-90"
-              aria-label="Tap to record"
-            >
-              <Mic className="w-6 h-6" />
-            </button>
-            <input
-              ref={inputRef}
-              id="ovii-chat-input"
-              name={`ovii_nocomplete_${Date.now()}`}
-              type="text"
-              autoComplete="off"
-              value={text}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  onText(e);
-                }
-              }}
-              onPaste={handlePaste}
-              onChange={(e) => {
-                const val = e.target.value;
-                setText(val);
-                if (uid) {
-                  const typingNow = val.length > 0;
-                  if (typingNow !== isTyping) {
-                    setIsTyping(typingNow);
-                    setPres({ typing: typingNow });
-                  }
-                  if (typingTimer.current) clearTimeout(typingTimer.current);
-                  if (typingNow) {
-                    typingTimer.current = setTimeout(() => {
-                      setIsTyping(false);
-                      setPres({ typing: false });
-                    }, 2000);
-                  }
-                }
-              }}
-              placeholder={uid ? "Message..." : "Connecting…"}
-              disabled={!uid || !!error}
-              className="flex-1 min-w-0 h-11 rounded-[28px] bg-m3-surface-container-high border border-border/10 px-5 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-m3-surface-container transition-all placeholder:text-muted-foreground/30"
-            />
-            <button 
-              type="button" 
-              onClick={() => onText()} 
-              disabled={!text.trim()} 
-              className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 disabled:scale-95 transition-all shadow-glow active:scale-90"
-            >
-              <Send className="w-5 h-5 ml-0.5" />
-            </button>
-          </>
-        )}
-        </div>
-      </div>
-
-        {/* Desktop Sidebar Panel */}
+        {/* ── Mobile Folder Overlay ── */}
         <AnimatePresence>
           {showFolder && (
-            <motion.div 
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: 380, opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="hidden lg:flex flex-col border-l border-border/40 bg-muted/5 relative overflow-hidden"
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+              className="absolute inset-0 z-50 bg-background/98 backdrop-blur-xl flex lg:hidden flex-col"
             >
-              <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/40 backdrop-blur-md sticky top-0 z-10">
-                <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2.5" style={{ fontFamily: 'Poppins, Inter, sans-serif' }}>
-                  <Folder className="w-4 h-4 text-destructive"/> MY FILES
+              <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/80 backdrop-blur-md sticky top-0 z-10">
+                <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
+                  <Folder className="w-5 h-5 text-destructive" /> MY FILES
                 </h2>
-                <button onClick={() => setShowFolder(false)} className="p-1.5 rounded-full hover:bg-background/80 text-muted-foreground hover:text-foreground transition-colors shadow-sm">
-                  <X className="w-4 h-4"/>
+                <button onClick={() => setShowFolder(false)} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                  <X className="w-5 h-5" />
                 </button>
               </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
+              <div className="flex-1 overflow-y-auto p-4 space-y-6">
                 <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} />
               </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
-    </div>
-  </div>
-  );
-}
 
-// Helper components to keep OViiChat clean
-function FilesList({ voiceMsgs, uid, downloadVoice }: { voiceMsgs: Msg[], uid: string|null, downloadVoice: (u:string, i:string)=>void }) {
-  if (voiceMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs">No saved voice notes.</p>;
-
-  const groups = voiceMsgs.reduce((acc, m) => {
-    const date = m.createdAt?.toDate().toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) || "Today";
-    if (!acc[date]) acc[date] = [];
-    acc[date].push(m);
-    return acc;
-  }, {} as Record<string, Msg[]>);
-
-  return (
-    <>
-      {Object.entries(groups).map(([date, msgs]) => (
-        <div key={date} className="space-y-3">
-          <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
-          {msgs.map(m => (
-            <div key={m.id} className="bg-card/40 border border-border/20 p-2.5 rounded-xl flex items-center gap-2 shadow-sm hover:bg-card/60 transition-colors group">
-              <div className="flex-1 min-w-0 scale-90 origin-left">
-                <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} />
+        {/*
+          ── Chat Frame ──────────────────────────────────────────────────────
+          Mobile:  full-bleed, height 100%
+          Desktop: centered card, max-width 1440px, 20px margin, rounded, bordered
+          The CSS for .ovii-chat-frame lives in styles.css (see below comment).
+          We use a single wrapper — NO duplicate ovii-chat-inner.
+        */}
+        <div
+          className="ovii-chat-frame flex flex-col h-full w-full"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
+        >
+          {/* ── Header ── */}
+          <header className="border-b border-border/40 px-4 py-3 flex items-center justify-between bg-background/80 backdrop-blur-xl z-20 shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-full gradient-gold p-[2px] shadow-glow">
+                <div className="h-full w-full rounded-full bg-background overflow-hidden border border-background">
+                  {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : null}
+                </div>
               </div>
-              <button 
-                onClick={() => downloadVoice(m.content, m.id)} 
-                className="p-2 bg-muted/40 hover:bg-primary/20 rounded-full text-muted-foreground hover:text-primary transition-all shrink-0 opacity-0 group-hover:opacity-100"
-                aria-label="Download voice note"
-              >
-                <Download className="w-3.5 h-3.5" />
-              </button>
+              <div>
+                <div className="font-black text-lg tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
+                  ovii<span className="text-primary">.</span>
+                </div>
+                <div className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 font-bold">
+                  {recordingUsers.length > 0 ? (
+                    <><span className="w-1.5 h-1.5 bg-destructive rounded-full animate-pulse" />Recording...</>
+                  ) : typingUsers.length > 0 ? (
+                    <><span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />Typing...</>
+                  ) : otherOnline ? (
+                    <><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />{otherName || "Online"}</>
+                  ) : otherLastSeen ? (
+                    <><span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full" />
+                    Last seen {(() => {
+                      const diff = Date.now() - otherLastSeen;
+                      if (diff < 60000) return "just now";
+                      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+                      if (diff < 86400000) return new Date(otherLastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+                      return new Date(otherLastSeen).toLocaleDateString();
+                    })()}</>
+                  ) : (
+                    <><span className="w-1.5 h-1.5 bg-muted-foreground/30 rounded-full" />Waiting...</>
+                  )}
+                </div>
+              </div>
             </div>
-          ))}
-        </div>
-      ))}
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <button
+                onClick={() => { window.location.href = "/news"; }}
+                className="hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10"
+                aria-label="Switch to News"
+              >
+                <ArrowLeftRight className="w-5 h-5" />
+              </button>
+              <button onClick={() => setShowFolder(true)} className="hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10 relative">
+                <Folder className="w-5 h-5" />
+                {unreadVoice > 0 && <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-glow">{unreadVoice}</span>}
+              </button>
+              <button onClick={onLock} className="text-[10px] font-bold hover:text-primary transition-colors uppercase tracking-widest px-3 py-1.5 rounded-full bg-muted/40 hover:bg-muted border border-border/30">Lock</button>
+            </div>
+          </header>
+
+          {/* ── Body: messages col + optional desktop sidebar ── */}
+          <div className="flex-1 flex min-h-0 overflow-hidden">
+
+            {/* ── Messages column ── */}
+            <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+
+              {/* Floating join/leave toasts */}
+              <AnimatePresence>
+                {systemMsgs.length > 0 && (
+                  <motion.div
+                    key="toast-stack"
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    className="absolute top-[10px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 pointer-events-none"
+                  >
+                    {systemMsgs.slice(-1).map(sm => (
+                      <div key={sm.id} className={`text-[11px] font-bold px-4 py-1.5 rounded-full backdrop-blur-xl shadow-elegant border ${
+                        sm.type === "join"
+                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                          : "bg-muted/60 text-muted-foreground border-border/30"
+                      }`}>
+                        {sm.type === "join" ? "🟢" : "⚫"} {sm.text}
+                      </div>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Scroll area — overflow-x:hidden prevents horizontal bleed from drag */}
+              <div
+                ref={scrollRef}
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col touch-pan-y"
+                style={{ overscrollBehavior: "contain", overflowX: "hidden" }}
+                onScroll={(e) => {
+                  const t = e.currentTarget;
+                  setShowScrollDown(t.scrollHeight - t.scrollTop > t.clientHeight + 80);
+                }}
+              >
+                <div className="flex-1" />
+
+                {error && <div className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-md p-3 mb-3">{error}</div>}
+                {!error && chatMsgs.length === 0 && (
+                  <div className="h-full flex items-center justify-center text-center text-muted-foreground text-sm my-auto">
+                    <div><div className="text-4xl mb-2">👋</div>No messages yet.</div>
+                  </div>
+                )}
+
+                <div className="space-y-1 flex flex-col justify-end shrink-0 relative">
+                  <AnimatePresence>
+                    {chatMsgs.map((m, i) => {
+                      const mine = m.uid === uid;
+                      const prevMsg = chatMsgs[i - 1];
+                      const isConsecutive = prevMsg && prevMsg.uid === m.uid;
+                      const nextMsg = chatMsgs[i + 1];
+                      const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
+
+                      return (
+                        <motion.div
+                          key={m.id}
+                          initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          transition={{ type: "spring", damping: 20, stiffness: 200 }}
+                          drag="x"
+                          dragConstraints={{ left: 0, right: 80 }}
+                          dragElastic={0.05}
+                          onDragEnd={(_, info) => {
+                            if (info.offset.x > 60) setReplyingTo(m);
+                          }}
+                          // Clip the drag transform so it never bleeds horizontally
+                          style={{ willChange: "transform", maxWidth: "100%" }}
+                          className={`relative flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? "mt-4" : "mt-0.5"}`}
+                        >
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-4 opacity-0 group-active:opacity-100 transition-opacity pointer-events-none">
+                            <Reply className="w-5 h-5 text-primary/40" />
+                          </div>
+
+                          {!mine && (
+                            <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                              {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
+                            </div>
+                          )}
+
+                          <div className={`max-w-[85%] lg:max-w-[65%] ${mine ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
+                            {!mine && !isConsecutive && m.name && <span className="text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
+
+                            {m.replyTo && (
+                              <div className="bg-m3-surface-container-high/50 px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden">
+                                <img src={m.replyTo.avatar} className="w-4 h-4 rounded-full border border-border/20 shrink-0" alt="" />
+                                <div className="flex flex-col min-w-0">
+                                  {m.replyTo.name && <span className="text-[8px] font-black text-primary uppercase tracking-tighter truncate">{m.replyTo.name}</span>}
+                                  <span className="truncate italic text-[10px] leading-tight">{m.replyTo.content}</span>
+                                </div>
+                              </div>
+                            )}
+
+                            {m.type === "voice" ? (
+                              <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} />
+                            ) : (
+                              <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
+                                ${mine
+                                  ? "bg-m3-surface-container-high text-foreground " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
+                                  : "bg-gradient-to-br from-[oklch(0.7_0.18_45)] to-[oklch(0.85_0.15_55)] text-black shadow-glow-orange border-none " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
+                                }`}
+                              >
+                                {m.type === "text" && <span>{m.content}</span>}
+                                {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
+
+                                <div className="flex items-end gap-1 self-end mt-1 opacity-80 scale-90 shrink-0">
+                                  <span className={`text-[9px] font-bold tabular-nums ${mine ? "text-primary" : "text-black/60"}`}>
+                                    {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
+                                  </span>
+                                  {mine && <MsgTick status={m.status} />}
+                                </div>
+
+                                {/* Desktop hover reply button */}
+                                <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                  <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
+                                    <Reply className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {mine && (
+                            <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                              {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </AnimatePresence>
+
+                  {typingUsers.length > 0 && (
+                    <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
+                      <img src={typingUsers[0]} className="h-7 w-7 rounded-full bg-muted object-cover shrink-0 border border-border" alt="" />
+                      <div className="text-xs bg-card border border-border px-3 py-2.5 rounded-2xl rounded-bl-sm flex gap-1 items-center">
+                        <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
+                        <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
+                        <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                      </div>
+                    </div>
+                  )}
+                  {recordingUsers.length > 0 && (
+                    <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
+                      <img src={recordingUsers[0]} className="h-7 w-7 rounded-full bg-muted object-cover shrink-0 border border-border" alt="" />
+                      <div className="text-xs font-medium text-destructive bg-card border border-border px-3 py-1.5 rounded-2xl rounded-bl-sm flex gap-2 items-center animate-pulse">
+                        <Mic className="w-3.5 h-3.5" /> Recording...
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} className="h-0 w-full shrink-0" />
+                </div>
+              </div>
+
+              {/* Scroll-to-bottom button */}
+              <AnimatePresence>
+                {showScrollDown && (
+                  <motion.button
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    onClick={() => scrollToBottom()}
+                    className="absolute bottom-[80px] right-4 bg-primary text-primary-foreground p-2 rounded-full shadow-lg z-20 flex items-center gap-1 px-3 text-xs font-bold"
+                  >
+                    New message ↓
+                  </motion.button>
+                )}
+              </AnimatePresence>
+
+              {/* Reply preview bar */}
+              <div className="px-3 pb-0">
+                <AnimatePresence>
+                  {replyingTo && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10, height: 0 }}
+                      animate={{ opacity: 1, y: 0, height: "auto" }}
+                      exit={{ opacity: 0, y: 10, height: 0 }}
+                      className="bg-m3-surface-container-high/95 backdrop-blur-2xl rounded-t-2xl px-3 py-2 border-x border-t border-border/10 flex items-center justify-between shadow-elegant overflow-hidden"
+                    >
+                      <div className="flex items-center gap-3 overflow-hidden flex-1">
+                        <div className="w-1 bg-primary h-8 rounded-full shrink-0 shadow-glow" />
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-[9px] font-black text-primary uppercase tracking-widest">{replyingTo.name || "User"}</span>
+                          <div className="truncate text-[11px] text-muted-foreground italic opacity-90 leading-tight">
+                            {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
+                          </div>
+                        </div>
+                      </div>
+                      <button onClick={() => setReplyingTo(null)} className="p-1.5 hover:bg-background/40 rounded-full text-muted-foreground hover:text-destructive transition-colors shrink-0 active:scale-90 ml-2">
+                        <XCircle className="w-5 h-5" />
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Input bar */}
+              <div className={`border-t border-border/20 p-3 pb-safe flex items-center gap-2 bg-background/80 backdrop-blur-xl z-20 shrink-0 ${replyingTo ? "border-t-0 rounded-b-3xl" : ""}`}>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*,.gif"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) onImage(f); e.target.value = ""; }}
+                />
+
+                {recording ? (
+                  <div className="flex-1 flex items-center gap-1.5 bg-m3-surface-container-high/90 backdrop-blur-xl rounded-[28px] px-2.5 h-11 border border-primary/20 shadow-elegant overflow-hidden max-w-full">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="w-1.5 h-1.5 bg-destructive rounded-full shadow-[0_0_8px_red] animate-pulse shrink-0" />
+                      <RecordingVisualizer />
+                    </div>
+                    <motion.div
+                      drag="x"
+                      dragConstraints={{ right: 0 }}
+                      dragElastic={0.1}
+                      onDrag={(_, info) => { if (info.offset.x < -60) cancelRec(); }}
+                      className="flex-1 flex items-center justify-center gap-1 cursor-grab active:cursor-grabbing select-none min-w-0"
+                    >
+                      <ChevronLeft className="w-3 h-3 text-muted-foreground/40 shrink-0 animate-pulse" />
+                      <span className="text-muted-foreground/40 text-[8px] font-black uppercase tracking-wider whitespace-nowrap overflow-hidden text-ellipsis">Slide to cancel</span>
+                    </motion.div>
+                    <button type="button" onClick={stopAndSendRec} className="shrink-0 h-8 px-3 rounded-full bg-primary text-primary-foreground text-[9px] font-black uppercase tracking-wider hover:bg-primary/90 transition-all shadow-glow flex items-center gap-1 active:scale-95">
+                      <Send className="w-3 h-3" /> Send
+                    </button>
+                  </div>
+                ) : (
+                  <>
+                    <button type="button" onClick={() => fileRef.current?.click()} className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all active:scale-90" aria-label="Attach image">
+                      <ImageIcon className="w-6 h-6" />
+                    </button>
+                    <button
+                      type="button"
+                      onPointerDown={(e) => { e.preventDefault(); startRec(); }}
+                      className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all active:scale-90"
+                      aria-label="Tap to record"
+                    >
+                      <Mic className="w-6 h-6" />
+                    </button>
+                    <input
+                      ref={inputRef}
+                      id="ovii-chat-input"
+                      name={`ovii_nocomplete_${Date.now()}`}
+                      type="text"
+                      autoComplete="off"
+                      value={text}
+                      onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) onText(e); }}
+                      onPaste={handlePaste}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setText(val);
+                        if (uid) {
+                          const typingNow = val.length > 0;
+                          if (typingNow !== isTyping) { setIsTyping(typingNow); setPres({ typing: typingNow }); }
+                          if (typingTimer.current) clearTimeout(typingTimer.current);
+                          if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
+                        }
+                      }}
+                      placeholder={uid ? "Message..." : "Connecting…"}
+                      disabled={!uid || !!error}
+                      className="flex-1 min-w-0 h-11 rounded-[28px] bg-m3-surface-container-high border border-border/10 px-5 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-m3-surface-container transition-all placeholder:text-muted-foreground/30"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => onText()}
+                      disabled={!text.trim()}
+                      className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 disabled:scale-95 transition-all shadow-glow active:scale-90"
+                    >
+                      <Send className="w-5 h-5 ml-0.5" />
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* ── Desktop Sidebar (hidden on mobile via CSS/Tailwind) ── */}
+            <AnimatePresence>
+              {showFolder && (
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{ width: 380, opacity: 1 }}
+                  exit={{ width: 0, opacity: 0 }}
+                  transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                  className="hidden lg:flex flex-col border-l border-border/40 bg-muted/5 relative overflow-hidden shrink-0"
+                >
+                  <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/40 backdrop-blur-md sticky top-0 z-10">
+                    <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2.5">
+                      <Folder className="w-4 h-4 text-destructive" /> MY FILES
+                    </h2>
+                    <button onClick={() => setShowFolder(false)} className="p-1.5 rounded-full hover:bg-background/80 text-muted-foreground hover:text-foreground transition-colors shadow-sm">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
+                    <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+          </div>{/* end body */}
+        </div>{/* end ovii-chat-frame */}
+      </div>{/* end ovii-chat-root */}
     </>
   );
 }
