@@ -42,8 +42,8 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
     if (!containerRef.current) return;
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: "oklch(0.75 0.2 45 / 0.5)",
-      progressColor: "oklch(0.75 0.2 45)",
+      waveColor: "oklch(0.65 0.15 50 / 0.3)",
+      progressColor: "oklch(0.7 0.18 55)",
       cursorWidth: 0,
       barWidth: 2,
       barGap: 3,
@@ -90,28 +90,42 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
   const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
-    <div className={`flex items-center gap-4 w-full max-w-[300px] p-3.5 rounded-2xl border transition-all ${
-      mine ? "bg-m3-surface-container-high/60 border-white/5 shadow-elegant" : "bg-m3-other-container/30 border-primary/20 shadow-glow-orange"
+    <div className={`flex items-center gap-4 w-full max-w-[320px] p-4 rounded-[24px] border border-white/10 backdrop-blur-2xl transition-all shadow-[0_12px_40px_rgba(0,0,0,0.4)] ${
+      mine ? "bg-white/10 shadow-[0_0_20px_oklch(0.65_0.15_50_/_0.1)]" : "bg-white/5 shadow-[0_0_20px_oklch(0.65_0.15_50_/_0.05)]"
     }`}>
-      <button onClick={toggle} className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${
-        mine ? "bg-primary/10 border-primary/20" : "bg-primary/20 border-primary/40"
-      }`}>
-        {playing ? <Pause className="w-5 h-5 fill-primary text-primary" /> : <Play className="w-5 h-5 fill-primary text-primary ml-0.5" />}
+      <button 
+        onClick={toggle} 
+        className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.5)] bg-gradient-to-br from-[#d48c5a] to-[#8a4a2a]"
+      >
+        {playing ? (
+          <Pause className="w-5 h-5 fill-white text-white" />
+        ) : (
+          <Play className="w-5 h-5 fill-white text-white ml-0.5" />
+        )}
       </button>
-      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+      <div className="flex-1 min-w-0 flex flex-col gap-2">
         <div
-          className={`w-full transition-all duration-300 ${playing ? "waveform-playing opacity-100" : "opacity-80"}`}
-          style={{ height: 30, overflow: "hidden" }}
+          className={`w-full transition-all duration-300 ${playing ? "waveform-playing opacity-100" : "opacity-60"}`}
+          style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between px-0.5">
-          <span className={`text-[11px] font-black tabular-nums tracking-wide ${mine ? "text-primary" : "text-primary"}`}>
-            {fmt(playing ? currentTime : duration)}
-          </span>
-          <div className="flex items-center gap-2.5">
-            {timeStr && <span className={`text-[10px] font-bold tabular-nums opacity-50 ${mine ? "text-foreground" : "text-primary"}`}>{timeStr}</span>}
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-4">
+            <span className="text-[12px] font-black tabular-nums tracking-wide text-white/90">
+              {fmt(playing ? currentTime : duration)}
+            </span>
+            {timeStr && (
+              <span className="text-[10px] font-bold tabular-nums text-white/40 uppercase tracking-tight">
+                {timeStr}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
             {mine && <MsgTick status={status} />}
-            <button onClick={toggleSpeed} className="text-[10px] font-black px-2 py-0.5 rounded-md text-primary bg-primary/10 border border-primary/20 hover:bg-primary/20 transition-colors ml-1">
+            <button 
+              onClick={toggleSpeed} 
+              className="text-[10px] font-black px-2.5 py-1 rounded-lg text-white/90 bg-white/10 border border-white/10 hover:bg-white/20 transition-all active:scale-95"
+            >
               {speed}x
             </button>
           </div>
