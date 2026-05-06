@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
@@ -30,7 +30,7 @@ const isMobileDevice = () =>
   typeof window !== "undefined" && window.innerWidth < 768;
 
 // ─── AudioPlayer ─────────────────────────────────────────────────────────────
-const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any }) => {
+const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any, isDarkMode: boolean }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveRef = useRef<WaveSurfer | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -42,19 +42,20 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
     if (!containerRef.current) return;
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: "oklch(0.65 0.15 50 / 0.3)",
-      progressColor: "oklch(0.7 0.18 55)",
+      waveColor: isDarkMode ? "#3b4a54" : "#d1d7db",
+      progressColor: isDarkMode ? "#34b7f1" : "#34b7f1",
       cursorWidth: 0,
       barWidth: 2,
       barGap: 3,
       barRadius: 4,
-      height: 28,
+      height: 32,
       normalize: true,
     });
     ws.load(src);
     waveRef.current = ws;
     ws.on("ready", () => setDuration(ws.getDuration()));
-    ws.on("timeupdate", () => setCurrentTime(ws.getCurrentTime()));
+    ws.on("audioprocess", () => setCurrentTime(ws.getCurrentTime()));
+    ws.on("seek", () => setCurrentTime(ws.getCurrentTime()));
     ws.on("finish", () => { setPlaying(false); setCurrentTime(ws.getDuration()); });
     const stopOthers = (e: any) => {
       if (e.detail !== id && ws.isPlaying()) { ws.pause(); setPlaying(false); }
@@ -64,7 +65,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
       window.removeEventListener(STOP_AUDIO_EVENT, stopOthers);
       ws.destroy();
     };
-  }, [src, id]);
+  }, [src, id, isDarkMode]);
 
   const toggle = () => {
     if (!waveRef.current) return;
@@ -90,46 +91,59 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
   const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
-    <div className={`flex items-center gap-4 w-full max-w-[320px] p-4 rounded-[24px] border border-white/10 backdrop-blur-2xl transition-all shadow-[0_12px_40px_rgba(0,0,0,0.4)] ${
-      mine ? "bg-white/10 shadow-[0_0_20px_oklch(0.65_0.15_50_/_0.1)]" : "bg-white/5 shadow-[0_0_20px_oklch(0.65_0.15_50_/_0.05)]"
+    <div className={`flex items-center gap-3 w-full max-w-[340px] p-3 rounded-[20px] transition-all shadow-sm ${
+      mine 
+        ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black") 
+        : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black")
     }`}>
-      <button 
-        onClick={toggle} 
-        className="w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.5)] bg-gradient-to-br from-[#d48c5a] to-[#8a4a2a]"
-      >
-        {playing ? (
-          <Pause className="w-5 h-5 fill-white text-white" />
-        ) : (
-          <Play className="w-5 h-5 fill-white text-white ml-0.5" />
-        )}
-      </button>
-      <div className="flex-1 min-w-0 flex flex-col gap-2">
+      <div className="relative shrink-0">
+        <button 
+          onClick={toggle} 
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-95 ${
+            isDarkMode ? "text-white/80" : "text-[#54656f]"
+          }`}
+        >
+          {playing ? (
+            <Pause className="w-8 h-8 fill-current" />
+          ) : (
+            <Play className="w-8 h-8 fill-current ml-1" />
+          )}
+        </button>
+        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+          isDarkMode ? "bg-[#202c33] border-[#005c4b]" : "bg-white border-[#dcf8c6]"
+        }`}>
+          <Mic className="w-3 h-3 text-[#00a884]" />
+        </div>
+      </div>
+
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div
-          className={`w-full transition-all duration-300 ${playing ? "waveform-playing opacity-100" : "opacity-60"}`}
+          className="w-full opacity-100"
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center gap-4 px-1">
-          <span className="text-[12px] font-black tabular-nums tracking-wide text-white/90">
-            {fmt(playing ? currentTime : duration)}
-          </span>
-          
-          {timeStr && (
-            <span className="text-[10px] font-bold tabular-nums text-white/40 uppercase tracking-tight">
-              {timeStr}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="text-[11px] tabular-nums opacity-60">
+              {fmt(playing ? currentTime : duration)}
             </span>
-          )}
-
-          {mine && (
-            <div className="opacity-80 scale-110">
-              <MsgTick status={status} />
-            </div>
-          )}
-
-          <div>
+            {timeStr && (
+              <span className="text-[10px] opacity-40 uppercase tracking-tight">
+                {timeStr}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-2">
+            {mine && (
+              <div className="opacity-60 scale-90">
+                <MsgTick status={status} />
+              </div>
+            )}
             <button 
               onClick={toggleSpeed} 
-              className="text-[10px] font-black px-2.5 py-1 rounded-lg text-white/90 bg-white/10 border border-white/10 hover:bg-white/20 transition-all active:scale-95"
+              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border transition-all active:scale-95 ${
+                isDarkMode ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"
+              }`}
             >
               {speed}x
             </button>
@@ -142,20 +156,20 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
 
 // ─── MsgTick ─────────────────────────────────────────────────────────────────
 const MsgTick = ({ status }: { status?: string }) => {
-  if (status === "sending") return <svg className="w-3 h-3 text-muted-foreground/60" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" /></svg>;
+  if (status === "sending") return <svg className="w-3 h-3 opacity-40" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" /></svg>;
   if (status === "sent") return (
-    <svg className="w-3 h-3 text-muted-foreground/70" viewBox="0 0 12 9" fill="none">
+    <svg className="w-[13px] h-[9px] opacity-40" viewBox="0 0 12 9" fill="none">
       <path d="M1 4.5L4.5 8L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
   if (status === "delivered") return (
-    <svg className="w-4 h-3 text-muted-foreground/70" viewBox="0 0 16 9" fill="none">
+    <svg className="w-[17px] h-[9px] opacity-40" viewBox="0 0 16 9" fill="none">
       <path d="M1 4.5L4.5 8L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M5 4.5L8.5 8L15 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
   if (status === "read") return (
-    <svg className="w-4 h-3 text-blue-400" viewBox="0 0 16 9" fill="none">
+    <svg className="w-[17px] h-[9px] text-[#53bdeb]" viewBox="0 0 16 9" fill="none">
       <path d="M1 4.5L4.5 8L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M5 4.5L8.5 8L15 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
@@ -178,7 +192,7 @@ const RecordingVisualizer = () => (
 );
 
 // ─── FilesList ────────────────────────────────────────────────────────────────
-function FilesList({ voiceMsgs, uid, downloadVoice }: { voiceMsgs: Msg[], uid: string | null, downloadVoice: (u: string, i: string) => void }) {
+function FilesList({ voiceMsgs, uid, downloadVoice, isDarkMode }: { voiceMsgs: Msg[], uid: string | null, downloadVoice: (u: string, i: string) => void, isDarkMode: boolean }) {
   if (voiceMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs">No saved voice notes.</p>;
 
   const groups = voiceMsgs.reduce((acc, m) => {
@@ -196,7 +210,7 @@ function FilesList({ voiceMsgs, uid, downloadVoice }: { voiceMsgs: Msg[], uid: s
           {msgs.map(m => (
             <div key={m.id} className="bg-card/40 border border-border/20 p-2.5 rounded-xl flex items-center gap-2 shadow-sm hover:bg-card/60 transition-colors group">
               <div className="flex-1 min-w-0 scale-90 origin-left">
-                <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} />
+                <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
               </div>
               <button
                 onClick={() => downloadVoice(m.content, m.id)}
@@ -216,6 +230,14 @@ function FilesList({ voiceMsgs, uid, downloadVoice }: { voiceMsgs: Msg[], uid: s
 // ─── OViiChat ─────────────────────────────────────────────────────────────────
 export function OViiChat({ onLock }: { onLock: () => void }) {
   const [uid, setUid] = useState<string | null>(null);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem("ovii_dark_mode");
+    return saved === null ? true : saved === "true";
+  });
+
+  useEffect(() => {
+    localStorage.setItem("ovii_dark_mode", String(isDarkMode));
+  }, [isDarkMode]);
 
   // ── Viewport height: ONLY used on mobile to compensate for software keyboard ──
   // On desktop we let position:fixed + inset:0 do the work (no zoom whitespace).
@@ -619,7 +641,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               .ovii-sidebar  → desktop only, 380px
             input bar       → shrink-0
       */}
-      <div className="ovii-chat-root bg-background" style={rootStyle}>
+      <div className={`ovii-chat-root transition-colors duration-300 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"}`} style={rootStyle}>
         <Toaster position="top-center" />
 
         {/* ── Avatar Picker Overlay ── */}
@@ -696,52 +718,69 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           onDrop={handleDrop}
         >
           {/* ── Header ── */}
-          <header className="border-b border-border/40 px-4 py-3 flex items-center justify-between bg-background/80 backdrop-blur-xl z-20 shrink-0">
+          <header className={`px-4 py-2 flex items-center justify-between z-20 shrink-0 shadow-sm ${
+            isDarkMode ? "bg-[#202c33] border-b border-white/5 text-white" : "bg-[#f0f2f5] border-b border-black/5 text-black"
+          }`}>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full gradient-gold p-[2px] shadow-glow">
-                <div className="h-full w-full rounded-full bg-background overflow-hidden border border-background">
-                  {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : null}
-                </div>
+              <div className="h-10 w-10 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm">
+                {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : null}
               </div>
               <div>
-                <div className="font-black text-lg tracking-tight" style={{ fontFamily: "Poppins, sans-serif" }}>
-                  ovii<span className="text-primary">.</span>
+                <div className="font-bold text-[15px] leading-tight">
+                  {name || "Ovii User"}
                 </div>
-                <div className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 font-bold">
+                <div className="text-[11px] opacity-60 flex items-center gap-1.5 font-medium">
                   {recordingUsers.length > 0 ? (
-                    <><span className="w-1.5 h-1.5 bg-destructive rounded-full animate-pulse" />Recording...</>
+                    <span className="text-emerald-500 animate-pulse">Recording...</span>
                   ) : typingUsers.length > 0 ? (
-                    <><span className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />Typing...</>
+                    <span className="text-emerald-500 animate-pulse">Typing...</span>
                   ) : otherOnline ? (
-                    <><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />{otherName || "Online"}</>
-                  ) : otherLastSeen ? (
-                    <><span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full" />
-                    Last seen {(() => {
-                      const diff = Date.now() - otherLastSeen;
-                      if (diff < 60000) return "just now";
-                      if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
-                      if (diff < 86400000) return new Date(otherLastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-                      return new Date(otherLastSeen).toLocaleDateString();
-                    })()}</>
+                    <span className="text-emerald-500">online</span>
                   ) : (
-                    <><span className="w-1.5 h-1.5 bg-muted-foreground/30 rounded-full" />Waiting...</>
+                    "offline"
                   )}
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`p-2 rounded-full transition-colors ${
+                  isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+                }`}
+                title={isDarkMode ? "Light Mode" : "Dark Mode"}
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
               <button
                 onClick={() => { window.location.href = "/news"; }}
-                className="hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10"
-                aria-label="Switch to News"
+                className={`p-2 rounded-full transition-colors ${
+                  isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+                }`}
+                title="Switch to News"
               >
                 <ArrowLeftRight className="w-5 h-5" />
               </button>
-              <button onClick={() => setShowFolder(true)} className="hover:text-primary transition-colors p-2 rounded-full hover:bg-primary/10 relative">
+              <button 
+                onClick={() => setShowFolder(true)} 
+                className={`p-2 rounded-full transition-colors relative ${
+                  isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+                }`}
+                title="My Files"
+              >
                 <Folder className="w-5 h-5" />
-                {unreadVoice > 0 && <span className="absolute -top-0.5 -right-0.5 bg-primary text-primary-foreground text-[8px] font-black w-4 h-4 flex items-center justify-center rounded-full shadow-glow">{unreadVoice}</span>}
+                {unreadVoice > 0 && <span className="absolute top-1 right-1 bg-[#25d366] text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm">{unreadVoice}</span>}
               </button>
-              <button onClick={onLock} className="text-[10px] font-bold hover:text-primary transition-colors uppercase tracking-widest px-3 py-1.5 rounded-full bg-muted/40 hover:bg-muted border border-border/30">Lock</button>
+              <button 
+                onClick={onLock} 
+                className={`ml-1 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border ${
+                  isDarkMode 
+                    ? "bg-white/5 hover:bg-white/10 border-white/10 text-white/80" 
+                    : "bg-black/5 hover:bg-black/10 border-black/10 text-black/80"
+                }`}
+              >
+                Lock
+              </button>
             </div>
           </header>
 
@@ -777,8 +816,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               {/* Scroll area — overflow-x:hidden prevents horizontal bleed from drag */}
               <div
                 ref={scrollRef}
-                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col touch-pan-y"
-                style={{ overscrollBehavior: "contain", overflowX: "hidden" }}
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col touch-pan-y relative"
+                style={{ 
+                  overscrollBehavior: "contain", 
+                  overflowX: "hidden",
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='${isDarkMode ? "%23ffffff15" : "%2300000010"}'/%3E%3C/svg%3E")`,
+                  backgroundSize: "20px 20px"
+                }}
                 onScroll={(e) => {
                   const t = e.currentTarget;
                   setShowScrollDown(t.scrollHeight - t.scrollTop > t.clientHeight + 80);
@@ -843,26 +887,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             )}
 
                             {m.type === "voice" ? (
-                              <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} />
+                              <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                             ) : (
-                              <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
+                              <div className={`rounded-[20px] px-3.5 py-2 text-[14.5px] leading-[1.4] break-words relative flex flex-col shadow-sm transition-all
                                 ${mine
-                                  ? "bg-gradient-to-br from-[oklch(0.6_0.15_40)] to-[oklch(0.7_0.18_45)] text-black shadow-elegant border-none " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
-                                  : "bg-gradient-to-br from-[oklch(0.7_0.18_45)] to-[oklch(0.85_0.15_55)] text-black shadow-glow-orange border-none " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
+                                  ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
+                                  : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
                                 }`}
                               >
-                                {m.type === "text" && <span>{m.content}</span>}
-                                {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
+                                <div className="flex items-center gap-3">
+                                  {m.type === "text" && <span className="flex-1">{m.content}</span>}
+                                  {m.type === "image" && <img src={m.content} alt="" className="rounded-lg max-w-[260px] shadow-sm border border-black/5" />}
+                                </div>
 
-                                <div className="flex items-end gap-1 self-end mt-1 opacity-80 scale-90 shrink-0">
-                                  <span className="text-[9px] font-bold tabular-nums text-black/60">
+                                <div className="flex items-center justify-end gap-1.5 mt-0.5 opacity-60 self-end">
+                                  <span className="text-[10px] tabular-nums font-medium">
                                     {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                   </span>
-                                  {mine && (
-                                    <div className="text-black/60">
-                                      <MsgTick status={m.status} />
-                                    </div>
-                                  )}
+                                  {mine && <MsgTick status={m.status} />}
                                 </div>
 
                                 {/* Desktop hover reply button */}
@@ -930,27 +972,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       initial={{ opacity: 0, y: 10, height: 0 }}
                       animate={{ opacity: 1, y: 0, height: "auto" }}
                       exit={{ opacity: 0, y: 10, height: 0 }}
-                      className="bg-m3-surface-container-high/95 backdrop-blur-2xl rounded-t-2xl px-3 py-2 border-x border-t border-border/10 flex items-center justify-between shadow-elegant overflow-hidden"
-                    >
-                      <div className="flex items-center gap-3 overflow-hidden flex-1">
-                        <div className="w-1 bg-primary h-8 rounded-full shrink-0 shadow-glow" />
-                        <div className="flex flex-col min-w-0">
-                          <span className="text-[9px] font-black text-primary uppercase tracking-widest">{replyingTo.name || "User"}</span>
-                          <div className="truncate text-[11px] text-muted-foreground italic opacity-90 leading-tight">
-                            {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
-                          </div>
-                        </div>
-                      </div>
-                      <button onClick={() => setReplyingTo(null)} className="p-1.5 hover:bg-background/40 rounded-full text-muted-foreground hover:text-destructive transition-colors shrink-0 active:scale-90 ml-2">
-                        <XCircle className="w-5 h-5" />
-                      </button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </div>
-
-              {/* Input bar */}
-              <div className={`border-t border-border/20 p-3 pb-safe flex items-center gap-2 bg-background/80 backdrop-blur-xl z-20 shrink-0 ${replyingTo ? "border-t-0 rounded-b-3xl" : ""}`}>
+                      className="bg-m3-surface-container-high/95 backdrop-blur-2xl rounded-t-2xl px-3 py-2 border-x border-t bor              {/* Input bar */}
+              <div className={`p-2 pb-safe flex items-center gap-2 z-20 shrink-0 ${
+                isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
+              }`}>
                 <input
                   ref={fileRef}
                   type="file"
@@ -959,43 +984,42 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   onChange={(e) => { const f = e.target.files?.[0]; if (f) onImage(f); e.target.value = ""; }}
                 />
 
-                {recording ? (
-                  <div className="flex-1 flex items-center gap-3 bg-m3-surface-container-high/90 backdrop-blur-xl rounded-[28px] px-4 h-12 border border-primary/20 shadow-elegant overflow-hidden max-w-full">
-                    <div className="flex items-center gap-2.5 shrink-0">
-                      <span className="w-2 h-2 bg-destructive rounded-full shadow-[0_0_10px_red] animate-pulse shrink-0" />
-                      <RecordingVisualizer />
-                    </div>
-                    <motion.div
-                      drag="x"
-                      dragConstraints={{ right: 0 }}
-                      dragElastic={0.1}
-                      onDrag={(_, info) => { if (info.offset.x < -60) cancelRec(); }}
-                      className="flex-1 flex items-center justify-center gap-1.5 cursor-grab active:cursor-grabbing select-none min-w-0"
-                    >
-                      <ChevronLeft className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0 animate-pulse" />
-                      <span className="text-muted-foreground/40 text-[10px] font-black uppercase tracking-widest whitespace-nowrap overflow-hidden text-ellipsis">Slide to cancel</span>
-                    </motion.div>
-                    <button type="button" onClick={stopAndSendRec} className="shrink-0 h-9 px-4 rounded-full bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-wider hover:bg-primary/90 transition-all shadow-glow flex items-center gap-1.5 active:scale-95">
-                      <Send className="w-3.5 h-3.5" /> Send
+                <div className={`flex-1 flex flex-col min-w-0 rounded-[24px] shadow-sm overflow-hidden ${
+                  isDarkMode ? "bg-[#2a3942]" : "bg-white"
+                }`}>
+                  <AnimatePresence>
+                    {replyingTo && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className={`px-3 py-2 border-b flex items-center justify-between ${
+                          isDarkMode ? "bg-black/20 border-white/5" : "bg-black/5 border-black/5"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3 overflow-hidden flex-1">
+                          <div className="w-1 bg-[#25d366] h-8 rounded-full shrink-0" />
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[10px] font-bold text-[#25d366] uppercase tracking-wide">{replyingTo.name || "User"}</span>
+                            <div className={`truncate text-[12px] italic ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+                              {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
+                            </div>
+                          </div>
+                        </div>
+                        <button onClick={() => setReplyingTo(null)} className="p-1 text-muted-foreground hover:text-destructive">
+                          <X className="w-4 h-4" />
+                        </button>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <div className="flex items-center px-1">
+                    <button type="button" className={`p-2.5 rounded-full transition-colors ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
+                      <span className="text-xl">😊</span>
                     </button>
-                  </div>
-                ) : (
-                  <>
-                    <button type="button" onClick={() => fileRef.current?.click()} className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all active:scale-90" aria-label="Attach image">
-                      <ImageIcon className="w-6 h-6" />
-                    </button>
-                    <button
-                      type="button"
-                      onPointerDown={(e) => { e.preventDefault(); startRec(); }}
-                      className="h-11 w-11 shrink-0 rounded-full text-muted-foreground hover:bg-primary/10 hover:text-primary flex items-center justify-center transition-all active:scale-90"
-                      aria-label="Tap to record"
-                    >
-                      <Mic className="w-6 h-6" />
-                    </button>
+                    
                     <input
                       ref={inputRef}
-                      id="ovii-chat-input"
-                      name={`ovii_nocomplete_${Date.now()}`}
                       type="text"
                       autoComplete="off"
                       value={text}
@@ -1011,21 +1035,48 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                         }
                       }}
-                      placeholder={uid ? "Message..." : "Connecting…"}
+                      placeholder="Type a message"
                       disabled={!uid || !!error}
-                      className="flex-1 min-w-0 h-11 rounded-[28px] bg-m3-surface-container-high border border-border/10 px-5 text-[14px] focus:outline-none focus:ring-2 focus:ring-primary/40 focus:bg-m3-surface-container transition-all placeholder:text-muted-foreground/30"
+                      className={`flex-1 bg-transparent py-3 px-2 text-[15px] focus:outline-none placeholder:opacity-50 ${
+                        isDarkMode ? "text-white" : "text-black"
+                      }`}
                     />
-                    <button
-                      type="button"
-                      onClick={() => onText()}
-                      disabled={!text.trim()}
-                      className="h-11 w-11 shrink-0 rounded-full bg-primary text-primary-foreground flex items-center justify-center disabled:opacity-40 disabled:scale-95 transition-all shadow-glow active:scale-90"
-                    >
-                      <Send className="w-5 h-5 ml-0.5" />
+
+                    <button type="button" onClick={() => fileRef.current?.click()} className={`p-2.5 rounded-full transition-colors ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
+                      <Folder className="w-6 h-6 rotate-[-45deg]" />
                     </button>
-                  </>
+                    <button type="button" className={`p-2.5 rounded-full transition-colors ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
+                      <ImageIcon className="w-6 h-6" />
+                    </button>
+                  </div>
+                </div>
+
+                {recording ? (
+                  <div className="flex items-center gap-3 bg-[#25d366] rounded-full p-2 pr-4 shadow-lg animate-in zoom-in-50 duration-200">
+                    <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center text-white">
+                      <Mic className="w-6 h-6" />
+                    </div>
+                    <div className="flex items-center gap-4 text-white">
+                      <RecordingVisualizer />
+                      <button onClick={stopAndSendRec} className="font-bold text-sm">Send</button>
+                      <button onClick={cancelRec} className="text-white/80"><X className="w-5 h-5" /></button>
+                    </div>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (text.trim()) onText();
+                      else startRec();
+                    }}
+                    onPointerDown={(e) => { if (!text.trim()) { e.preventDefault(); startRec(); } }}
+                    className="w-11 h-11 shrink-0 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-sm active:scale-90 transition-all"
+                  >
+                    {text.trim() ? <Send className="w-5 h-5 fill-white" /> : <Mic className="w-5 h-5 fill-white" />}
+                  </button>
                 )}
               </div>
+            </div>
             </div>
 
             {/* ── Desktop Sidebar (hidden on mobile via CSS/Tailwind) ── */}
@@ -1047,7 +1098,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
-                    <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} />
+                    <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} isDarkMode={isDarkMode} />
                   </div>
                 </motion.div>
               )}
