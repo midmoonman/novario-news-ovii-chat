@@ -109,19 +109,24 @@ const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: st
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between gap-6 px-1">
-          <div className="flex items-center gap-4">
-            <span className="text-[12px] font-black tabular-nums tracking-wide text-white/90">
-              {fmt(playing ? currentTime : duration)}
+        <div className="flex items-center gap-4 px-1">
+          <span className="text-[12px] font-black tabular-nums tracking-wide text-white/90">
+            {fmt(playing ? currentTime : duration)}
+          </span>
+          
+          {timeStr && (
+            <span className="text-[10px] font-bold tabular-nums text-white/40 uppercase tracking-tight">
+              {timeStr}
             </span>
-            {timeStr && (
-              <span className="text-[10px] font-bold tabular-nums text-white/40 uppercase tracking-tight">
-                {timeStr}
-              </span>
-            )}
-          </div>
-          <div className="flex items-center gap-2.5">
-            {mine && <MsgTick status={status} />}
+          )}
+
+          {mine && (
+            <div className="opacity-80 scale-110">
+              <MsgTick status={status} />
+            </div>
+          )}
+
+          <div>
             <button 
               onClick={toggleSpeed} 
               className="text-[10px] font-black px-2.5 py-1 rounded-lg text-white/90 bg-white/10 border border-white/10 hover:bg-white/20 transition-all active:scale-95"
