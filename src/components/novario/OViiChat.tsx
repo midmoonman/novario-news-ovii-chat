@@ -90,7 +90,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
   const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
-    <div className={`flex items-center gap-3 w-full max-w-[340px] p-3 rounded-[20px] transition-all shadow-sm ${
+    <div className={`flex items-center gap-4 w-full p-3.5 rounded-[22px] transition-all shadow-sm ${
       mine 
         ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black") 
         : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black")
@@ -121,30 +121,30 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between mt-2.5 px-0.5">
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] font-bold tabular-nums opacity-50">
+        <div className="flex items-center justify-between mt-3 px-1">
+          <div className="flex items-center gap-5">
+            <span className="text-[10.5px] font-bold tabular-nums opacity-50 tracking-tighter">
               {fmt(playing ? currentTime : duration)}
             </span>
             {timeStr && (
-              <span className="text-[9px] opacity-30 font-medium uppercase tracking-widest">
+              <span className="text-[9.5px] opacity-30 font-bold uppercase tracking-[0.15em] ml-1">
                 {timeStr}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <button 
               onClick={toggleSpeed} 
-              className={`text-[9px] font-black px-2 py-0.5 min-w-[32px] rounded-full border transition-all active:scale-95 ${
+              className={`text-[10px] font-black px-3 py-1 min-w-[36px] rounded-full border transition-all active:scale-90 ${
                 isDarkMode 
-                  ? "bg-white/5 border-white/10 text-white/60 hover:bg-white/10" 
-                  : "bg-black/5 border-black/10 text-black/50 hover:bg-black/10"
+                  ? "bg-white/10 border-white/5 text-white/70 hover:bg-white/20" 
+                  : "bg-black/5 border-black/5 text-black/60 hover:bg-black/10"
               }`}
             >
               {speed}x
             </button>
             {mine && (
-              <div className="opacity-40 scale-90 shrink-0">
+              <div className="opacity-40 scale-100 shrink-0">
                 <MsgTick status={status} />
               </div>
             )}
@@ -209,16 +209,16 @@ function FilesList({ voiceMsgs, uid, downloadVoice, isDarkMode }: { voiceMsgs: M
         <div key={date} className="space-y-3">
           <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
           {msgs.map(m => (
-            <div key={m.id} className="bg-card/40 border border-border/20 p-2.5 rounded-xl flex items-center gap-2 shadow-sm hover:bg-card/60 transition-colors group">
+            <div key={m.id} className="bg-card/30 border border-border/10 p-3 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-card/50 transition-all group">
               <div className="flex-1 min-w-0">
                 <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
               </div>
               <button
                 onClick={() => downloadVoice(m.content, m.id)}
-                className="p-2 bg-muted/40 hover:bg-primary/20 rounded-full text-muted-foreground hover:text-primary transition-all shrink-0 opacity-0 group-hover:opacity-100"
+                className="p-3 bg-primary/10 hover:bg-primary/20 rounded-full text-primary transition-all shrink-0 shadow-sm"
                 aria-label="Download voice note"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-5 h-5" />
               </button>
             </div>
           ))}
