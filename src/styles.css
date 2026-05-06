@@ -164,10 +164,6 @@
       box-shadow: none;
     }
 
-    /* Cap message bubble width on very large screens for readability */
-    .ovii-chat-frame .max-w-\[85\%\] {
-      max-width: 55%;
-    }
   }
 
   h1, h2, h3, .serif { font-family: var(--font-serif); letter-spacing: -0.01em; }
