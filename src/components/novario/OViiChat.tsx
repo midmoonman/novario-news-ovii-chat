@@ -279,6 +279,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [otherLastSeen, setOtherLastSeen] = useState<number | null>(null);
   const [otherName, setOtherName] = useState<string | null>(null);
   const [otherOnline, setOtherOnline] = useState(false);
+  const [otherAvatar, setOtherAvatar] = useState<string | null>(null);
   const prevOnlineRef = useRef<Map<string, string>>(new Map());
 
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
@@ -371,6 +372,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               if (data.typing) t.push(data.avatar);
               if (data.recording) r.push(data.avatar);
               setOtherName(data.name || "User");
+              setOtherAvatar(data.avatar || null);
               setOtherLastSeen(lastSeen);
               setOtherOnline(true);
             }
@@ -733,11 +735,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           }`}>
             <div className="flex items-center gap-3">
               <div className="h-10 w-10 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm">
-                {avatar ? <img src={avatar} alt="" className="w-full h-full object-cover" /> : null}
+                {otherAvatar ? (
+                  <img src={otherAvatar} alt="" className="w-full h-full object-cover" />
+                ) : avatar ? (
+                  <img src={avatar} alt="" className="w-full h-full object-cover opacity-40 grayscale" />
+                ) : null}
               </div>
               <div>
                 <div className="font-bold text-[15px] leading-tight">
-                  {name || "Ovii User"}
+                  {otherName || (count > 1 ? "Ovii User" : "Waiting...")}
                 </div>
                 <div className="text-[11px] opacity-60 flex items-center gap-1.5 font-medium">
                   {recordingUsers.length > 0 ? (
@@ -746,8 +752,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     <span className="text-emerald-500 animate-pulse">Typing...</span>
                   ) : otherOnline ? (
                     <span className="text-emerald-500">online</span>
-                  ) : (
+                  ) : otherName ? (
                     "offline"
+                  ) : (
+                    "no one else here"
                   )}
                 </div>
               </div>
