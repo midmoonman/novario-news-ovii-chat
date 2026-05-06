@@ -98,20 +98,20 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
       <div className="relative shrink-0">
         <button 
           onClick={toggle} 
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-95 ${
-            isDarkMode ? "text-white/80" : "text-[#54656f]"
+          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95 ${
+            isDarkMode ? "text-white/90" : "text-[#54656f]"
           }`}
         >
           {playing ? (
-            <Pause className="w-8 h-8 fill-current" />
+            <Pause className="w-9 h-9 fill-current" />
           ) : (
-            <Play className="w-8 h-8 fill-current ml-1" />
+            <Play className="w-9 h-9 fill-current ml-1" />
           )}
         </button>
-        <div className={`absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center border-2 ${
+        <div className={`absolute bottom-0 right-0 w-5.5 h-5.5 rounded-full flex items-center justify-center border-2 ${
           isDarkMode ? "bg-[#202c33] border-[#005c4b]" : "bg-white border-[#dcf8c6]"
         }`}>
-          <Mic className="w-3 h-3 text-[#00a884]" />
+          <Mic className="w-3.5 h-3.5 text-[#00a884]" />
         </div>
       </div>
 
@@ -121,14 +121,13 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between mt-2 px-1">
-          <div className="flex items-center gap-2.5">
-            <span className="text-[10px] font-extrabold tabular-nums opacity-60 tracking-tight">
+        <div className="flex items-center justify-between mt-2.5 px-0.5">
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] font-bold tabular-nums opacity-50">
               {fmt(playing ? currentTime : duration)}
             </span>
-            <div className="w-[1px] h-2.5 bg-current opacity-10 mx-0.5" />
             {timeStr && (
-              <span className="text-[9px] opacity-40 font-bold uppercase tracking-widest">
+              <span className="text-[9px] opacity-30 font-medium uppercase tracking-widest">
                 {timeStr}
               </span>
             )}
@@ -136,16 +135,16 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           <div className="flex items-center gap-3">
             <button 
               onClick={toggleSpeed} 
-              className={`text-[9px] font-black w-8 h-5 flex items-center justify-center rounded-full border transition-all active:scale-95 shadow-sm ${
+              className={`text-[9px] font-black px-2 py-0.5 min-w-[32px] rounded-full border transition-all active:scale-95 ${
                 isDarkMode 
-                  ? "bg-white/10 border-white/10 text-white/90 hover:bg-white/20" 
-                  : "bg-black/5 border-black/10 text-black/70 hover:bg-black/10"
+                  ? "bg-white/5 border-white/10 text-white/60 hover:bg-white/10" 
+                  : "bg-black/5 border-black/10 text-black/50 hover:bg-black/10"
               }`}
             >
               {speed}x
             </button>
             {mine && (
-              <div className="opacity-60 scale-90 shrink-0">
+              <div className="opacity-40 scale-90 shrink-0">
                 <MsgTick status={status} />
               </div>
             )}
@@ -211,7 +210,7 @@ function FilesList({ voiceMsgs, uid, downloadVoice, isDarkMode }: { voiceMsgs: M
           <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
           {msgs.map(m => (
             <div key={m.id} className="bg-card/40 border border-border/20 p-2.5 rounded-xl flex items-center gap-2 shadow-sm hover:bg-card/60 transition-colors group">
-              <div className="flex-1 min-w-0 scale-90 origin-left">
+              <div className="flex-1 min-w-0">
                 <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
               </div>
               <button
