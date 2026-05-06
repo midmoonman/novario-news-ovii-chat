@@ -130,7 +130,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           
           <div className="flex-1 flex justify-center">
             {timeStr && (
-              <span className="text-[10px] font-light uppercase tracking-widest whitespace-nowrap truncate opacity-40">
+              <span className="text-[10px] font-['Inter'] font-light uppercase tracking-widest whitespace-nowrap truncate opacity-40">
                 {timeStr}
               </span>
             )}
@@ -935,7 +935,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     )}
 
                                     <div className="absolute bottom-0 right-0 flex items-center gap-1.5 opacity-90 pointer-events-none select-none pb-0.5 pr-0.5">
-                                      <span className="text-[10px] tabular-nums font-light tracking-tight">
+                                      <span className="text-[10px] tabular-nums font-['Inter'] font-light tracking-tight">
                                         {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                       </span>
                                       {mine && <div className="shrink-0 scale-95"><MsgTick status={m.status} /></div>}
