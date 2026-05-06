@@ -212,9 +212,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Msg | null>(null);
   const [showFolder, setShowFolder] = useState(false);
-  const [onlineUsers, setOnlineUsers] = useState<{uid: string, name: string}[]>([]);
+  const [onlineUsers, setOnlineUsers] = useState<{uid: string, name: string, avatar?: string}[]>([]);
   const [showScrollDown, setShowScrollDown] = useState(false);
-  const [systemMsgs, setSystemMsgs] = useState<{id: string, text: string, ts: number}[]>([]);
+  const [systemMsgs, setSystemMsgs] = useState<{id: string, text: string, ts: number, type: 'join'|'leave'}[]>([]);
+  const [otherLastSeen, setOtherLastSeen] = useState<number | null>(null);
+  const [otherName, setOtherName] = useState<string | null>(null);
+  const [otherOnline, setOtherOnline] = useState(false);
   const prevOnlineRef = useRef<Map<string, string>>(new Map());
   
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
@@ -304,31 +307,46 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
           s.forEach((d) => {
             const data = d.data();
-            // Filter out stale presence docs in real-time too
             const lastSeen = (data.lastSeen as Timestamp | undefined)?.toMillis() ?? 0;
             if (lastSeen > 0 && now - lastSeen > 30_000 && d.id !== u.uid) {
-              // Stale — clean it up and skip
               deleteDoc(d.ref).catch(() => {});
               return;
             }
-            currentOnline.push({ uid: d.id, name: data.name || "Unknown" });
+            currentOnline.push({ uid: d.id, name: data.name || "Unknown", avatar: data.avatar });
             currentOnlineIds.add(d.id);
             if (d.id !== u.uid) {
               if (data.typing) t.push(data.avatar);
               if (data.recording) r.push(data.avatar);
+              // Track the other person's name and last seen
+              setOtherName(data.name || "User");
+              setOtherLastSeen(lastSeen);
+              setOtherOnline(true);
             }
           });
+
+          // Check if the other user went offline
+          const otherStillOnline = [...currentOnlineIds].some(id => id !== u.uid);
+          if (!otherStillOnline) {
+            setOtherOnline(false);
+          }
           
-          // In-chat system message diff logic (WhatsApp style)
+          // Show toast-style system messages — auto-dismiss after 6s
           currentOnline.forEach(user => {
             if (user.uid !== u.uid && !prevOnlineRef.current.has(user.uid)) {
-              setSystemMsgs(prev => [...prev, { id: crypto.randomUUID(), text: `${user.name} is online`, ts: Date.now() }]);
+              const id = crypto.randomUUID();
+              setSystemMsgs(prev => [...prev, { id, text: `${user.name} is online`, ts: Date.now(), type: 'join' }]);
+              setTimeout(() => setSystemMsgs(prev => prev.filter(m => m.id !== id)), 6000);
             }
           });
           if (prevOnlineRef.current.size > 0) {
             prevOnlineRef.current.forEach((prevName, prevUid) => {
               if (prevUid !== u.uid && !currentOnlineIds.has(prevUid)) {
-                setSystemMsgs(prev => [...prev, { id: crypto.randomUUID(), text: `${prevName} went offline`, ts: Date.now() }]);
+                const id = crypto.randomUUID();
+                // Mark last seen time
+                const lastSeenMs = Date.now();
+                setOtherLastSeen(lastSeenMs);
+                setSystemMsgs(prev => [...prev, { id, text: `${prevName} went offline`, ts: Date.now(), type: 'leave' }]);
+                setTimeout(() => setSystemMsgs(prev => prev.filter(m => m.id !== id)), 6000);
               }
             });
           }
@@ -641,10 +659,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   return (
     <div 
-      className="fixed inset-x-0 top-0 z-50 flex flex-col bg-background"
+      className="ovii-chat-root flex flex-col bg-background"
       style={{
         height: `${vpHeight}px`,
-        overflow: 'hidden',
         backgroundImage: "radial-gradient(circle at 50% 0%, oklch(0.2 0.05 250 / 0.4), transparent 50%), radial-gradient(circle at 100% 100%, oklch(0.72 0.18 35 / 0.05), transparent 50%)",
         overscrollBehavior: 'none'
       }}
@@ -738,8 +755,20 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               ovii<span className="text-primary">.</span>
             </div>
             <div className="text-[10px] text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 font-bold">
-              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-              {onlineUsers.length > 0 ? onlineUsers.map(u => u.uid === uid ? "You" : u.name).join(", ") : "Connecting..."}
+              {otherOnline ? (
+                <><span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />{otherName || "Online"}</>
+              ) : otherLastSeen ? (
+                <><span className="w-1.5 h-1.5 bg-muted-foreground/40 rounded-full" />
+                Last seen {(() => {
+                  const diff = Date.now() - otherLastSeen;
+                  if (diff < 60000) return "just now";
+                  if (diff < 3600000) return `${Math.floor(diff/60000)}m ago`;
+                  if (diff < 86400000) return new Date(otherLastSeen).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+                  return new Date(otherLastSeen).toLocaleDateString();
+                })()}</>
+              ) : (
+                <><span className="w-1.5 h-1.5 bg-muted-foreground/30 rounded-full" />Waiting...</>
+              )}
             </div>
           </div>
         </div>
@@ -758,6 +787,29 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           <button onClick={onLock} className="text-[10px] font-bold hover:text-primary transition-colors uppercase tracking-widest px-3 py-1.5 rounded-full bg-muted/40 hover:bg-muted border border-border/30">Lock</button>
         </div>
       </header>
+
+      {/* Floating toast notifications for join/leave — do NOT stack in messages */}
+      <AnimatePresence>
+        {systemMsgs.length > 0 && (
+          <motion.div
+            key="toast-stack"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="absolute top-[68px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 pointer-events-none"
+          >
+            {systemMsgs.slice(-1).map(sm => (
+              <div key={sm.id} className={`text-[11px] font-bold px-4 py-1.5 rounded-full backdrop-blur-xl shadow-elegant border ${
+                sm.type === 'join'
+                  ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                  : 'bg-muted/60 text-muted-foreground border-border/30'
+              }`}>
+                {sm.type === 'join' ? '🟢' : '⚫'} {sm.text}
+              </div>
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div 
         ref={scrollRef} 
@@ -896,14 +948,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
            </div>
          )}
-         {/* System messages: WhatsApp-style centered status notifications */}
-         {systemMsgs.map(sm => (
-           <div key={sm.id} className="flex justify-center py-1">
-             <span className="text-[10px] text-muted-foreground/60 bg-muted/40 rounded-full px-3 py-0.5 text-center">
-               {sm.text}
-             </span>
-           </div>
-         ))}
+         {/* System messages removed from inline stack — handled by floating toast above */}
          <div ref={messagesEndRef} className="h-0 w-full shrink-0" />
         </div>
       </div>
