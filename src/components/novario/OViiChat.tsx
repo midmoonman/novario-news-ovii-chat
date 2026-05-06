@@ -862,7 +862,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             transition={{ type: "spring", damping: 25, stiffness: 300 }}
                             drag="x"
                             dragConstraints={{ left: 0, right: 0 }}
-                            dragElastic={{ left: 0, right: 0.2 }}
+                            dragElastic={0.2}
                             onDrag={(e, info) => {
                               if (info.offset.x > 70) {
                                 if (replyingTo?.id !== m.id) {
@@ -905,16 +905,29 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
                                 }`}
                               >
-                                <div className="flex items-center gap-3">
-                                  {m.type === "text" && <span className="flex-1 min-w-0">{m.content}</span>}
-                                  {m.type === "image" && <img src={m.content} alt="" className="rounded-lg max-w-[260px] shadow-sm border border-black/5" />}
-                                </div>
+                                <div className="relative flex flex-col">
+                                  {m.type === "image" && (
+                                    <div className="mb-1">
+                                      <img src={m.content} alt="" className="rounded-lg max-w-[260px] shadow-sm border border-black/5" />
+                                    </div>
+                                  )}
+                                  
+                                  <div className="relative overflow-hidden">
+                                    {m.type === "text" && (
+                                      <span className="block break-words whitespace-pre-wrap">
+                                        {m.content}
+                                        {/* Invisible spacer to prevent text overlap with metadata */}
+                                        <span className="inline-block w-[70px] h-[10px]" />
+                                      </span>
+                                    )}
 
-                                <div className="flex items-center justify-end gap-1.5 mt-1 opacity-60 self-end">
-                                  <span className="text-[10px] tabular-nums font-bold tracking-tight">
-                                    {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
-                                  </span>
-                                  {mine && <div className="shrink-0 scale-95"><MsgTick status={m.status} /></div>}
+                                    <div className="absolute bottom-0 right-0 flex items-center gap-1 opacity-60 pointer-events-none select-none pb-0.5">
+                                      <span className="text-[10px] tabular-nums font-bold tracking-tight">
+                                        {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
+                                      </span>
+                                      {mine && <div className="shrink-0 scale-90"><MsgTick status={m.status} /></div>}
+                                    </div>
+                                  </div>
                                 </div>
 
                                 {/* Desktop hover reply button */}
@@ -1094,10 +1107,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         }}
                         placeholder="Type a message"
                         disabled={!uid || !!error}
-                        className={`flex-1 bg-transparent px-4 py-3 text-[15px] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto max-h-[150px] scrollbar-hide leading-tight ${
+                        className={`flex-1 bg-transparent px-4 py-3 text-[15.5px] leading-[1.5] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto max-h-[160px] scrollbar-hide ${
                           isDarkMode ? "text-white" : "text-black"
                         }`}
-                        style={{ height: "auto" }}
+                        style={{ height: "auto", minHeight: "44px" }}
                       />
                     </div>
 
