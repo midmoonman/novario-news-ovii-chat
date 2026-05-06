@@ -121,21 +121,25 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between px-0.5 mt-1 gap-2">
-          <div className="flex items-center gap-2.5 min-w-0 shrink">
-            <span className="text-[10px] font-bold tabular-nums opacity-60 whitespace-nowrap">
+        <div className="flex items-center justify-between px-0.5 mt-1.5 gap-2">
+          <div className="flex items-center gap-2 min-w-0 opacity-60">
+            <span className="text-[10px] font-normal tabular-nums whitespace-nowrap">
               {fmt(playing ? currentTime : duration)}
             </span>
+          </div>
+          
+          <div className="flex-1 flex justify-center">
             {timeStr && (
-              <span className="text-[9px] opacity-40 font-bold uppercase tracking-tight whitespace-nowrap truncate">
+              <span className="text-[10px] font-light uppercase tracking-widest whitespace-nowrap truncate opacity-40">
                 {timeStr}
               </span>
             )}
           </div>
+
           <div className="flex items-center gap-2.5 shrink-0">
             <button 
               onClick={toggleSpeed} 
-              className={`text-[9px] font-black h-5 px-2 rounded-full border transition-all active:scale-90 flex items-center justify-center shrink-0 ${
+              className={`text-[9px] font-normal h-5 px-2 rounded-full border transition-all active:scale-90 flex items-center justify-center shrink-0 ${
                 isDarkMode 
                   ? "bg-white/10 border-white/5 text-white/80 hover:bg-white/20" 
                   : "bg-black/5 border-black/5 text-black/70 hover:bg-black/10"
@@ -899,7 +903,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             {m.type === "voice" ? (
                               <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                             ) : (
-                              <div className={`rounded-[20px] px-4 py-2.5 text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all
+                              <div
+                                className={`rounded-[20px] px-4 py-2.5 text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
                                 ${mine
                                   ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                   : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
@@ -922,7 +927,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     )}
 
                                     <div className="absolute bottom-0 right-0 flex items-center gap-1.5 opacity-90 pointer-events-none select-none pb-0.5 pr-0.5">
-                                      <span className="text-[11px] tabular-nums font-bold tracking-tight">
+                                      <span className="text-[10px] tabular-nums font-light tracking-tight">
                                         {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                       </span>
                                       {mine && <div className="shrink-0 scale-95"><MsgTick status={m.status} /></div>}
@@ -981,7 +986,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 20 }}
                     onClick={() => scrollToBottom()}
-                    className="absolute bottom-[80px] right-4 bg-primary text-primary-foreground p-2 rounded-full shadow-lg z-20 flex items-center gap-1 px-3 text-xs font-bold"
+                    className="absolute bottom-[80px] left-1/2 -translate-x-1/2 bg-primary text-primary-foreground p-2 rounded-full shadow-lg z-20 flex items-center gap-1 px-3 text-xs font-bold"
                   >
                     New message ↓
                   </motion.button>
