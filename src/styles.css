@@ -148,28 +148,25 @@
     overflow: hidden;
   }
 
-  /* Desktop: centered card with rounded corners and shadow */
+  /* Desktop: Full screen spread (no centered card) */
   @media (min-width: 1024px) {
     .ovii-chat-root {
-      /* Subtle gradient backdrop behind the card */
-      background: linear-gradient(135deg, oklch(0.12 0.01 250), oklch(0.18 0.015 250));
+      background: var(--color-background);
     }
 
     .ovii-chat-frame {
-      /* Centered card — these must NOT have conflicting Tailwind h-full/w-full */
-      max-width: 1440px;
-      width: calc(100% - 40px);
-      height: calc(100% - 40px);
-      margin: 20px auto;
-      border-radius: 24px;
-      border: 1px solid var(--color-border);
-      box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.8);
-      overflow: hidden;
+      max-width: 100%;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      border-radius: 0;
+      border: none;
+      box-shadow: none;
     }
 
-    /* Cap message bubble width on large screens for readability */
+    /* Cap message bubble width on very large screens for readability */
     .ovii-chat-frame .max-w-\[85\%\] {
-      max-width: 65%;
+      max-width: 55%;
     }
   }
 
