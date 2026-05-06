@@ -907,6 +907,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               {m.type === "voice" ? (
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
+                                <div
                                   className={`rounded-[20px] ${m.type === "image" ? "p-1" : "px-4 py-2.5"} text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
