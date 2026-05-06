@@ -1097,8 +1097,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             </button>
           </>
         )}
-      </div>
-    </div>
+        </div>
 
         {/* Desktop Sidebar Panel */}
         <AnimatePresence>
