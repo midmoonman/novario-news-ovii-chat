@@ -868,7 +868,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             dragConstraints={{ left: 0, right: 0 }}
                             dragElastic={0.2}
                             onDrag={(e, info) => {
-                              if (info.offset.x > 70) {
+                              const threshold = 70;
+                              const isSwipeRight = info.offset.x > threshold;
+                              const isSwipeLeft = info.offset.x < -threshold;
+                              
+                              // Received messages: swipe right to reply
+                              // Sent messages: swipe left to reply
+                              if ((!mine && isSwipeRight) || (mine && isSwipeLeft)) {
                                 if (replyingTo?.id !== m.id) {
                                   setReplyingTo(m);
                                   if (window.navigator.vibrate) window.navigator.vibrate(10);
@@ -877,7 +883,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             }}
                             className={`relative flex gap-2 group max-w-[85%] sm:max-w-[75%]`}
                           >
-                            <div className="absolute inset-y-0 -left-12 flex items-center pr-4 opacity-0 group-drag:opacity-100 transition-opacity pointer-events-none">
+                            <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${
+                              mine ? "-right-12 pl-4" : "-left-12 pr-4"
+                            }`}>
                               <Reply className="w-5 h-5 text-primary/40" />
                             </div>
 
