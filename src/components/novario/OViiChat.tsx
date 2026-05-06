@@ -554,9 +554,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setIsUploading(true); // Show loader immediately
     try {
       const url = await uploadToCloudinary(file);
-      // Only prompt after upload is done so the user sees the chatroom "sending" state first
-      const cap = prompt("Enter an optional caption for this photo:") || "";
-      await sendImage(url, cap);
+      await sendImage(url, ""); // Send immediately with empty caption
     } catch (e: any) { 
       setError("Image upload failed: " + (e.message || "Unknown error")); 
     } finally {
@@ -925,7 +923,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-4 py-2.5"} text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
+                                  className={`rounded-[18px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-4 sm:py-2.5"} text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                       : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
@@ -1032,7 +1030,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </AnimatePresence>
 
               {/* Input bar */}
-              <div className={`px-4 py-3 pb-safe flex items-center gap-3 z-20 shrink-0 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
+              <div className={`px-2 py-2 sm:px-4 sm:py-3 pb-safe flex items-center gap-2 sm:gap-3 z-20 shrink-0 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
                 }`}>
                 <input
                   ref={fileRef}
