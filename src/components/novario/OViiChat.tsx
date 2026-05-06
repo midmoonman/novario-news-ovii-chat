@@ -90,7 +90,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
   const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
-    <div className={`flex items-center gap-3 w-full p-3.5 rounded-[22px] overflow-hidden transition-all ${
+    <div className={`flex items-center gap-3 w-full p-3.5 rounded-[22px] overflow-hidden transition-all min-w-[280px] ${
       mine 
         ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black") 
         : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black")
@@ -914,18 +914,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   
                                   <div className="relative overflow-hidden">
                                     {m.type === "text" && (
-                                      <span className="block break-words whitespace-pre-wrap">
+                                      <span className="block break-words whitespace-pre-wrap leading-relaxed text-[15px]">
                                         {m.content}
                                         {/* Invisible spacer to prevent text overlap with metadata */}
-                                        <span className="inline-block w-[70px] h-[10px]" />
+                                        <span className="inline-block w-[75px] h-[10px]" />
                                       </span>
                                     )}
 
-                                    <div className="absolute bottom-0 right-0 flex items-center gap-1 opacity-60 pointer-events-none select-none pb-0.5">
-                                      <span className="text-[10px] tabular-nums font-bold tracking-tight">
+                                    <div className="absolute bottom-0 right-0 flex items-center gap-1.5 opacity-90 pointer-events-none select-none pb-0.5 pr-0.5">
+                                      <span className="text-[11px] tabular-nums font-bold tracking-tight">
                                         {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                       </span>
-                                      {mine && <div className="shrink-0 scale-90"><MsgTick status={m.status} /></div>}
+                                      {mine && <div className="shrink-0 scale-95"><MsgTick status={m.status} /></div>}
                                     </div>
                                   </div>
                                 </div>
@@ -1107,7 +1107,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         }}
                         placeholder="Type a message"
                         disabled={!uid || !!error}
-                        className={`flex-1 bg-transparent px-4 py-3 text-[15.5px] leading-[1.5] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto max-h-[160px] scrollbar-hide ${
+                        className={`flex-1 bg-transparent px-4 py-3 text-[15.5px] leading-[1.5] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto max-h-[160px] scrollbar-hide break-all ${
                           isDarkMode ? "text-white" : "text-black"
                         }`}
                         style={{ height: "auto", minHeight: "44px" }}
