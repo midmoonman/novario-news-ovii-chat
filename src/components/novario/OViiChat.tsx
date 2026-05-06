@@ -674,11 +674,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       className="ovii-chat-root bg-background"
       style={{ height: `${vpHeight}px` }}
     >
-      <div 
-        className="ovii-chat-inner flex flex-col h-full w-full overflow-x-hidden relative"
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={handleDrop}
-      >
       <Toaster position="top-center" />
       {showAvatarPicker && (
         <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4">
@@ -1098,6 +1093,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           </>
         )}
         </div>
+      </div>
 
         {/* Desktop Sidebar Panel */}
         <AnimatePresence>
