@@ -96,12 +96,12 @@ const AudioPlayer = ({ src, id, mine }: { src: string, id: string, mine: boolean
   };
 
   return (
-    <div className={`flex items-center gap-4 min-w-[220px] sm:min-w-[260px] p-2 rounded-2xl border transition-all ${mine ? "bg-m3-surface-container-high/40 border-white/5" : "bg-m3-other-container/40 border-primary/20 shadow-glow-orange"}`}>
-      <button onClick={toggle} className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${mine ? "bg-primary/10 border-primary/20" : "bg-primary/20 border-primary/40"}`}>
+    <div className={`flex items-center gap-3 min-w-[220px] sm:min-w-[280px] p-2 rounded-2xl border transition-all ${mine ? "bg-m3-surface-container-high/60 border-white/5 shadow-elegant" : "bg-m3-other-container/30 border-primary/20 shadow-glow-orange"}`}>
+      <button onClick={toggle} className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${mine ? "bg-primary/10 border-primary/20" : "bg-primary/20 border-primary/40"}`}>
         {playing ? <Pause className="w-5 h-5 fill-primary text-primary" /> : <Play className="w-5 h-5 fill-primary text-primary ml-1" />}
       </button>
-      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-        <div className="flex-1 min-w-0" ref={containerRef} />
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div className="flex-1 min-w-0 py-1" ref={containerRef} />
         <div className="flex items-center justify-between px-1">
           <span className="text-[10px] font-black opacity-60 tabular-nums uppercase tracking-widest text-primary">
             {fmt(playing ? currentTime : duration)}
@@ -833,29 +833,40 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       </div>
                     </div>
                   )}
-                  <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
-                    ${mine 
-                      ? "bg-m3-surface-container-high text-foreground " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
-                      : "bg-m3-other-container text-foreground shadow-glow-orange border border-primary/20 " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
-                    }`}>
-                    {m.type === "text" && <span>{m.content}</span>}
-                    {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
-                    {m.type === "voice" && <AudioPlayer src={m.content} id={m.id} mine={mine} />}
-                    
-                    <div className="flex items-end gap-1 self-end mt-1 opacity-70 scale-90 shrink-0">
-                      <span className="text-[9px] font-black tabular-nums">
-                        {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
-                      </span>
-                      {mine && <MsgTick status={m.status} />}
+                  {m.type === "voice" ? (
+                    <div className="relative">
+                      <AudioPlayer src={m.content} id={m.id} mine={mine} />
+                      <div className={`flex items-end gap-1 absolute bottom-1 ${mine ? "-left-14" : "-right-14"} opacity-60 scale-90`}>
+                        <span className="text-[9px] font-black tabular-nums">
+                          {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
+                        </span>
+                        {mine && <MsgTick status={m.status} />}
+                      </div>
                     </div>
+                  ) : (
+                    <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
+                      ${mine 
+                        ? "bg-m3-surface-container-high text-foreground " + (isLastInGroup ? "rounded-br-none" : "rounded-br-[22px]")
+                        : "bg-m3-other-container bg-gradient-to-br from-[oklch(0.7_0.18_45)] to-[oklch(0.85_0.15_55)] text-black shadow-glow-orange border-none " + (isLastInGroup ? "rounded-bl-none" : "rounded-bl-[22px]")
+                      }`}>
+                      {m.type === "text" && <span>{m.content}</span>}
+                      {m.type === "image" && <img src={m.content} alt="" className="rounded-xl max-w-[260px] shadow-lg border border-white/10" />}
+                      
+                      <div className="flex items-end gap-1 self-end mt-1 opacity-70 scale-90 shrink-0">
+                        <span className="text-[9px] font-black tabular-nums">
+                          {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
+                        </span>
+                        {mine && <MsgTick status={m.status} />}
+                      </div>
 
-                    {/* Desktop Hover Action */}
-                    <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
-                      <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
-                        <Reply className="w-4 h-4" />
-                      </button>
+                      {/* Desktop Hover Action */}
+                      <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
+                        <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
+                          <Reply className="w-4 h-4" />
+                        </button>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
                 {mine && (
                   <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
