@@ -121,31 +121,33 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between mt-1">
-          <div className="flex items-center gap-2">
-            <span className="text-[11px] tabular-nums opacity-60">
+        <div className="flex items-center justify-between mt-1.5 px-0.5">
+          <div className="flex items-center gap-3">
+            <span className="text-[10.5px] font-bold tabular-nums opacity-70 tracking-tight">
               {fmt(playing ? currentTime : duration)}
             </span>
             {timeStr && (
-              <span className="text-[10px] opacity-40 uppercase tracking-tight">
+              <span className="text-[9px] opacity-40 font-bold uppercase tracking-wider">
                 {timeStr}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
-            {mine && (
-              <div className="opacity-60 scale-90">
-                <MsgTick status={status} />
-              </div>
-            )}
+          <div className="flex items-center gap-3.5">
             <button 
               onClick={toggleSpeed} 
-              className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full border transition-all active:scale-95 ${
-                isDarkMode ? "bg-white/5 border-white/10 text-white/70" : "bg-black/5 border-black/10 text-black/60"
+              className={`text-[9.5px] font-black px-2.5 py-0.5 rounded-full border transition-all active:scale-95 shadow-sm ${
+                isDarkMode 
+                  ? "bg-white/10 border-white/10 text-white/90 hover:bg-white/20" 
+                  : "bg-black/5 border-black/10 text-black/70 hover:bg-black/10"
               }`}
             >
               {speed}x
             </button>
+            {mine && (
+              <div className="opacity-70 scale-[0.85] shrink-0">
+                <MsgTick status={status} />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -717,7 +719,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           onDrop={handleDrop}
         >
           {/* ── Header ── */}
-          <header className={`px-4 py-2 flex items-center justify-between z-20 shrink-0 shadow-sm ${
+          <header className={`px-5 py-3 flex items-center justify-between z-20 shrink-0 shadow-md ${
             isDarkMode ? "bg-[#202c33] border-b border-white/5 text-white" : "bg-[#f0f2f5] border-b border-black/5 text-black"
           }`}>
             <div className="flex items-center gap-3">
@@ -860,7 +862,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           }}
                           // Clip the drag transform so it never bleeds horizontally
                           style={{ willChange: "transform", maxWidth: "100%" }}
-                          className={`relative flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? "mt-4" : "mt-0.5"}`}
+                          className={`relative flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
                         >
                           <div className="absolute inset-y-0 left-0 flex items-center pl-4 opacity-0 group-active:opacity-100 transition-opacity pointer-events-none">
                             <Reply className="w-5 h-5 text-primary/40" />
@@ -888,22 +890,22 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             {m.type === "voice" ? (
                               <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                             ) : (
-                              <div className={`rounded-[20px] px-3.5 py-2 text-[14.5px] leading-[1.4] break-words relative flex flex-col shadow-sm transition-all
+                              <div className={`rounded-[20px] px-4 py-2.5 text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all
                                 ${mine
                                   ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                   : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
                                 }`}
                               >
                                 <div className="flex items-center gap-3">
-                                  {m.type === "text" && <span className="flex-1">{m.content}</span>}
+                                  {m.type === "text" && <span className="flex-1 min-w-0">{m.content}</span>}
                                   {m.type === "image" && <img src={m.content} alt="" className="rounded-lg max-w-[260px] shadow-sm border border-black/5" />}
                                 </div>
 
-                                <div className="flex items-center justify-end gap-1.5 mt-0.5 opacity-60 self-end">
-                                  <span className="text-[10px] tabular-nums font-medium">
+                                <div className="flex items-center justify-end gap-1.5 mt-1 opacity-60 self-end">
+                                  <span className="text-[10px] tabular-nums font-bold tracking-tight">
                                     {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                   </span>
-                                  {mine && <MsgTick status={m.status} />}
+                                  {mine && <div className="shrink-0 scale-95"><MsgTick status={m.status} /></div>}
                                 </div>
 
                                 {/* Desktop hover reply button */}
@@ -964,7 +966,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </AnimatePresence>
 
               {/* Input bar */}
-              <div className={`p-2 pb-safe flex items-center gap-2 z-20 shrink-0 ${
+              <div className={`px-3 py-2.5 pb-safe flex items-center gap-2.5 z-20 shrink-0 ${
                 isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
               }`}>
                 <input
@@ -977,7 +979,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                 {recording ? (
                   /* ── Recording state: swipe-to-cancel with green skin ── */
-                  <div className={`flex-1 flex items-center gap-3 rounded-[28px] px-4 h-[52px] overflow-hidden ${
+                  <div className={`flex-1 flex items-center gap-3 rounded-[28px] px-4 h-[54px] overflow-hidden shadow-inner ${
                     isDarkMode ? "bg-[#2a3942]" : "bg-white"
                   }`}>
                     <div className="flex items-center gap-2.5 shrink-0">
@@ -989,19 +991,19 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       dragConstraints={{ right: 0 }}
                       dragElastic={0.1}
                       onDrag={(_, info) => { if (info.offset.x < -60) cancelRec(); }}
-                      className="flex-1 flex items-center justify-center gap-1.5 cursor-grab active:cursor-grabbing select-none min-w-0"
+                      className="flex-1 flex items-center justify-center gap-2 cursor-grab active:cursor-grabbing select-none min-w-0 px-2"
                     >
-                      <ChevronLeft className={`w-3.5 h-3.5 shrink-0 animate-pulse ${
+                      <ChevronLeft className={`w-4 h-4 shrink-0 animate-pulse ${
                         isDarkMode ? "text-white/30" : "text-black/30"
                       }`} />
-                      <span className={`text-[11px] font-semibold whitespace-nowrap overflow-hidden text-ellipsis ${
+                      <span className={`text-[12px] font-bold tracking-tight whitespace-nowrap overflow-hidden text-ellipsis ${
                         isDarkMode ? "text-white/30" : "text-black/30"
                       }`}>Slide to cancel</span>
                     </motion.div>
                     <button
                       type="button"
                       onClick={stopAndSendRec}
-                      className="shrink-0 h-9 px-4 rounded-full bg-[#00a884] text-white text-[11px] font-bold flex items-center gap-1.5 active:scale-95 transition-all"
+                      className="shrink-0 h-9 px-4 rounded-full bg-[#00a884] text-white text-[12px] font-black flex items-center gap-1.5 active:scale-95 transition-all shadow-sm hover:bg-[#00c298]"
                     >
                       <Send className="w-3.5 h-3.5" /> Send
                     </button>
@@ -1009,29 +1011,31 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 ) : (
                   /* ── Normal state: image + mic + text input ── */
                   <>
-                    <button
-                      type="button"
-                      onClick={() => fileRef.current?.click()}
-                      className={`h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition-all active:scale-90 ${
-                        isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
-                      }`}
-                      aria-label="Attach image"
-                    >
-                      <ImageIcon className="w-6 h-6" />
-                    </button>
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        className={`h-11 w-11 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                          isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
+                        }`}
+                        aria-label="Attach image"
+                      >
+                        <ImageIcon className="w-6 h-6" />
+                      </button>
 
-                    <button
-                      type="button"
-                      onPointerDown={(e) => { e.preventDefault(); startRec(); }}
-                      className={`h-11 w-11 shrink-0 rounded-full flex items-center justify-center transition-all active:scale-90 ${
-                        isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
-                      }`}
-                      aria-label="Tap to record"
-                    >
-                      <Mic className="w-6 h-6" />
-                    </button>
+                      <button
+                        type="button"
+                        onPointerDown={(e) => { e.preventDefault(); startRec(); }}
+                        className={`h-11 w-11 rounded-full flex items-center justify-center transition-all active:scale-90 ${
+                          isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
+                        }`}
+                        aria-label="Tap to record"
+                      >
+                        <Mic className="w-6 h-6" />
+                      </button>
+                    </div>
 
-                    <div className={`flex-1 flex items-center rounded-[24px] px-4 h-[52px] ${
+                    <div className={`flex-1 flex flex-col min-w-0 rounded-[24px] overflow-hidden shadow-sm ${
                       isDarkMode ? "bg-[#2a3942]" : "bg-white"
                     }`}>
                       <AnimatePresence mode="wait">
@@ -1041,18 +1045,23 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="flex items-center gap-2 w-full"
+                            className="flex items-center gap-2 px-4 pt-2 w-full border-b border-white/5 pb-1.5"
                           >
-                            <div className="w-0.5 bg-[#25d366] h-7 rounded-full shrink-0" />
+                            <div className="w-1 bg-[#25d366] h-8 rounded-full shrink-0" />
                             <div className="flex-1 min-w-0">
                               <div className="text-[10px] font-bold text-[#25d366] truncate">{replyingTo.name || "User"}</div>
-                              <div className={`text-[11px] italic truncate ${
+                              <div className={`text-[11px] italic truncate leading-tight ${
                                 isDarkMode ? "text-white/50" : "text-black/50"
                               }`}>
                                 {replyingTo.type === "text" ? replyingTo.content : replyingTo.type === "image" ? "Photo" : "Voice Note"}
                               </div>
                             </div>
-                            <button onClick={() => setReplyingTo(null)} className="shrink-0 p-1">
+                            <button 
+                              onClick={() => setReplyingTo(null)} 
+                              className={`shrink-0 p-1 rounded-full transition-colors ${
+                                isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+                              }`}
+                            >
                               <X className={`w-3.5 h-3.5 ${ isDarkMode ? "text-white/40" : "text-black/40" }`} />
                             </button>
                           </motion.div>
@@ -1077,7 +1086,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         }}
                         placeholder="Type a message"
                         disabled={!uid || !!error}
-                        className={`flex-1 bg-transparent py-3 text-[15px] focus:outline-none placeholder:opacity-40 ${
+                        className={`flex-1 bg-transparent px-4 py-3 text-[15px] focus:outline-none placeholder:opacity-40 ${
                           isDarkMode ? "text-white" : "text-black"
                         }`}
                       />
