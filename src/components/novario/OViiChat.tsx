@@ -213,7 +213,7 @@ function FilesList({ voiceMsgs, uid, downloadVoice, isDarkMode }: { voiceMsgs: M
         <div key={date} className="space-y-3">
           <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
           {msgs.map(m => (
-            <div key={m.id} className="bg-card/30 border border-border/10 p-3 rounded-2xl flex items-center gap-4 shadow-sm hover:bg-card/50 transition-all group">
+            <div key={m.id} className="bg-card/30 border border-border/10 p-2.5 rounded-2xl flex items-center gap-6 shadow-sm hover:bg-card/50 transition-all group">
               <div className="flex-1 min-w-0">
                 <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
               </div>
