@@ -231,6 +231,7 @@ function FilesList({ voiceMsgs, uid, downloadVoice, isDarkMode }: { voiceMsgs: M
 // ─── OViiChat ─────────────────────────────────────────────────────────────────
 export function OViiChat({ onLock }: { onLock: () => void }) {
   const [uid, setUid] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("ovii_dark_mode");
     return saved === null ? true : saved === "true";
@@ -551,9 +552,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (file.size > 8 * 1024 * 1024) { setError("Image too large (max 8MB)"); return; }
     try {
       const cap = prompt("Enter a caption (optional):") || "";
+      setIsUploading(true);
       const url = await uploadToCloudinary(file);
       await sendImage(url, cap);
-    } catch (e: any) { setError("Image upload failed: " + (e.message || "Unknown error")); }
+    } catch (e: any) { 
+      setError("Image upload failed: " + (e.message || "Unknown error")); 
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
@@ -992,6 +998,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       </div>
                     </div>
                   )}
+                  {isUploading && (
+                    <div className="w-full flex justify-end mt-2 px-4 sm:px-6">
+                      <motion.div 
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#dcf8c6] dark:bg-[#005c4b] p-3 rounded-[20px] rounded-br-none shadow-sm flex items-center gap-3 min-w-[140px]"
+                      >
+                        <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+                        <span className="text-[12px] font-bold opacity-70">Sending photo...</span>
+                      </motion.div>
+                    </div>
+                  )}
                   <div ref={messagesEndRef} className="h-0 w-full shrink-0" />
                 </div>
               </div>
@@ -1120,11 +1138,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                           }
                         }}
-                        placeholder="Type a message"
-                        disabled={!uid || !!error}
-                        className={`flex-1 bg-transparent px-4 py-3 text-[15.5px] leading-[1.5] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto max-h-[160px] scrollbar-hide break-all ${isDarkMode ? "text-white" : "text-black"
+                        className={`flex-1 bg-transparent px-4 py-3 text-[15.5px] leading-[1.5] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto max-h-[200px] scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
                           }`}
-                        style={{ height: "auto", minHeight: "44px" }}
+                        style={{ height: "44px" }}
                       />
                     </div>
 
@@ -1138,9 +1154,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             exit={{ scale: 0.5, opacity: 0 }}
                             type="button"
                             onClick={() => onText()}
-                            className="w-12 h-12 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-lg active:scale-90 transition-all"
+                             className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-lg active:scale-90 transition-all shrink-0"
                           >
-                            <Send className="w-6 h-6 fill-white" />
+                            <Send className="w-5 h-5 md:w-6 md:h-6 fill-white" />
                           </motion.button>
                         ) : (
                           <motion.button
