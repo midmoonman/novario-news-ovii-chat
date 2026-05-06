@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { ARTICLES, CATEGORIES, type Article } from "@/lib/news";
 import { getNews, type RemoteArticle } from "@/server/newsapi.functions";
 import { useTranslation } from "@/lib/i18n";
+import { ChevronDown } from "lucide-react";
 
 type Item = Pick<Article, "id" | "slug" | "title" | "excerpt" | "image" | "category" | "author" | "publishedAt">;
 

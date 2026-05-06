@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
 import { Header } from "@/components/novario/Header";
 import { BottomNav } from "@/components/novario/BottomNav";
@@ -74,6 +74,7 @@ function NewsHome() {
 
   const { scrollYProgress } = useScroll();
   const rotateX = useTransform(scrollYProgress, [0, 1], [0, 5]);
+  const heroPool = data.all.slice(0, 8);
 
   return (
     <div className="relative min-h-screen perspective-2000 overflow-x-hidden">
