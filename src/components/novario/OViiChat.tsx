@@ -550,10 +550,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const onImage = async (file: File) => {
     if (!uid) return;
     if (file.size > 8 * 1024 * 1024) { setError("Image too large (max 8MB)"); return; }
+    
+    setIsUploading(true); // Show loader immediately
     try {
-      const cap = prompt("Enter a caption (optional):") || "";
-      setIsUploading(true);
       const url = await uploadToCloudinary(file);
+      // Only prompt after upload is done so the user sees the chatroom "sending" state first
+      const cap = prompt("Enter an optional caption for this photo:") || "";
       await sendImage(url, cap);
     } catch (e: any) { 
       setError("Image upload failed: " + (e.message || "Unknown error")); 
@@ -1154,9 +1156,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             exit={{ scale: 0.5, opacity: 0 }}
                             type="button"
                             onClick={() => onText()}
-                             className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-lg active:scale-90 transition-all shrink-0"
+                             className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-md md:shadow-lg active:scale-90 transition-all shrink-0"
                           >
-                            <Send className="w-5 h-5 md:w-6 md:h-6 fill-white" />
+                            <Send className="w-5 h-5 md:w-6 md:h-6 fill-white stroke-[1.5] md:stroke-2" />
                           </motion.button>
                         ) : (
                           <motion.button
