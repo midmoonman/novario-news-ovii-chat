@@ -26,7 +26,7 @@ const ROOM = "ovii-room";
 
 const STOP_AUDIO_EVENT = "ovii_stop_audio";
 
-const AudioPlayer = ({ src, id, mine }: { src: string, id: string, mine: boolean }) => {
+const AudioPlayer = ({ src, id, mine, status, createdAt }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveRef = useRef<WaveSurfer | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -39,13 +39,13 @@ const AudioPlayer = ({ src, id, mine }: { src: string, id: string, mine: boolean
     
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: 'rgba(255, 255, 255, 0.4)',
-      progressColor: 'currentColor',
+      waveColor: mine ? 'rgba(255,255,255,0.35)' : 'rgba(0,0,0,0.25)',
+      progressColor: mine ? 'oklch(0.72 0.18 35)' : 'rgba(0,0,0,0.6)',
       cursorWidth: 0,
       barWidth: 2,
       barGap: 2,
-      barRadius: 2,
-      height: 24,
+      barRadius: 3,
+      height: 28,
       normalize: true,
     });
     
@@ -68,7 +68,7 @@ const AudioPlayer = ({ src, id, mine }: { src: string, id: string, mine: boolean
       window.removeEventListener(STOP_AUDIO_EVENT, stopOthers);
       ws.destroy();
     };
-  }, [src, id]);
+  }, [src, id, mine]);
 
   const toggle = () => {
     if (!waveRef.current) return;
@@ -95,20 +95,32 @@ const AudioPlayer = ({ src, id, mine }: { src: string, id: string, mine: boolean
     return `${m}:${ss < 10 ? '0' : ''}${ss}`;
   };
 
+  const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || "";
+
   return (
-    <div className={`flex items-center gap-3 min-w-[220px] sm:min-w-[280px] p-2 rounded-2xl border transition-all ${mine ? "bg-m3-surface-container-high/60 border-white/5 shadow-elegant" : "bg-m3-other-container/30 border-primary/20 shadow-glow-orange"}`}>
-      <button onClick={toggle} className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${mine ? "bg-primary/10 border-primary/20" : "bg-primary/20 border-primary/40"}`}>
+    <div className={`flex items-center gap-3 w-[240px] sm:w-[280px] p-2 rounded-2xl border transition-all ${
+      mine ? "bg-m3-surface-container-high/60 border-white/5 shadow-elegant" : "bg-m3-other-container/30 border-primary/20 shadow-glow-orange"
+    }`}>
+      <button onClick={toggle} className={`w-11 h-11 rounded-full flex items-center justify-center shrink-0 transition-all active:scale-90 border shadow-glow ${
+        mine ? "bg-primary/10 border-primary/20" : "bg-primary/20 border-primary/40"
+      }`}>
         {playing ? <Pause className="w-5 h-5 fill-primary text-primary" /> : <Play className="w-5 h-5 fill-primary text-primary ml-1" />}
       </button>
       <div className="flex-1 min-w-0 flex flex-col gap-1">
-        <div className="flex-1 min-w-0 py-1" ref={containerRef} />
-        <div className="flex items-center justify-between px-1">
-          <span className="text-[10px] font-black opacity-60 tabular-nums uppercase tracking-widest text-primary">
+        {/* Waveform */}
+        <div className="w-full" style={{ height: 28 }} ref={containerRef} />
+        {/* Bottom row: time + speed + ticks */}
+        <div className="flex items-center justify-between px-0.5">
+          <span className={`text-[10px] font-black tabular-nums ${ mine ? "text-primary/70" : "text-black/50" }`}>
             {fmt(playing ? currentTime : duration)}
           </span>
-          <button onClick={toggleSpeed} className="text-[9px] font-black bg-primary/10 px-2 py-0.5 rounded-md text-primary hover:bg-primary/20 transition-colors border border-primary/20">
-            {speed}x
-          </button>
+          <div className="flex items-center gap-1.5">
+            {timeStr && <span className={`text-[9px] tabular-nums opacity-60 ${ mine ? "text-foreground" : "text-black" }`}>{timeStr}</span>}
+            {mine && <MsgTick status={status} />}
+            <button onClick={toggleSpeed} className={`text-[9px] font-black px-1.5 py-0.5 rounded text-primary bg-primary/10 border border-primary/20`}>
+              {speed}x
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -729,7 +741,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                    {msgs.map(m => (
                     <div key={m.id} className="bg-card/80 border border-border/50 p-3.5 rounded-2xl flex items-center gap-3 shadow-sm">
                       <div className="flex-1 min-w-0">
-                        <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} />
+                        <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} status={m.status} createdAt={m.createdAt} />
                       </div>
                       <button onClick={() => downloadVoice(m.content, m.id)} className="p-2.5 bg-muted/60 hover:bg-accent rounded-full text-muted-foreground hover:text-primary transition-colors shrink-0" aria-label="Download voice note">
                         <Download className="w-4.5 h-4.5" />
@@ -859,7 +871,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 onDragEnd={(_, info) => {
                   if (info.offset.x > 60) {
                     setReplyingTo(m);
-                    toast.info(`Replying to ${m.name || "message"}`);
+                    // No toast on swipe — the preview bar below is enough feedback
                   }
                 }}
                 className={`relative flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? 'mt-4' : 'mt-0.5'}`}
@@ -886,15 +898,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </div>
                   )}
                   {m.type === "voice" ? (
-                    <div className="relative">
-                      <AudioPlayer src={m.content} id={m.id} mine={mine} />
-                      <div className={`flex items-end gap-1 absolute bottom-1 ${mine ? "-left-14" : "-right-14"} opacity-60 scale-90`}>
-                        <span className="text-[9px] font-black tabular-nums">
-                          {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || ""}
-                        </span>
-                        {mine && <MsgTick status={m.status} />}
-                      </div>
-                    </div>
+                    <AudioPlayer
+                      src={m.content}
+                      id={m.id}
+                      mine={mine}
+                      status={m.status}
+                      createdAt={m.createdAt}
+                    />
                   ) : (
                     <div className={`rounded-[22px] px-4 py-2.5 text-[14px] leading-relaxed break-words relative flex items-center gap-3 shadow-sm transition-all
                       ${mine 
@@ -1003,33 +1013,34 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         />
         
         {recording ? (
-          <div className="flex-1 flex items-center justify-between bg-m3-surface-container-high/90 backdrop-blur-xl rounded-[28px] px-4 h-12 border border-primary/20 shadow-elegant overflow-hidden">
-            <div className="flex items-center gap-3">
-              <span className="w-2.5 h-2.5 bg-destructive rounded-full shadow-[0_0_10px_red] animate-pulse" />
+          <div className="flex-1 flex items-center gap-2 bg-m3-surface-container-high/90 backdrop-blur-xl rounded-[28px] px-3 h-12 border border-primary/20 shadow-elegant overflow-hidden">
+            {/* Left: live indicator */}
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="w-2 h-2 bg-destructive rounded-full shadow-[0_0_8px_red] animate-pulse shrink-0" />
               <RecordingVisualizer />
-              <span className="text-destructive font-black text-[10px] uppercase tracking-widest ml-1">Live</span>
+              <span className="text-destructive font-black text-[9px] uppercase tracking-wider">Live</span>
             </div>
-            
+
+            {/* Center: slide to cancel — draggable */}
             <motion.div 
               drag="x"
               dragConstraints={{ right: 0 }}
               dragElastic={0.1}
-              onDrag={(e, info) => {
-                if (info.offset.x < -100) {
+              onDrag={(_, info) => {
+                if (info.offset.x < -80) {
                   cancelRec();
-                  toast.error("Recording cancelled");
                 }
               }}
-              className="flex items-center gap-4 cursor-grab active:cursor-grabbing"
+              className="flex-1 flex items-center justify-center gap-1 cursor-grab active:cursor-grabbing select-none min-w-0"
             >
-              <div className="flex items-center gap-2 text-muted-foreground/60 text-[10px] font-black uppercase tracking-widest select-none">
-                <ChevronLeft className="w-3 h-3 animate-pulse" />
-                Slide to cancel
-              </div>
-              <button type="button" onClick={stopAndSendRec} className="h-9 px-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-glow flex items-center gap-2 active:scale-95">
-                <Send className="w-4 h-4" /> Send
-              </button>
+              <ChevronLeft className="w-3 h-3 text-muted-foreground/50 shrink-0 animate-pulse" />
+              <span className="text-muted-foreground/50 text-[9px] font-black uppercase tracking-wider whitespace-nowrap">Slide to cancel</span>
             </motion.div>
+
+            {/* Right: send button */}
+            <button type="button" onClick={stopAndSendRec} className="shrink-0 h-9 px-4 rounded-full bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-wider hover:bg-primary/90 transition-all shadow-glow flex items-center gap-1.5 active:scale-95">
+              <Send className="w-3.5 h-3.5" /> Send
+            </button>
           </div>
         ) : (
           <>
