@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
@@ -159,6 +159,26 @@ const MsgTick = ({ status }: { status?: string }) => {
     </svg>
   );
   return null;
+};
+
+const RecordingVisualizer = () => {
+  return (
+    <div className="flex items-center gap-0.5 h-4">
+      {[...Array(8)].map((_, i) => (
+        <motion.div
+          key={i}
+          animate={{ height: [4, 12, 4] }}
+          transition={{
+            duration: 0.5,
+            repeat: Infinity,
+            delay: i * 0.05,
+            ease: "easeInOut"
+          }}
+          className="w-1 bg-primary rounded-full"
+        />
+      ))}
+    </div>
+  );
 };
 
 export function OViiChat({ onLock }: { onLock: () => void }) {
@@ -778,16 +798,23 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 exit={{ opacity: 0, scale: 0.8 }}
                 transition={{ type: "spring", damping: 20, stiffness: 200 }}
                 drag="x"
-                dragConstraints={{ left: 0, right: 60 }}
-                dragElastic={0.2}
+                dragConstraints={{ left: 0, right: 100 }}
+                dragElastic={0.1}
+                onDrag={(e, info) => {
+                   // Optional: visual feedback during drag
+                }}
                 onDragEnd={(_, info) => {
-                  if (info.offset.x > 40) {
+                  if (info.offset.x > 60) {
                     setReplyingTo(m);
                     toast.info(`Replying to ${m.name || "message"}`);
                   }
                 }}
-                className={`flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? 'mt-4' : 'mt-0.5'}`}
+                className={`relative flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? 'mt-4' : 'mt-0.5'}`}
               >
+                {/* Swipe Indicator Background */}
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 opacity-0 group-active:opacity-100 transition-opacity">
+                   <Reply className="w-5 h-5 text-primary/40" />
+                </div>
                 {!mine && (
                   <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
                     {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
@@ -919,19 +946,33 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         />
         
         {recording ? (
-          <div className="flex-1 flex items-center justify-between bg-m3-primary-container/20 rounded-[28px] px-4 h-12 border border-primary/30">
-            <div className="flex items-center gap-3 text-primary font-black text-xs uppercase tracking-widest animate-pulse">
-              <span className="w-2 h-2 bg-destructive rounded-full shadow-[0_0_10px_red]" />
-              Recording...
-            </div>
+          <div className="flex-1 flex items-center justify-between bg-m3-surface-container-high/90 backdrop-blur-xl rounded-[28px] px-4 h-12 border border-primary/20 shadow-elegant overflow-hidden">
             <div className="flex items-center gap-3">
-              <button type="button" onClick={cancelRec} className="text-[10px] font-black text-muted-foreground uppercase tracking-widest hover:text-destructive p-2 transition-colors">
-                Cancel
-              </button>
+              <span className="w-2.5 h-2.5 bg-destructive rounded-full shadow-[0_0_10px_red] animate-pulse" />
+              <RecordingVisualizer />
+              <span className="text-destructive font-black text-[10px] uppercase tracking-widest ml-1">Live</span>
+            </div>
+            
+            <motion.div 
+              drag="x"
+              dragConstraints={{ right: 0 }}
+              dragElastic={0.1}
+              onDrag={(e, info) => {
+                if (info.offset.x < -100) {
+                  cancelRec();
+                  toast.error("Recording cancelled");
+                }
+              }}
+              className="flex items-center gap-4 cursor-grab active:cursor-grabbing"
+            >
+              <div className="flex items-center gap-2 text-muted-foreground/60 text-[10px] font-black uppercase tracking-widest select-none">
+                <ChevronLeft className="w-3 h-3 animate-pulse" />
+                Slide to cancel
+              </div>
               <button type="button" onClick={stopAndSendRec} className="h-9 px-5 rounded-full bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-glow flex items-center gap-2 active:scale-95">
                 <Send className="w-4 h-4" /> Send
               </button>
-            </div>
+            </motion.div>
           </div>
         ) : (
           <>
