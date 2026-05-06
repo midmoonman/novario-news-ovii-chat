@@ -512,6 +512,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     const v = text.trim();
     if (!v) return;
     setText("");
+    
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
+
     setIsTyping(false);
     if (typingTimer.current) clearTimeout(typingTimer.current);
     setPres({ typing: false });
@@ -848,25 +854,28 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
 
                       return (
-                        <motion.div
-                          key={m.id}
-                          initial={{ opacity: 0, y: 12, scale: 0.9 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.8 }}
-                          transition={{ type: "spring", damping: 20, stiffness: 200 }}
-                          drag="x"
-                          dragConstraints={{ left: 0, right: 80 }}
-                          dragElastic={0.05}
-                          onDragEnd={(_, info) => {
-                            if (info.offset.x > 60) setReplyingTo(m);
-                          }}
-                          // Clip the drag transform so it never bleeds horizontally
-                          style={{ willChange: "transform", maxWidth: "100%" }}
-                          className={`relative flex gap-2 ${mine ? "justify-end" : "justify-start"} group ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
-                        >
-                          <div className="absolute inset-y-0 left-0 flex items-center pl-4 opacity-0 group-active:opacity-100 transition-opacity pointer-events-none">
-                            <Reply className="w-5 h-5 text-primary/40" />
-                          </div>
+                        <div key={m.id} className={`flex w-full ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}>
+                          <motion.div
+                            initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                            animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                            drag="x"
+                            dragConstraints={{ left: 0, right: 0 }}
+                            dragElastic={{ left: 0, right: 0.2 }}
+                            onDrag={(e, info) => {
+                              if (info.offset.x > 70) {
+                                if (replyingTo?.id !== m.id) {
+                                  setReplyingTo(m);
+                                  if (window.navigator.vibrate) window.navigator.vibrate(10);
+                                }
+                              }
+                            }}
+                            className={`relative flex gap-2 group max-w-[85%] sm:max-w-[75%]`}
+                          >
+                            <div className="absolute inset-y-0 -left-12 flex items-center pr-4 opacity-0 group-drag:opacity-100 transition-opacity pointer-events-none">
+                              <Reply className="w-5 h-5 text-primary/40" />
+                            </div>
 
                           {!mine && (
                             <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
@@ -924,7 +933,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </div>
                           )}
                         </motion.div>
-                      );
+                      </div>
+                    );
                     })}
                   </AnimatePresence>
 
@@ -1054,16 +1064,27 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           </motion.div>
                         )}
                       </AnimatePresence>
-                      <input
+                      <textarea
                         ref={inputRef}
-                        type="text"
+                        rows={1}
                         autoComplete="off"
                         value={text}
-                        onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) onText(e); }}
+                        onKeyDown={(e) => { 
+                          if (e.key === "Enter" && !e.shiftKey && !isMobile) { 
+                            e.preventDefault(); 
+                            onText(); 
+                          } 
+                        }}
                         onPaste={handlePaste}
                         onChange={(e) => {
                           const val = e.target.value;
                           setText(val);
+                          
+                          // Auto-expand logic
+                          e.target.style.height = "auto";
+                          const newHeight = Math.min(e.target.scrollHeight, 150);
+                          e.target.style.height = `${newHeight}px`;
+
                           if (uid) {
                             const typingNow = val.length > 0;
                             if (typingNow !== isTyping) { setIsTyping(typingNow); setPres({ typing: typingNow }); }
@@ -1073,9 +1094,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         }}
                         placeholder="Type a message"
                         disabled={!uid || !!error}
-                        className={`flex-1 bg-transparent px-4 py-3 text-[15px] focus:outline-none placeholder:opacity-40 ${
+                        className={`flex-1 bg-transparent px-4 py-3 text-[15px] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto max-h-[150px] scrollbar-hide leading-tight ${
                           isDarkMode ? "text-white" : "text-black"
                         }`}
+                        style={{ height: "auto" }}
                       />
                     </div>
 
