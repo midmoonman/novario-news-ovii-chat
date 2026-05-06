@@ -834,7 +834,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               {/* Scroll area — overflow-x:hidden prevents horizontal bleed from drag */}
               <div
                 ref={scrollRef}
-                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col touch-pan-y relative"
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col items-stretch touch-pan-y relative"
                 style={{ 
                   overscrollBehavior: "contain", 
                   overflowX: "hidden",
@@ -855,7 +855,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </div>
                 )}
 
-                <div className="space-y-1 flex flex-col justify-end shrink-0 relative">
+                <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative">
                   <AnimatePresence>
                     {chatMsgs.map((m, i) => {
                       const mine = m.uid === uid;
