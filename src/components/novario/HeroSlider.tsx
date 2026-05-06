@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ARTICLES, type Article } from "@/lib/news";
 import { useTranslation } from "@/lib/i18n";
 
@@ -20,58 +20,45 @@ export function HeroSlider({ articles }: { articles?: Slide[] }) {
   if (slides.length === 0) return null;
   const s = slides[i];
 
-  const { scrollY } = useScroll();
-  const yParallax = useTransform(scrollY, [0, 500], [0, 150]);
-  const opacityFade = useTransform(scrollY, [0, 400], [1, 0.5]);
-
   return (
-    <div className="relative h-[65vh] min-h-[480px] max-h-[720px] w-full overflow-hidden rounded-3xl shadow-glow preserve-3d">
-      <AnimatePresence mode="wait">
+    <div className="relative h-[62vh] min-h-[420px] max-h-[640px] w-full overflow-hidden rounded-2xl shadow-elegant">
+      <AnimatePresence mode="sync">
         <motion.div
           key={s.id}
-          initial={{ opacity: 0, scale: 1.1 }}
+          initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.5, ease: [0.19, 1, 0.22, 1] }}
-          className="absolute inset-0 preserve-3d"
-          style={{ y: yParallax, opacity: opacityFade }}
+          transition={{ duration: 1.2 }}
+          className="absolute inset-0"
         >
           <img src={s.image} alt={s.title} className="h-full w-full object-cover" />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-background/20 to-transparent" />
+          <div className="absolute inset-0 gradient-hero" />
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute inset-x-0 bottom-0 p-8 md:p-16 z-10 preserve-3d">
-        <motion.div 
-          key={s.id + "-t"} 
-          initial={{ y: 40, opacity: 0, rotateX: -10 }} 
-          animate={{ y: 0, opacity: 1, rotateX: 0 }} 
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="preserve-3d"
-        >
-          <span className="inline-block rounded-full bg-primary px-4 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-primary-foreground shadow-glow">
+      <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
+        <motion.div key={s.id + "-t"} initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }}>
+          <span className="inline-block rounded-full bg-primary/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary-foreground">
             {t(s.category)}
           </span>
-          <Link to="/news/$slug" params={{ slug: s.slug }} className="block mt-6 group">
-            <h1 className="serif text-3xl md:text-6xl font-black text-white text-balance max-w-4xl leading-[1.1] bloom-gold group-hover:text-primary transition-colors">
+          <Link to="/news/$slug" params={{ slug: s.slug }} className="block mt-3 hover:opacity-90">
+            <h1 className="serif text-2xl md:text-5xl font-bold text-white text-balance max-w-3xl leading-tight">
               {t(s.title)}
             </h1>
           </Link>
-          <p className="mt-6 max-w-2xl text-base md:text-lg text-white/70 line-clamp-2 leading-relaxed font-medium">{t(s.excerpt)}</p>
-          <div className="mt-8 flex items-center gap-5 text-[11px] text-white/50 font-black uppercase tracking-widest border-l-2 border-primary/50 pl-4">
-            <span className="text-white/90">{s.author}</span>
-            <span>{s.publishedAt}</span>
-            <span className="bg-white/10 px-2 py-0.5 rounded-md">{s.readTime} {t("MIN READ")}</span>
+          <p className="mt-3 max-w-2xl text-sm md:text-base text-white/80 line-clamp-2">{t(s.excerpt)}</p>
+          <div className="mt-4 flex items-center gap-3 text-xs text-white/70">
+            <span>{s.author}</span><span>•</span><span>{s.publishedAt}</span><span>•</span><span>{s.readTime} {t("min read")}</span>
           </div>
         </motion.div>
       </div>
 
-      <div className="absolute right-8 top-1/2 -translate-y-1/2 flex flex-col gap-3 z-20">
+      <div className="absolute right-4 bottom-4 md:right-8 md:bottom-8 flex gap-2">
         {slides.map((_, k) => (
           <button
             key={k}
             onClick={() => setI(k)}
-            className={`transition-all duration-500 rounded-full border border-white/20 ${k === i ? "h-12 w-2 bg-primary border-primary shadow-glow" : "h-2 w-2 bg-white/20 hover:bg-white/40"}`}
+            className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-primary" : "w-3 bg-white/40"}`}
             aria-label={`Slide ${k + 1}`}
           />
         ))}

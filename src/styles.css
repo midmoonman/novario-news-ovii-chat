@@ -124,16 +124,6 @@
   .shadow-glow { box-shadow: var(--shadow-glow); }
   .text-balance { text-wrap: balance; }
 
-  /* 3D Utilities */
-  .perspective-1000 { perspective: 1000px; }
-  .perspective-2000 { perspective: 2000px; }
-  .preserve-3d { transform-style: preserve-3d; }
-  .backface-hidden { backface-visibility: hidden; }
-
-  /* Bloom & Glow */
-  .bloom-primary { filter: drop-shadow(0 0 15px oklch(0.72 0.18 35 / 0.4)); }
-  .bloom-gold { filter: drop-shadow(0 0 15px oklch(0.82 0.13 85 / 0.4)); }
-
   @keyframes ticker {
     0% { transform: translateX(0); }
     100% { transform: translateX(-50%); }
