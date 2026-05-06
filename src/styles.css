@@ -138,14 +138,27 @@
   }
   /* PC Optimization: Center the chat on large screens for a native app feel */
   @media (min-width: 1024px) {
+    .ovii-chat-root {
+      background: linear-gradient(135deg, oklch(0.12 0.01 250), oklch(0.18 0.015 250));
+    }
     .ovii-chat-inner {
-      max-width: 500px;
-      margin: 0 auto;
-      border-left: 1px solid var(--color-border);
-      border-right: 1px solid var(--color-border);
-      box-shadow: 0 0 100px rgba(0,0,0,0.5);
-      height: 100%;
-      position: relative;
+      max-width: 1440px;
+      margin: 20px auto;
+      height: calc(100% - 40px);
+      border-radius: 24px;
+      border: 1px solid var(--color-border);
+      box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8);
+      overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr; /* Default, will be 1fr 380px when sidebar active */
+      transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .ovii-chat-inner.has-sidebar {
+      grid-template-columns: 1fr 380px;
+    }
+    /* Messages should be readable, not stretched */
+    .ovii-chat-inner .max-w-\[85\%\] {
+      max-width: 65%;
     }
   }
   h1, h2, h3, .serif { font-family: var(--font-serif); letter-spacing: -0.01em; }
@@ -179,4 +192,17 @@
     100% { transform: translateX(300%); }
   }
   .animate-loading-bar { animation: loading-bar 1.5s ease-in-out infinite; }
+
+  @keyframes waveform-subtle-pulse {
+    0%, 100% { transform: scaleY(1); opacity: 1; filter: drop-shadow(0 0 2px var(--color-primary)); }
+    50% { transform: scaleY(1.05); opacity: 0.9; filter: drop-shadow(0 0 8px var(--color-primary)); }
+  }
+  .waveform-playing {
+    animation: waveform-subtle-pulse 1.5s ease-in-out infinite;
+    transform-origin: center;
+  }
+
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }
