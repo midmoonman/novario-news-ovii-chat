@@ -90,7 +90,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
   const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
-    <div className={`flex items-center gap-4 w-full p-4 rounded-[24px] transition-all ${
+    <div className={`flex items-center gap-3 w-full p-3.5 rounded-[22px] overflow-hidden transition-all ${
       mine 
         ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black") 
         : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black")
@@ -98,44 +98,44 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
       <div className="relative shrink-0">
         <button 
           onClick={toggle} 
-          className={`w-14 h-14 rounded-full flex items-center justify-center transition-all active:scale-95 hover:bg-black/5 ${
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-95 hover:bg-black/5 ${
             isDarkMode ? "text-white" : "text-[#54656f]"
           }`}
         >
           {playing ? (
-            <Pause className="w-10 h-10 fill-current" />
+            <Pause className="w-8 h-8 fill-current" />
           ) : (
-            <Play className="w-10 h-10 fill-current ml-1" />
+            <Play className="w-8 h-8 fill-current ml-1" />
           )}
         </button>
-        <div className={`absolute bottom-0 right-0 w-6 h-6 rounded-full flex items-center justify-center border-2 ${
+        <div className={`absolute bottom-0 right-0 w-5.5 h-5.5 rounded-full flex items-center justify-center border-2 ${
           isDarkMode ? "bg-[#202c33] border-[#005c4b]" : "bg-white border-[#dcf8c6]"
         }`}>
-          <Mic className="w-3.5 h-3.5 text-[#00a884] fill-[#00a884]/10" />
+          <Mic className="w-3 h-3 text-[#00a884] fill-[#00a884]/10" />
         </div>
       </div>
 
-      <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
         <div
           className="w-full opacity-100"
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between px-0.5 mt-1">
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="text-[11px] font-bold tabular-nums opacity-60 whitespace-nowrap">
+        <div className="flex items-center justify-between px-0.5 mt-1 gap-2">
+          <div className="flex items-center gap-2.5 min-w-0 shrink">
+            <span className="text-[10px] font-bold tabular-nums opacity-60 whitespace-nowrap">
               {fmt(playing ? currentTime : duration)}
             </span>
             {timeStr && (
-              <span className="text-[10px] opacity-40 font-bold uppercase tracking-tight whitespace-nowrap">
+              <span className="text-[9px] opacity-40 font-bold uppercase tracking-tight whitespace-nowrap truncate">
                 {timeStr}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3 shrink-0 ml-4">
+          <div className="flex items-center gap-2.5 shrink-0">
             <button 
               onClick={toggleSpeed} 
-              className={`text-[10px] font-black h-6 px-3 rounded-full border transition-all active:scale-90 flex items-center justify-center shrink-0 ${
+              className={`text-[9px] font-black h-5 px-2 rounded-full border transition-all active:scale-90 flex items-center justify-center shrink-0 ${
                 isDarkMode 
                   ? "bg-white/10 border-white/5 text-white/80 hover:bg-white/20" 
                   : "bg-black/5 border-black/5 text-black/70 hover:bg-black/10"
@@ -144,7 +144,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
               {speed}x
             </button>
             {mine && (
-              <div className="opacity-50 shrink-0">
+              <div className="opacity-50 shrink-0 scale-90">
                 <MsgTick status={status} />
               </div>
             )}
