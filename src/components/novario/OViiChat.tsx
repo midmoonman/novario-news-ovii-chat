@@ -121,21 +121,21 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           style={{ height: 32, overflow: "hidden" }}
           ref={containerRef}
         />
-        <div className="flex items-center justify-between px-0.5">
-          <div className="flex items-center gap-4">
-            <span className="text-[11px] font-bold tabular-nums opacity-60">
+        <div className="flex items-center justify-between px-0.5 mt-1">
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-[11px] font-bold tabular-nums opacity-60 whitespace-nowrap">
               {fmt(playing ? currentTime : duration)}
             </span>
             {timeStr && (
-              <span className="text-[10px] opacity-40 font-bold uppercase tracking-tight">
+              <span className="text-[10px] opacity-40 font-bold uppercase tracking-tight whitespace-nowrap">
                 {timeStr}
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0 ml-4">
             <button 
               onClick={toggleSpeed} 
-              className={`text-[10px] font-black h-6 px-3 rounded-full border transition-all active:scale-90 flex items-center justify-center ${
+              className={`text-[10px] font-black h-6 px-3 rounded-full border transition-all active:scale-90 flex items-center justify-center shrink-0 ${
                 isDarkMode 
                   ? "bg-white/10 border-white/5 text-white/80 hover:bg-white/20" 
                   : "bg-black/5 border-black/5 text-black/70 hover:bg-black/10"
