@@ -128,15 +128,14 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
             </span>
           </div>
           
-          <div className="flex-1 flex justify-center">
+          <div className="flex-1" />
+
+          <div className="flex items-center gap-2.5 shrink-0">
             {timeStr && (
-              <span className="text-[11px] font-['Inter'] font-extralight uppercase tracking-widest whitespace-nowrap truncate opacity-40">
+              <span className="text-[11px] font-['Inter'] font-extralight uppercase tracking-tight whitespace-nowrap truncate opacity-40 mr-1">
                 {timeStr}
               </span>
             )}
-          </div>
-
-          <div className="flex items-center gap-2.5 shrink-0">
             <button 
               onClick={toggleSpeed} 
               className={`text-[9px] font-normal h-5 px-2 rounded-full border transition-all active:scale-90 flex items-center justify-center shrink-0 ${
