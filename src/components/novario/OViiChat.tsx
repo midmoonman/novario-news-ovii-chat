@@ -301,7 +301,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         unsubPresence = onSnapshot(presCol, (s) => {
           const t: string[] = [];
           const r: string[] = [];
-          const currentOnline: {uid: string, name: string}[] = [];
+          const currentOnline: {uid: string, name: string, avatar?: string}[] = [];
           const currentOnlineIds = new Set<string>();
           const now = Date.now();
 
