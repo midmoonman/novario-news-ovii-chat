@@ -286,7 +286,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const lastActivity = useRef<number>(Date.now());
   const chunksRef = useRef<Blob[]>([]);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = (instant = false) => {
     if (scrollRef.current) {
@@ -546,7 +546,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     } catch (e: any) { setError("Image upload failed: " + (e.message || "Unknown error")); }
   };
 
-  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     for (let i = 0; i < e.clipboardData.items.length; i++) {
       if (e.clipboardData.items[i].type.startsWith("image/")) {
         e.preventDefault();
@@ -1070,7 +1070,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         autoComplete="off"
                         value={text}
                         onKeyDown={(e) => { 
-                          if (e.key === "Enter" && !e.shiftKey && !isMobile) { 
+                          if (e.key === "Enter" && !e.shiftKey && !isMobileDevice()) { 
                             e.preventDefault(); 
                             onText(); 
                           } 
