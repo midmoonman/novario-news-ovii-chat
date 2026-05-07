@@ -34,15 +34,28 @@ export function LanguageMenu() {
   }, [lang]);
 
   useEffect(() => {
-    if (open && btnRef.current) {
-      const rect = btnRef.current.getBoundingClientRect();
-      const vw = window.innerWidth;
-      const dropW = Math.min(320, vw - 16);
-      let left = rect.right - dropW;
-      left = Math.max(8, Math.min(left, vw - dropW - 8));
-      setDropdownPos({ top: rect.bottom + 8, left, width: dropW });
+    const updatePos = () => {
+      if (open && btnRef.current) {
+        const rect = btnRef.current.getBoundingClientRect();
+        const vw = window.innerWidth;
+        const dropW = Math.min(320, vw - 16);
+        let left = rect.right - dropW;
+        left = Math.max(8, Math.min(left, vw - dropW - 8));
+        setDropdownPos({ top: rect.bottom + 8, left, width: dropW });
+      }
+    };
+    
+    updatePos();
+    if (open) {
+      window.addEventListener("scroll", updatePos, true);
+      window.addEventListener("resize", updatePos);
     }
+    return () => {
+      window.removeEventListener("scroll", updatePos, true);
+      window.removeEventListener("resize", updatePos);
+    };
   }, [open]);
+
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
