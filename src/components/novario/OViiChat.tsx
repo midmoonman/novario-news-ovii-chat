@@ -192,11 +192,12 @@ const RecordingVisualizer = () => (
   </div>
 );
 
-// ─── FilesList ────────────────────────────────────────────────────────────────
-function FilesList({ voiceMsgs, uid, downloadVoice, isDarkMode }: { voiceMsgs: Msg[], uid: string | null, downloadVoice: (u: string, i: string) => void, isDarkMode: boolean }) {
-  if (voiceMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs">No saved voice notes.</p>;
+// ─── MediaList (formerly FilesList) ───────────────────────────────────────────
+function MediaList({ msgs, uid, downloadFile, isDarkMode }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean }) {
+  const mediaMsgs = msgs.filter(m => m.type === "voice" || m.type === "image");
+  if (mediaMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs">No saved media.</p>;
 
-  const groups = voiceMsgs.reduce((acc, m) => {
+  const groups = mediaMsgs.reduce((acc, m) => {
     const date = m.createdAt?.toDate().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) || "Today";
     if (!acc[date]) acc[date] = [];
     acc[date].push(m);
@@ -205,21 +206,42 @@ function FilesList({ voiceMsgs, uid, downloadVoice, isDarkMode }: { voiceMsgs: M
 
   return (
     <>
-      {Object.entries(groups).map(([date, msgs]) => (
+      {Object.entries(groups).map(([date, items]) => (
         <div key={date} className="space-y-3">
           <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
-          {msgs.map(m => (
-            <div key={m.id} className="bg-card/30 border border-border/10 p-2.5 rounded-2xl flex items-center gap-6 lg:gap-10 shadow-sm hover:bg-card/50 transition-all group">
+          {items.map(m => (
+            <div key={m.id} className="bg-card/30 border border-border/10 p-2.5 rounded-2xl flex items-center gap-4 lg:gap-6 shadow-sm hover:bg-card/50 transition-all group">
               <div className="flex-1 min-w-0">
-                <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                {m.type === "voice" ? (
+                  <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                ) : (
+                  <div className="flex items-center gap-3 p-1">
+                    <img src={m.content} className="w-12 h-12 rounded-lg object-cover shadow-sm cursor-pointer active:scale-95 transition-transform" onClick={() => window.open(m.content, "_blank")} alt="" />
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-[12px] font-bold truncate ${isDarkMode ? "text-white/80" : "text-black/80"}`}>Photo</div>
+                      <div className="text-[10px] opacity-40 uppercase">{m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                    </div>
+                  </div>
+                )}
               </div>
-              <button
-                onClick={() => downloadVoice(m.content, m.id)}
-                className="p-3 bg-primary/10 hover:bg-primary/20 rounded-full text-primary transition-all shrink-0 shadow-sm"
-                aria-label="Download voice note"
-              >
-                <Download className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-2">
+                {m.type === "image" && (
+                  <button
+                    onClick={() => window.open(m.content, "_blank")}
+                    className="p-2.5 bg-primary/5 hover:bg-primary/10 rounded-full text-primary transition-all shrink-0"
+                    aria-label="View photo"
+                  >
+                    <Play className="w-4 h-4 rotate-0" /> {/* Play icon as a "view" placeholder or similar, but maybe Eye is better */}
+                  </button>
+                )}
+                <button
+                  onClick={() => downloadFile(m.content, m.id, m.type)}
+                  className="p-2.5 bg-primary/10 hover:bg-primary/20 rounded-full text-primary transition-all shrink-0 shadow-sm"
+                  aria-label={`Download ${m.type}`}
+                >
+                  <Download className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           ))}
         </div>
@@ -422,8 +444,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             }
             const ts = m.createdAt?.toMillis?.() ?? 0;
             if (!ts) continue;
-            const limit = m.type === "voice" ? 8 * 24 * 60 * 60 * 1000 : 5 * 60_000;
-            if (tnow - ts > limit) deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => { });
+
+            // Retention logic:
+            // Text: 5 days
+            // Voice/Photo: 14 days
+            const limit = m.type === "text" 
+              ? 5 * 24 * 60 * 60 * 1000 
+              : 14 * 24 * 60 * 60 * 1000;
+
+            if (tnow - ts > limit) {
+              deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => { });
+            }
           }
         });
 
@@ -627,26 +658,36 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setPres({ recording: false });
   };
 
-  const downloadVoice = async (url: string, msgId: string) => {
+  const downloadFile = async (url: string, id: string, type: string) => {
     try {
       const response = await fetch(url);
       const blob = await response.blob();
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
-      a.href = blobUrl; a.download = `voice-note-${msgId.slice(0, 8)}.webm`;
+      a.href = blobUrl;
+      const ext = type === "voice" ? "webm" : "jpg";
+      a.download = `${type}-${id.slice(0, 8)}.${ext}`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
       toast.success("Download started");
     } catch { window.open(url, "_blank"); }
   };
 
-  const voiceMsgs = msgs.filter(m => m.type === "voice");
-  const latestVoice = voiceMsgs.length > 0 ? voiceMsgs[voiceMsgs.length - 1] : null;
-  const chatMsgs = [
-    ...msgs.filter(m => m.type !== "voice"),
-    ...(latestVoice ? [latestVoice] : []),
-  ].sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
-  const unreadVoice = voiceMsgs.length;
+  const now = Date.now();
+  const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
+  const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+
+  // chatMsgs: Text for 5 days, Media for 7 days
+  const chatMsgs = msgs.filter(m => {
+    const ts = m.createdAt?.toMillis?.() ?? 0;
+    if (!ts) return true; // Keep pending messages
+    const age = now - ts;
+    if (m.type === "text") return age < FIVE_DAYS;
+    return age < SEVEN_DAYS;
+  }).sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
+
+  const mediaMsgs = msgs.filter(m => m.type === "voice" || m.type === "image");
+  const unreadMedia = mediaMsgs.length;
 
   // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
   const rootStyle: React.CSSProperties = isMobileDevice() && mobileKeyboardOffset > 0
@@ -724,7 +765,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} isDarkMode={isDarkMode} />
+                <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} />
               </div>
             </motion.div>
           )}
@@ -796,7 +837,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 title="My Files"
               >
                 <Folder className="w-5 h-5" />
-                {unreadVoice > 0 && <span className="absolute top-1 right-1 bg-[#25d366] text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm">{unreadVoice}</span>}
+                {unreadMedia > 0 && <span className="absolute top-1 right-1 bg-[#25d366] text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm">{unreadMedia}</span>}
               </button>
               <button
                 onClick={onLock}
@@ -933,8 +974,25 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 >
                                   <div className="relative flex flex-col">
                                     {m.type === "image" && (
-                                      <div className="mb-0 overflow-hidden rounded-[18px] relative">
-                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[600px] shadow-sm block" />
+                                      <div className="mb-0 overflow-hidden rounded-[18px] relative group/img">
+                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[600px] shadow-sm block transition-transform group-hover/img:scale-[1.02]" />
+                                        
+                                        {/* Photo overlay actions */}
+                                        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); window.open(m.content, "_blank"); }}
+                                            className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
+                                          >
+                                            <Play className="w-4 h-4" /> {/* Simple icon for view */}
+                                          </button>
+                                          <button 
+                                            onClick={(e) => { e.stopPropagation(); downloadFile(m.content, m.id, "image"); }}
+                                            className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
+                                          >
+                                            <Download className="w-4 h-4" />
+                                          </button>
+                                        </div>
+
                                         {m.caption && (
                                           <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
                                             {m.caption}
