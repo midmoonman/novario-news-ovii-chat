@@ -310,6 +310,19 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [otherAvatar, setOtherAvatar] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setShowMenu(false);
+        setShowNoLockSubmenu(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   const [noLockUntil, setNoLockUntil] = useState<number | null>(() => {
     const saved = localStorage.getItem("ovii_no_lock_until");
     return saved ? parseInt(saved) : null;
@@ -800,7 +813,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           onDrop={handleDrop}
         >
           {/* ── Header ── */}
-          <header className={`px-4 py-2 flex items-center justify-between z-20 shrink-0 shadow-md ${isDarkMode ? "bg-[#202c33] border-b border-white/5 text-white" : "bg-[#f0f2f5] border-b border-black/5 text-black"
+          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 shadow-md ${isDarkMode ? "bg-[#202c33] border-b border-white/5 text-white" : "bg-[#f0f2f5] border-b border-black/5 text-black"
             }`}>
             <div className="flex items-center gap-3">
               <div className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm">
@@ -861,7 +874,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               >
                 Lock
               </button>
-              <div className="relative">
+              <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setShowMenu(!showMenu)}
                   className={`p-2 rounded-full transition-colors relative ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
@@ -1017,7 +1030,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </div>
                 )}
 
-                <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-2.5 sm:px-6">
+                 <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-3.5 sm:px-6">
                   <AnimatePresence>
                     {chatMsgs.map((m, i) => {
                       const mine = m.uid === uid;
@@ -1050,7 +1063,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }
                               }
                             }}
-                            className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[90%] ${mine ? "ml-auto" : "mr-auto"}`}
+                            className={`relative flex gap-2 group w-fit max-w-[88%] md:max-w-[90%] ${mine ? "ml-auto" : "mr-auto"}`}
                           >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                               }`}>
