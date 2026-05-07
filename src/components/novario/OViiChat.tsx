@@ -1177,8 +1177,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       )}
                                       
                                       {/* Timestamp: absolute for image, relative for text */}
-                                      <div className={`${m.type === "image" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-1.5 right-1.5"} flex items-center gap-1.5 opacity-70 pointer-events-none select-none`}>
-                                        <span className={`text-[10px] tabular-nums font-light tracking-tight ${m.type === "image" ? "text-white" : (isDarkMode ? "text-white/60" : "text-black/50")}`}>
+                                      <div className={`${m.type === "image" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
+                                        <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" ? "text-white" : ""}`}>
                                           {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                         </span>
                                         {mine && <div className={`shrink-0 scale-95 ${m.type === "image" ? "text-[#53bdeb]" : ""}`}><MsgTick status={m.status} /></div>}
