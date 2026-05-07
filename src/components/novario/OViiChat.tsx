@@ -638,6 +638,20 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     }
   };
 
+  const clearChat = async () => {
+    if (!confirm("Are you sure you want to clear all messages? This cannot be undone.")) return;
+    try {
+      const q = query(collection(db, "ovii", ROOM, "messages"));
+      const snapshot = await getDocs(q);
+      const batch = snapshot.docs.map(d => deleteDoc(doc(db, "ovii", ROOM, "messages", d.id)));
+      await Promise.all(batch);
+      toast.success("Chat cleared");
+      setShowMenu(false);
+    } catch (e) {
+      toast.error("Failed to clear chat");
+    }
+  };
+
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
     for (let i = 0; i < e.clipboardData.items.length; i++) {
       if (e.clipboardData.items[i].type.startsWith("image/")) {
@@ -984,6 +998,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </button>
                           </div>
                         )}
+
+                        <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+
+                        <button
+                          onClick={clearChat}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-destructive/10 text-destructive" : "hover:bg-destructive/5 text-destructive"
+                            }`}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                          <div className="flex-1 text-left font-medium">Clear Chat</div>
+                        </button>
                       </div>
                     </motion.div>
                   )}
