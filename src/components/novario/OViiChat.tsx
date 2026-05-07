@@ -787,9 +787,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             >
               <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/80 backdrop-blur-md sticky top-0 z-10">
                 <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
-                  <Folder className="w-5 h-5 text-destructive" /> MY FILES
+                  <Folder className="w-5 h-5 text-destructive" /> FILES
                 </h2>
-                <button onClick={() => setShowFolder(false)} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground hover:text-foreground transition-colors">
+                <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
                   <X className="w-5 h-5" />
                 </button>
               </div>
@@ -901,7 +901,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             }`}
                         >
                           <Folder className="w-4 h-4 text-destructive" />
-                          <div className="flex-1 text-left font-medium">My Files Folder</div>
+                          <div className="flex-1 text-left font-medium">Files</div>
                           {unreadMedia > 0 && <span className="bg-[#25d366] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadMedia}</span>}
                         </button>
 
@@ -1380,9 +1380,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 >
                   <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/40 backdrop-blur-md sticky top-0 z-10">
                     <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2.5">
-                      <Folder className="w-4 h-4 text-destructive" /> MY FILES
+                      <Folder className="w-4 h-4 text-destructive" /> FILES
                     </h2>
-                    <button onClick={() => setShowFolder(false)} className="p-1.5 rounded-full hover:bg-background/80 text-muted-foreground hover:text-foreground transition-colors shadow-sm">
+                    <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-background/60 hover:bg-background text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
