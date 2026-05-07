@@ -6,8 +6,7 @@ import { getRouter } from "./router";
 import { initArticleImages } from "./lib/news";
 import "./styles.css";
 
-// Pre-fetch Bing images for the 9 static articles (fire-and-forget)
-initArticleImages();
+// Pre-fetch logic moved to news-related routes for faster initial load.
 
 const queryClient = new QueryClient({
   defaultOptions: {

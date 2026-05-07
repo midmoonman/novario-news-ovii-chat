@@ -9,7 +9,7 @@ import { TrendingRow } from "@/components/novario/TrendingRow";
 import { TrendingPeople } from "@/components/novario/TrendingPeople";
 import { CategoryGrid } from "@/components/novario/CategoryGrid";
 import { getHomeFeed, getNews } from "@/server/newsapi.functions";
-import { CATEGORIES } from "@/lib/news";
+import { CATEGORIES, initArticleImages } from "@/lib/news";
 
 type NewsSearch = { cat?: string };
 
@@ -35,6 +35,9 @@ function NewsHome() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
+    // Only pre-fetch when on the news section
+    initArticleImages();
+
     const interval = setInterval(() => {
       window.location.reload();
     }, 15 * 60 * 1000); // 15 minutes
