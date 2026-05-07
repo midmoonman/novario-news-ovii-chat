@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
-  deleteDoc, doc, Timestamp, setDoc, getDocs
+  deleteDoc, doc, Timestamp, setDoc, getDocs, writeBatch
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
