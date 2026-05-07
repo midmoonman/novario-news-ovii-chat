@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
@@ -216,7 +216,7 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode }: { msgs: Msg[], uid: 
                   <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                 ) : (
                   <div className="flex items-center gap-3 p-1">
-                    <img src={m.content} className="w-12 h-12 rounded-lg object-cover shadow-sm cursor-pointer active:scale-95 transition-transform" onClick={() => window.open(m.content, "_blank")} alt="" />
+                    <img src={m.content} className="w-12 h-12 rounded-lg object-cover shadow-sm cursor-pointer active:scale-95 transition-transform" onClick={() => setSelectedImage(m.content)} alt="" />
                     <div className="flex-1 min-w-0">
                       <div className={`text-[12px] font-bold truncate ${isDarkMode ? "text-white/80" : "text-black/80"}`}>Photo</div>
                       <div className="text-[10px] opacity-40 uppercase">{m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
@@ -227,11 +227,11 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode }: { msgs: Msg[], uid: 
               <div className="flex items-center gap-2">
                 {m.type === "image" && (
                   <button
-                    onClick={() => window.open(m.content, "_blank")}
+                    onClick={() => setSelectedImage(m.content)}
                     className="p-2.5 bg-primary/5 hover:bg-primary/10 rounded-full text-primary transition-all shrink-0"
                     aria-label="View photo"
                   >
-                    <Play className="w-4 h-4 rotate-0" /> {/* Play icon as a "view" placeholder or similar, but maybe Eye is better */}
+                    <ImageIcon className="w-4 h-4" />
                   </button>
                 )}
                 <button
@@ -263,6 +263,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   useEffect(() => {
     localStorage.setItem("ovii_dark_mode", String(isDarkMode));
   }, [isDarkMode]);
+
+  // -- Scroll to bottom on mount --
+  useEffect(() => {
+    // Small delay to ensure layout is ready
+    const timer = setTimeout(() => scrollToBottom(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   // ── Viewport height: ONLY used on mobile to compensate for software keyboard ──
   // On desktop we let position:fixed + inset:0 do the work (no zoom whitespace).
@@ -301,6 +308,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [otherName, setOtherName] = useState<string | null>(null);
   const [otherOnline, setOtherOnline] = useState(false);
   const [otherAvatar, setOtherAvatar] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showMenu, setShowMenu] = useState(false);
+  const [noLockUntil, setNoLockUntil] = useState<number | null>(() => {
+    const saved = localStorage.getItem("ovii_no_lock_until");
+    return saved ? parseInt(saved) : null;
+  });
+  const [showNoLockSubmenu, setShowNoLockSubmenu] = useState(false);
   const prevOnlineRef = useRef<Map<string, string>>(new Map());
 
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
@@ -485,7 +499,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     window.addEventListener("pointerdown", bump);
     window.addEventListener("keydown", bump);
     const t = setInterval(() => {
-      if (Date.now() - lastActivity.current > 180_000) onLock();
+      const now = Date.now();
+      if (noLockUntil && now < noLockUntil) return; // Bypass lock
+      if (now - lastActivity.current > 180_000) onLock();
     }, 5_000);
     return () => {
       window.removeEventListener("pointerdown", bump);
@@ -784,10 +800,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           onDrop={handleDrop}
         >
           {/* ── Header ── */}
-          <header className={`px-5 py-3 flex items-center justify-between z-20 shrink-0 shadow-md ${isDarkMode ? "bg-[#202c33] border-b border-white/5 text-white" : "bg-[#f0f2f5] border-b border-black/5 text-black"
+          <header className={`px-4 py-2 flex items-center justify-between z-20 shrink-0 shadow-md ${isDarkMode ? "bg-[#202c33] border-b border-white/5 text-white" : "bg-[#f0f2f5] border-b border-black/5 text-black"
             }`}>
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm">
+              <div className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm">
                 {otherAvatar ? (
                   <img src={otherAvatar} alt="" className="w-full h-full object-cover" />
                 ) : avatar ? (
@@ -795,10 +811,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 ) : null}
               </div>
               <div>
-                <div className="font-bold text-[15px] leading-tight">
-                  {otherName || (count > 1 ? "Ovii User" : "Waiting...")}
+                <div className="font-bold text-[14px] leading-tight">
+                  {otherName || (count > 1 ? "Ovii User" : "Waiting...") || "Waiting..."}
                 </div>
-                <div className="text-[11px] opacity-60 flex items-center gap-1.5 font-medium">
+                <div className="text-[10px] opacity-60 flex items-center gap-1.5 font-medium">
                   {recordingUsers.length > 0 ? (
                     <span className="text-emerald-500 animate-pulse">Recording...</span>
                   ) : typingUsers.length > 0 ? (
@@ -814,6 +830,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5">
+              {noLockUntil && Date.now() < noLockUntil && (
+                <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider animate-pulse">
+                  <ShieldOff className="w-3 h-3" />
+                  <span>No Lock: {Math.ceil((noLockUntil - Date.now()) / 60000)}m left</span>
+                </div>
+              )}
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
@@ -830,15 +852,107 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               >
                 <ArrowLeftRight className="w-5 h-5" />
               </button>
-              <button
-                onClick={() => setShowFolder(true)}
-                className={`p-2 rounded-full transition-colors relative ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
-                  }`}
-                title="My Files"
-              >
-                <Folder className="w-5 h-5" />
-                {unreadMedia > 0 && <span className="absolute top-1 right-1 bg-[#25d366] text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm">{unreadMedia}</span>}
-              </button>
+              <div className="relative">
+                <button
+                  onClick={() => setShowMenu(!showMenu)}
+                  className={`p-2 rounded-full transition-colors relative ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+                    } ${showMenu ? (isDarkMode ? "bg-white/10" : "bg-black/10") : ""}`}
+                  title="Menu"
+                >
+                  <MoreVertical className="w-5 h-5" />
+                  {unreadMedia > 0 && <span className="absolute top-1 right-1 bg-[#25d366] text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm">{unreadMedia}</span>}
+                </button>
+
+                <AnimatePresence>
+                  {showMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-elegant z-50 overflow-hidden border ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/5"
+                        }`}
+                    >
+                      <div className="py-1">
+                        <button
+                          onClick={() => { setShowFolder(true); setShowMenu(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
+                            }`}
+                        >
+                          <Folder className="w-4 h-4 text-destructive" />
+                          <div className="flex-1 text-left font-medium">My Files Folder</div>
+                          {unreadMedia > 0 && <span className="bg-[#25d366] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadMedia}</span>}
+                        </button>
+
+                        <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+
+                        {!showNoLockSubmenu ? (
+                          <button
+                            onClick={() => setShowNoLockSubmenu(true)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
+                              }`}
+                          >
+                            <ShieldOff className="w-4 h-4 text-primary" />
+                            <div className="flex-1 text-left font-medium">No Lock</div>
+                            {noLockUntil && Date.now() < noLockUntil ? (
+                              <span className="text-[10px] font-bold text-primary animate-pulse uppercase tracking-widest">Active</span>
+                            ) : (
+                              <ChevronDown className="w-3.5 h-3.5 opacity-40" />
+                            )}
+                          </button>
+                        ) : (
+                          <div className="py-1">
+                            <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Select Duration</div>
+                            {[
+                              { label: "15 Minutes", val: 15 * 60 * 1000 },
+                              { label: "1 Hour", val: 60 * 60 * 1000 },
+                              { label: "5 Hours", val: 5 * 60 * 60 * 1000 },
+                              { label: "24 Hours", val: 24 * 60 * 60 * 1000 },
+                            ].map((d) => (
+                              <button
+                                key={d.label}
+                                onClick={() => {
+                                  const until = Date.now() + d.val;
+                                  setNoLockUntil(until);
+                                  localStorage.setItem("ovii_no_lock_until", until.toString());
+                                  setShowMenu(false);
+                                  setShowNoLockSubmenu(false);
+                                  toast.success(`No Lock enabled for ${d.label}`);
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/80" : "hover:bg-black/5 text-black/70"
+                                  }`}
+                              >
+                                <Clock className="w-3.5 h-3.5 opacity-60" />
+                                <span className="font-medium">{d.label}</span>
+                              </button>
+                            ))}
+                            {noLockUntil && (
+                              <button
+                                onClick={() => {
+                                  setNoLockUntil(null);
+                                  localStorage.removeItem("ovii_no_lock_until");
+                                  setShowMenu(false);
+                                  setShowNoLockSubmenu(false);
+                                  toast.info("No Lock disabled");
+                                }}
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-destructive hover:bg-destructive/5 transition-colors"
+                              >
+                                <XCircle className="w-3.5 h-3.5" />
+                                <span className="font-bold">Turn off No Lock</span>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => setShowNoLockSubmenu(false)}
+                              className={`w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity ${isDarkMode ? "text-white" : "text-black"}`}
+                            >
+                              ← Back
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
               <button
                 onClick={onLock}
                 className={`ml-1 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border ${isDarkMode
@@ -966,7 +1080,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[18px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-4 sm:py-2.5"} text-[14.5px] leading-[1.45] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
+                                  className={`rounded-[18px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-3 sm:py-1.5"} text-[13.5px] leading-[1.4] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                       : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
@@ -974,16 +1088,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 >
                                   <div className="relative flex flex-col">
                                     {m.type === "image" && (
-                                      <div className="mb-0 overflow-hidden rounded-[18px] relative group/img">
-                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[600px] shadow-sm block transition-transform group-hover/img:scale-[1.02]" />
+                                      <div className="mb-0 overflow-hidden rounded-[18px] relative group/img cursor-pointer active:scale-[0.99] transition-transform" onClick={() => setSelectedImage(m.content)}>
+                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]" />
                                         
                                         {/* Photo overlay actions */}
                                         <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
                                           <button 
-                                            onClick={(e) => { e.stopPropagation(); window.open(m.content, "_blank"); }}
+                                            onClick={(e) => { e.stopPropagation(); setSelectedImage(m.content); }}
                                             className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
                                           >
-                                            <Play className="w-4 h-4" /> {/* Simple icon for view */}
+                                            <ImageIcon className="w-4 h-4" />
                                           </button>
                                           <button 
                                             onClick={(e) => { e.stopPropagation(); downloadFile(m.content, m.id, "image"); }}
@@ -1003,9 +1117,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                     <div className="relative overflow-hidden min-w-[60px]">
                                       {m.type === "text" && (
-                                        <span className="block break-words whitespace-pre-wrap leading-relaxed text-[15px]">
+                                        <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                           {m.content}
-                                          <span className="inline-block w-[75px] h-[10px]" />
+                                          <span className="inline-block w-[70px] h-[10px]" />
                                         </span>
                                       )}
                                       
@@ -1198,7 +1312,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                           }
                         }}
-                        className={`flex-1 bg-transparent px-4 py-3 text-[15.5px] leading-[1.5] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
+                        className={`flex-1 bg-transparent px-4 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
                           }`}
                         style={{ height: `${inputHeight}px` }}
                       />
@@ -1268,6 +1382,51 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           </div>{/* end body */}
         </div>{/* end ovii-chat-frame */}
       </div>{/* end ovii-chat-root */}
+
+      {/* ── Full Image Preview Overlay ── */}
+      <AnimatePresence>
+        {selectedImage && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-10"
+            onClick={() => setSelectedImage(null)}
+          >
+            <motion.button
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              onClick={() => setSelectedImage(null)}
+              className="absolute top-5 right-5 p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
+            >
+              <X className="w-6 h-6" />
+            </motion.button>
+            
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="relative max-w-5xl w-full h-full flex items-center justify-center"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <img 
+                src={selectedImage} 
+                alt="" 
+                className="max-w-full max-h-full object-contain shadow-2xl rounded-lg"
+              />
+              
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-4">
+                <button 
+                  onClick={() => downloadFile(selectedImage, "preview", "image")}
+                  className="px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                >
+                  <Download className="w-4 h-4" /> Download
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
