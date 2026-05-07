@@ -341,12 +341,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = (instant = false) => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTo({
-        top: scrollRef.current.scrollHeight,
-        behavior: instant ? "instant" : "smooth",
-      });
-    }
+    if (!scrollRef.current) return;
+    const scroll = () => {
+      if (scrollRef.current) {
+        scrollRef.current.scrollTo({
+          top: scrollRef.current.scrollHeight,
+          behavior: instant ? "instant" : "smooth",
+        });
+      }
+    };
+    scroll();
+    // Second pass for reliability
+    setTimeout(scroll, 50);
   };
 
   // ── Auth + presence ──────────────────────────────────────────────────────
@@ -548,8 +554,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     };
   }, []);
 
-  // ── Scroll to bottom on new messages ────────────────────────────────────
-  useEffect(() => { scrollToBottom(); }, [msgs.length]);
+  // ── Scroll to bottom on load and new messages ──────────────────────────
+  useEffect(() => { 
+    const timer = setTimeout(() => scrollToBottom(true), 250); 
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => { 
+    const timer = setTimeout(() => scrollToBottom(false), 100); 
+    return () => clearTimeout(timer);
+  }, [msgs.length]);
 
   const setPres = (data: any) => {
     if (uid) setDoc(doc(db, "ovii", ROOM, "presence", uid), data, { merge: true }).catch(() => { });
@@ -783,7 +797,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute inset-0 z-50 bg-background/98 backdrop-blur-xl flex lg:hidden flex-col"
+              className="fixed inset-0 z-[150] bg-background flex flex-col"
             >
               <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/80 backdrop-blur-md sticky top-0 z-10">
                 <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
