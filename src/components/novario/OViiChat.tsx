@@ -1259,7 +1259,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
-                    <FilesList voiceMsgs={voiceMsgs} uid={uid} downloadVoice={downloadVoice} isDarkMode={isDarkMode} />
+                    <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} />
                   </div>
                 </motion.div>
               )}
