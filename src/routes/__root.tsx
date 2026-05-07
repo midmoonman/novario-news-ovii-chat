@@ -28,9 +28,17 @@ export const Route = createRootRoute({
   notFoundComponent: NotFoundComponent,
 });
 
+
 function RootComponent() {
-  const [showOvii, setShowOvii] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
+  const [showOvii, setShowOvii] = useState(() => {
+    const noLockUntil = localStorage.getItem("ovii_no_lock_until");
+    return (noLockUntil && parseInt(noLockUntil) > Date.now());
+  });
+  const [unlocked, setUnlocked] = useState(() => {
+    const noLockUntil = localStorage.getItem("ovii_no_lock_until");
+    return (noLockUntil && parseInt(noLockUntil) > Date.now());
+  });
+
   const chatOpen = showOvii && unlocked;
 
   useEffect(() => {
