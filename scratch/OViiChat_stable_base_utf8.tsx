@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+﻿import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
@@ -43,13 +43,13 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
     if (!containerRef.current) return;
     const ws = WaveSurfer.create({
       container: containerRef.current,
-      waveColor: "rgba(255,255,255,0.25)",
-      progressColor: "#00a884",
+      waveColor: isDarkMode ? (mine ? "#8696a0" : "#667781") : "#8696a0",
+      progressColor: isDarkMode ? "#34b7f1" : "#34b7f1",
       cursorWidth: 0,
       barWidth: 2,
       barGap: 3,
       barRadius: 2,
-      height: 36,
+      height: 32,
       normalize: true,
     });
     ws.load(src);
@@ -86,26 +86,25 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
   const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
-    <div className={`flex flex-col gap-2 w-full max-w-[300px] p-4 rounded-[18px] transition-all ${
-      mine ? "bg-[#005c4b] text-white" : "bg-[#202c33] text-white"
-    }`}>
-      <div className="flex items-center gap-4">
-        <button onClick={toggle} className="shrink-0 text-white active:scale-90 transition-all">
-          {playing ? <Pause className="w-8 h-8 fill-white" /> : <Play className="w-8 h-8 fill-white ml-0.5" />}
-        </button>
-        <div ref={containerRef} className="flex-1 h-[36px]" />
-      </div>
-      <div className="flex items-center justify-between gap-2 mt-1">
-        <div className="bg-white/10 rounded-full px-2.5 py-0.5 text-[10px] font-bold">
-          {fmt(playing ? currentTime : duration)}
+    <div className={`flex items-center gap-3 w-full max-w-[300px] p-[10px] rounded-[18px] transition-all ${mine 
+        ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black") 
+        : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black")
+      } ${mine ? "rounded-br-[4px]" : "rounded-bl-[4px]"}`}>
+      <button onClick={toggle} className="shrink-0 text-current opacity-80 hover:opacity-100">
+        {playing ? <Pause className="w-6 h-6 fill-current" /> : <Play className="w-6 h-6 fill-current" />}
+      </button>
+      <div className="flex-1 min-w-0 flex flex-col gap-1">
+        <div ref={containerRef} className="w-full h-[32px]" />
+        <div className="flex items-center justify-between opacity-60 text-[10px] font-medium uppercase tracking-wider mt-1">
+          <span>{fmt(playing ? currentTime : duration)}</span>
+          <div className="flex items-center gap-2">
+            {!isMobileDevice() && (
+              <button onClick={toggleSpeed} className="bg-black/10 px-1.5 py-0.5 rounded-md font-bold hover:bg-black/20">{speed}x</button>
+            )}
+            <span className={`font-medium ${isMobileDevice() ? "text-[9px]" : "text-[10px]"}`}>{timeStr}</span>
+            {mine && <MsgTick status={status} />}
+          </div>
         </div>
-        <div className="text-[10px] opacity-60 font-medium">
-          {timeStr}
-        </div>
-        <button onClick={toggleSpeed} className="bg-white/10 rounded-full px-2.5 py-0.5 text-[10px] font-bold hover:bg-white/20">
-          {speed}x
-        </button>
-        {mine && <MsgTick status={status} />}
       </div>
     </div>
   );
@@ -116,19 +115,19 @@ const MsgTick = ({ status }: { status?: string }) => {
   if (status === "sending") return <svg className="w-3 h-3 opacity-40" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" strokeWidth="1.5" strokeDasharray="3 2" /></svg>;
   if (status === "sent") return (
     <svg className="w-[13px] h-[9px] opacity-40" viewBox="0 0 12 9" fill="none">
-      <path d="M1 4.5L4.5 8L11 1" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M1 4.5L4.5 8L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
   if (status === "delivered") return (
     <svg className="w-[17px] h-[9px] opacity-40" viewBox="0 0 16 9" fill="none">
-      <path d="M1 4.5L4.5 8L11 1" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M5 4.5L8.5 8L15 1" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M1 4.5L4.5 8L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 4.5L8.5 8L15 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
   if (status === "read") return (
-    <svg className="w-[17px] h-[9px]" viewBox="0 0 16 9" fill="none">
-      <path d="M1 4.5L4.5 8L11 1" stroke="#34b7f1" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M5 4.5L8.5 8L15 1" stroke="#34b7f1" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
+    <svg className="w-[17px] h-[9px] text-[#53bdeb]" viewBox="0 0 16 9" fill="none">
+      <path d="M1 4.5L4.5 8L11 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5 4.5L8.5 8L15 1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
   return null;
@@ -1033,44 +1032,45 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           <motion.div
                             initial={{ opacity: 0, y: 10 }}
                             animate={{ opacity: 1, y: 0 }}
-                            className={`flex items-end gap-2 max-w-[85%] ${mine ? "flex-row-reverse" : "flex-row"}`}
+                            className={`flex items-end gap-2 max-w-[78%] ${mine ? "flex-row-reverse" : "flex-row"}`}
                           >
-                            <div className="w-8 shrink-0 flex justify-center">
-                              {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full object-cover shadow-md border border-white/5" alt="" />}
+                            <div className="w-8 shrink-0">
+                              {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full object-cover shadow-sm" alt="" />}
                             </div>
 
                             <div className={`flex-1 min-w-0 flex flex-col ${mine ? "items-end" : "items-start"}`}>
                               {!mine && !isConsecutive && m.name && (
-                                <span className="text-[12px] font-bold text-white/40 ml-2 mb-1 uppercase tracking-wider">{m.name}</span>
+                                <span className="text-[12px] font-bold text-muted-foreground/60 ml-2 mb-1 uppercase tracking-wider">{m.name}</span>
                               )}
 
-                              {m.type === "voice" ? (
-                                <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
-                              ) : (
-                                <div className={`relative px-[12px] py-[8px] shadow-md w-fit max-w-full ${
-                                  mine 
-                                    ? "bg-[#005c4b] text-white rounded-[18px] rounded-br-[4px]"
-                                    : "bg-[#202c33] text-white rounded-[18px] rounded-bl-[4px]"
-                                }`}>
-                                  {m.type === "image" ? (
-                                    <div className="flex flex-col gap-2">
-                                      <div className="rounded-[12px] overflow-hidden cursor-pointer" onClick={() => setSelectedImage(m.content)}>
-                                        <img src={m.content} alt="" className="max-w-full h-auto object-cover max-h-[300px]" />
-                                      </div>
-                                      {m.caption && <p className="text-[16px] leading-[1.45]">{m.caption}</p>}
+                              <div className={`relative px-[14px] py-[10px] rounded-[18px] shadow-sm w-fit max-w-full ${
+                                mine 
+                                  ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef]" : "bg-[#dcf8c6] text-[#111b21]") + (isLastInGroup ? " rounded-br-[4px]" : "")
+                                  : (isDarkMode ? "bg-[#202c33] text-[#e9edef]" : "bg-white text-[#111b21]") + (isLastInGroup ? " rounded-bl-[4px]" : "")
+                              }`}>
+                                {m.type === "voice" ? (
+                                  <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                                ) : m.type === "image" ? (
+                                  <div className="flex flex-col gap-2">
+                                    <div className="rounded-[12px] overflow-hidden cursor-pointer" onClick={() => setSelectedImage(m.content)}>
+                                      <img src={m.content} alt="" className="max-w-full h-auto object-cover max-h-[300px]" />
                                     </div>
-                                  ) : (
-                                    <p className="text-[16px] leading-[1.45] break-words whitespace-pre-wrap">{m.content}</p>
-                                  )}
-                                  
-                                  <div className="flex items-center justify-end gap-1 opacity-50 mt-1">
-                                    <span className="text-[10px] font-medium uppercase tracking-tighter">
+                                    {m.caption && <p className="text-[16px] leading-[1.45]">{m.caption}</p>}
+                                    <div className="flex items-center justify-end gap-1.5 opacity-60 text-[10px] mt-1">
                                       {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                                    </span>
-                                    {mine && <MsgTick status={m.status} />}
+                                      {mine && <MsgTick status={m.status} />}
+                                    </div>
                                   </div>
-                                </div>
-                              )}
+                                ) : (
+                                  <div className="flex flex-col">
+                                    <p className="text-[16px] leading-[1.45] break-words whitespace-pre-wrap">{m.content}</p>
+                                    <div className="flex items-center justify-end gap-1.5 opacity-60 text-[10px] mt-1">
+                                      {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                                      {mine && <MsgTick status={m.status} />}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </motion.div>
                         </div>
