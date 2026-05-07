@@ -124,7 +124,7 @@ export function LanguageMenu() {
                   className="w-full rounded-md bg-background border border-border px-3 py-2 text-sm focus:outline-none focus:border-primary/60"
                 />
               </div>
-              <div className="max-h-72 overflow-y-auto py-1">
+              <div className="max-h-72 overflow-y-auto py-1 premium-scrollbar">
                 {filtered.map((l) => {
                   const label = l.region ? `${l.native} · ${l.region}` : l.native;
                   return (
