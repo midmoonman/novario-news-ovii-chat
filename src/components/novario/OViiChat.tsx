@@ -193,7 +193,7 @@ const RecordingVisualizer = () => (
 );
 
 // ─── MediaList (formerly FilesList) ───────────────────────────────────────────
-function MediaList({ msgs, uid, downloadFile, isDarkMode }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean }) {
+function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void }) {
   const mediaMsgs = msgs.filter(m => m.type === "voice" || m.type === "image");
   if (mediaMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs">No saved media.</p>;
 
@@ -781,7 +781,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 </button>
               </div>
               <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} />
+                <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} />
               </div>
             </motion.div>
           )}
@@ -1373,7 +1373,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
-                    <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} />
+                    <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} />
                   </div>
                 </motion.div>
               )}
