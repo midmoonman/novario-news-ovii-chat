@@ -98,8 +98,10 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
         <div className="flex items-center justify-between opacity-60 text-[10px] font-medium uppercase tracking-wider mt-1">
           <span>{fmt(playing ? currentTime : duration)}</span>
           <div className="flex items-center gap-2">
-            <span>{timeStr}</span>
-            <button onClick={toggleSpeed} className="bg-black/10 px-1.5 py-0.5 rounded-md font-bold hover:bg-black/20">{speed}x</button>
+            {!isMobileDevice() && (
+              <button onClick={toggleSpeed} className="bg-black/10 px-1.5 py-0.5 rounded-md font-bold hover:bg-black/20">{speed}x</button>
+            )}
+            <span className={`font-medium ${isMobileDevice() ? "text-[9px]" : "text-[10px]"}`}>{timeStr}</span>
             {mine && <MsgTick status={status} />}
           </div>
         </div>
@@ -1054,7 +1056,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       <img src={m.content} alt="" className="max-w-full h-auto object-cover max-h-[300px]" />
                                     </div>
                                     {m.caption && <p className="text-[16px] leading-[1.45]">{m.caption}</p>}
-                                    <div className="flex items-center justify-end gap-1.5 opacity-60 text-[11px] font-light mt-1">
+                                    <div className="flex items-center justify-end gap-1.5 opacity-60 text-[10px] mt-1">
                                       {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                       {mine && <MsgTick status={m.status} />}
                                     </div>
@@ -1062,7 +1064,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 ) : (
                                   <div className="flex flex-col">
                                     <p className="text-[16px] leading-[1.45] break-words whitespace-pre-wrap">{m.content}</p>
-                                    <div className="flex items-center justify-end gap-1.5 opacity-60 text-[11px] font-light mt-1">
+                                    <div className="flex items-center justify-end gap-1.5 opacity-60 text-[10px] mt-1">
                                       {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                                       {mine && <MsgTick status={m.status} />}
                                     </div>
@@ -1098,7 +1100,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
               <footer className="shrink-0 p-2 pb-safe z-[60] relative">
                 <div className="flex items-end gap-2 max-w-5xl mx-auto">
-                  <div className="flex-1 flex items-end bg-[#202c33] rounded-[24px] min-h-[48px] px-3 py-1.5 shadow-sm border border-white/5">
+                  <div className="flex-1 flex items-end bg-[#202c33] rounded-[24px] min-h-[48px] px-3 py-1.5 shadow-sm">
                     <button 
                       onClick={() => fileRef.current?.click()}
                       className="p-2 text-[#8696a0] hover:text-white transition-colors"
