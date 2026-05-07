@@ -852,6 +852,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               >
                 <ArrowLeftRight className="w-5 h-5" />
               </button>
+              <button
+                onClick={onLock}
+                className={`ml-1 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border ${isDarkMode
+                    ? "bg-white/5 hover:bg-white/10 border-white/10 text-white/80"
+                    : "bg-black/5 hover:bg-black/10 border-black/10 text-black/80"
+                  }`}
+              >
+                Lock
+              </button>
               <div className="relative">
                 <button
                   onClick={() => setShowMenu(!showMenu)}
@@ -953,15 +962,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   )}
                 </AnimatePresence>
               </div>
-              <button
-                onClick={onLock}
-                className={`ml-1 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border ${isDarkMode
-                    ? "bg-white/5 hover:bg-white/10 border-white/10 text-white/80"
-                    : "bg-black/5 hover:bg-black/10 border-black/10 text-black/80"
-                  }`}
-              >
-                Lock
-              </button>
             </div>
           </header>
 
@@ -1017,7 +1017,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </div>
                 )}
 
-                <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-4 sm:px-6">
+                <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-2.5 sm:px-6">
                   <AnimatePresence>
                     {chatMsgs.map((m, i) => {
                       const mine = m.uid === uid;
@@ -1050,7 +1050,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }
                               }
                             }}
-                            className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[95%] ${mine ? "ml-auto" : "mr-auto"}`}
+                            className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[90%] ${mine ? "ml-auto" : "mr-auto"}`}
                           >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                               }`}>
@@ -1080,7 +1080,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[18px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-3 sm:py-1.5"} text-[13.5px] leading-[1.4] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
+                                  className={`rounded-[18px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-3 sm:py-1.5 min-w-[100px]"} text-[13.5px] leading-[1.4] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                       : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
@@ -1119,7 +1119,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       {m.type === "text" && (
                                         <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                           {m.content}
-                                          <span className="inline-block w-[70px] h-[10px]" />
+                                          {/* Use a larger spacer and ensure it doesn't wrap oddly */}
+                                          <span className="inline-block w-[75px] h-[5px]" />
                                         </span>
                                       )}
                                       
