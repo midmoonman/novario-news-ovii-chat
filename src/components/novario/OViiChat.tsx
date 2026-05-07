@@ -1119,8 +1119,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       {m.type === "text" && (
                                         <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                           {m.content}
-                                          {/* Use a larger spacer and ensure it doesn't wrap oddly */}
-                                          <span className="inline-block w-[75px] h-[5px]" />
+                                          {/* Use a larger spacer to ensure ample room for the timestamp */}
+                                          <span className="inline-block w-[90px] h-[5px]" />
                                         </span>
                                       )}
                                       
