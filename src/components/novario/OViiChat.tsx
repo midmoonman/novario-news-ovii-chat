@@ -1095,7 +1095,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </AnimatePresence>
 
               {/* Input bar */}
-                            {/* Input bar */}
+
               <footer className="shrink-0 p-2 pb-safe z-[60] relative">
                 <div className="flex items-end gap-2 max-w-5xl mx-auto">
                   <div className="flex-1 flex items-end bg-[#202c33] rounded-[24px] min-h-[48px] px-3 py-1.5 shadow-sm border border-white/5">
@@ -1125,7 +1125,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     />
                   </div>
                   <button
-                    onClick={recording ? stopRecording : (text.trim() ? onText : startRecording)}
+                    onClick={recording ? stopAndSendRec : (text.trim() ? onText : startRec)}
                     className="w-[48px] h-[48px] rounded-full bg-[#00a884] flex items-center justify-center text-white shadow-lg active:scale-90 transition-all shrink-0"
                   >
                     {recording ? <XCircle className="w-6 h-6 animate-pulse" /> : (text.trim() ? <Send className="w-6 h-6" /> : <Mic className="w-6 h-6" />)}
@@ -1158,6 +1158,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               )}
             </AnimatePresence>
 
+          </div>{/* end msgs-col */}
           </div>{/* end body */}
         </div>{/* end ovii-chat-frame */}
       </div>{/* end ovii-chat-root */}
