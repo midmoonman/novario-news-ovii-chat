@@ -1450,9 +1450,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               initial={{ scale: 0.5, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               onClick={() => setSelectedImage(null)}
-              className="absolute top-5 right-5 p-2.5 bg-white/10 hover:bg-white/20 rounded-full text-white transition-all z-10"
+              className="absolute top-5 right-5 p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
             >
               <X className="w-6 h-6" />
+            </motion.button>
+
+            <motion.button
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              onClick={() => downloadFile(selectedImage, "preview", "image")}
+              className="absolute top-[75px] right-5 p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
+            >
+              <Download className="w-6 h-6" />
             </motion.button>
             
             <motion.div
@@ -1467,15 +1476,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 alt="" 
                 className="max-w-full max-h-full object-contain shadow-2xl rounded-lg"
               />
-              
-              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex items-center gap-4">
-                <button 
-                  onClick={() => downloadFile(selectedImage, "preview", "image")}
-                  className="px-6 py-2.5 bg-primary text-white rounded-full font-bold text-sm shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
-                >
-                  <Download className="w-4 h-4" /> Download
-                </button>
-              </div>
             </motion.div>
           </motion.div>
         )}
