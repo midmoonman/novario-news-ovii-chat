@@ -856,6 +856,29 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 >
                   <MoreVertical className="w-5 h-5" />
                 </button>
+                <AnimatePresence>
+                  {showMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className={`absolute top-full right-0 mt-2 w-48 rounded-2xl shadow-2xl z-[100] border p-1 ${isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/5 text-black"}`}
+                    >
+                      <button 
+                        onClick={() => { setShowFolder(true); setShowMenu(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm hover:bg-white/5 rounded-xl transition-colors"
+                      >
+                        <Folder className="w-4 h-4 text-primary" /> View Files
+                      </button>
+                      <button 
+                        onClick={() => { clearChat(); setShowMenu(false); }}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-sm text-red-400 hover:bg-white/5 rounded-xl transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" /> Clear Chat
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </div>
             </div>
           </header>
@@ -1027,7 +1050,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     )}
                   </AnimatePresence>
 
-                  <div className="flex-1 flex items-end bg-[#202c33] rounded-[32px] min-h-[52px] px-3 py-1.5 shadow-sm">
+                  <div className="flex-1 flex items-end bg-[#202c33] rounded-[32px] min-h-[52px] px-3 py-1.5 border-none outline-none shadow-none">
                     <button 
                       onClick={() => fileRef.current?.click()}
                       className="p-2.5 text-[#8696a0] hover:text-white transition-colors shrink-0"
@@ -1061,11 +1084,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   >
                     {recording ? (
                       <div className="relative">
-                        <Send className="w-6 h-6 fill-white stroke-none" />
+                        <Send size={24} color="white" fill="white" />
                         <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full border-2 border-[#00a884]" />
                       </div>
                     ) : (
-                      text.trim() ? <Send className="w-6 h-6 fill-white stroke-none" /> : <Mic className="w-6 h-6" />
+                      text.trim() ? <Send size={24} color="white" fill="white" /> : <Mic size={24} color="white" />
                     )}
                   </button>
                 </div>
