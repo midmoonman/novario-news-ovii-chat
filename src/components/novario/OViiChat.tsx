@@ -886,22 +886,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
               </button>
               <button
-                onClick={() => { window.location.href = "/news"; }}
+                onClick={() => { onLock(); window.location.href = "/news"; }}
                 className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
                   }`}
                 title="Switch to News"
               >
                 <ArrowLeftRight className="w-5 h-5" />
               </button>
-              <button
-                onClick={onLock}
-                className={`ml-1 text-[11px] font-bold uppercase tracking-wider px-3.5 py-1.5 rounded-full transition-all border ${isDarkMode
-                    ? "bg-white/5 hover:bg-white/10 border-white/10 text-white/80"
-                    : "bg-black/5 hover:bg-black/10 border-black/10 text-black/80"
-                  }`}
-              >
-                Lock
-              </button>
+
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setShowMenu(!showMenu)}
