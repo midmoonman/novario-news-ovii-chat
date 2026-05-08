@@ -31,7 +31,7 @@ export function HeroSlider({ articles }: { articles?: Slide[] }) {
           transition={{ duration: 1.2 }}
           className="absolute inset-0"
         >
-          <img src={s.image} alt={s.title} className="h-full w-full object-cover" />
+          <img src={s.image} alt={s.title} loading="eager" className="h-full w-full object-cover" />
           <div className="absolute inset-0 gradient-hero" />
         </motion.div>
       </AnimatePresence>

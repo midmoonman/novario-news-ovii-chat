@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { BREAKING } from "@/lib/news";
-import { getHomeFeed } from "@/server/newsapi.functions";
+import { getNews } from "@/server/newsapi.functions";
 import { useTranslation } from "@/lib/i18n";
 
 export function BreakingTicker() {
@@ -9,10 +9,10 @@ export function BreakingTicker() {
 
   useEffect(() => {
     let alive = true;
-    getHomeFeed()
+    getNews("Top")
       .then((res) => {
         if (!alive) return;
-        const live = res.all.slice(0, 8).map((a) => a.title);
+        const live = res.articles.slice(0, 8).map((a) => a.title);
         if (live.length >= 3) setItems(live);
       })
       .catch(() => {});

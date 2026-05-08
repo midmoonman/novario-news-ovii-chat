@@ -4,7 +4,7 @@ import { Header } from "@/components/novario/Header";
 import { BottomNav } from "@/components/novario/BottomNav";
 import { BreakingTicker } from "@/components/novario/BreakingTicker";
 import { useState } from "react";
-import { getArticle, getHomeFeed } from "@/server/newsapi.functions";
+import { getArticle, getNews } from "@/server/newsapi.functions";
 import { LiveIllustration } from "@/components/novario/LiveIllustration";
 import { ArticleTimeline } from "@/components/novario/ArticleTimeline";
 import { ShareCard } from "@/components/novario/ShareCard";
@@ -13,8 +13,8 @@ export const Route = createFileRoute("/news/$slug")({
   loader: async ({ params }) => {
     const { article } = await getArticle(params.slug);
     if (!article) throw notFound();
-    const { all } = await getHomeFeed();
-    const related = all.filter((a) => a.slug !== article.slug).slice(0, 3);
+    const { articles } = await getNews(article.category);
+    const related = articles.filter((a: any) => a.slug !== article.slug).slice(0, 3);
     return { article, related };
   },
   component: ArticlePage,

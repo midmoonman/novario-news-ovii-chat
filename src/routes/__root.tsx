@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState, lazy } from "react";
 import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
 import { PasswordModal } from "@/components/novario/PasswordModal";
-import { OViiChat } from "@/components/novario/OViiChat";
+
+const OViiChat = lazy(() => import("@/components/novario/OViiChat").then(m => ({ default: m.OViiChat })));
 
 function NotFoundComponent() {
   return (
@@ -81,7 +82,13 @@ function RootComponent() {
         <PasswordModal onUnlock={() => setUnlocked(true)} />
       )}
       {chatOpen && (
-        <OViiChat onLock={() => { setUnlocked(false); setShowOvii(false); }} />
+        <Suspense fallback={
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-[#0b141a]">
+            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+          </div>
+        }>
+          <OViiChat onLock={() => { setUnlocked(false); setShowOvii(false); }} />
+        </Suspense>
       )}
     </div>
   );

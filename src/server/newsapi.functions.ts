@@ -14,7 +14,7 @@ async function fetchBingImageDirect(query: string): Promise<string | null> {
   try {
     const url = `https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(query)}&count=3&imageType=Photo&safeSearch=Moderate`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
+    const timer = setTimeout(() => controller.abort(), 2000);
     const res = await fetch(url, {
       signal: controller.signal,
       headers: { "Ocp-Apim-Subscription-Key": BING_API_KEY },
@@ -38,7 +38,7 @@ async function fetchWikimediaDirect(query: string): Promise<string | null> {
   try {
     const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&prop=imageinfo&iiprop=url&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=8&origin=*`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 5000);
+    const timer = setTimeout(() => controller.abort(), 2000);
     const res = await fetch(url, { signal: controller.signal });
     clearTimeout(timer);
     if (!res.ok) return null;
@@ -136,10 +136,13 @@ const CACHE_MS = 15 * 60 * 1000;
 let articlesBySlug = new Map<string, RemoteArticle>();
 if (typeof window !== "undefined") {
   try {
-    // Force clear cache once to fix the Molly-Mae Hague issue
-    sessionStorage.removeItem("novario-articles");
-    sessionStorage.removeItem("novario-time");
-    cache.clear();
+    // Only clear if cache is older than 24 hours to ensure freshness without sacrificing speed
+    const savedTime = sessionStorage.getItem("novario-time");
+    if (savedTime && Date.now() - parseInt(savedTime) > 24 * 60 * 60 * 1000) {
+      sessionStorage.removeItem("novario-articles");
+      sessionStorage.removeItem("novario-time");
+      cache.clear();
+    }
   } catch (e) {}
 }
 
@@ -692,9 +695,16 @@ export async function getNews(category = "Top", page = 1) {
 }
 
 export async function getHomeFeed() {
-  const cats = ["Top", "World", "Business", "Tech", "Sports", "Entertainment"];
-  const results = await Promise.all(cats.map((c) => getNews(c)));
+  const mainCats = ["Top", "World"];
+  const subCats = ["Business", "Tech", "Sports", "Entertainment"];
   
+  // Fetch main categories with more items, sub categories with fewer to save time
+  const results = await Promise.all([
+    ...mainCats.map(c => getNews(c)),
+    ...subCats.map(c => getNews(c))
+  ]);
+  
+  const cats = [...mainCats, ...subCats];
   const byCategory: Record<string, RemoteArticle[]> = {};
   cats.forEach((c, i) => { byCategory[c] = results[i].articles; });
   
