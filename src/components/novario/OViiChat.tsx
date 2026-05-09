@@ -939,14 +939,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              {/* Refresh Button (Mobile Only) */}
-              <button
-                onClick={() => window.location.reload()}
-                className={`p-2 rounded-full transition-colors md:hidden ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
-                title="Refresh Page"
-              >
-                <RotateCw className={`w-5 h-5 ${isDarkMode ? "text-white" : "text-black"}`} />
-              </button>
 
               {noLockUntil && Date.now() < noLockUntil && (
                 <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider animate-pulse">
