@@ -9,7 +9,9 @@ type Slide = Pick<Article, "id" | "slug" | "title" | "excerpt" | "image" | "cate
 export function HeroSlider({ articles }: { articles?: Slide[] }) {
   const slides: Slide[] = (articles && articles.length > 0 ? articles : ARTICLES).slice(0, 5);
   const [i, setI] = useState(0);
+  const [accent, setAccent] = useState("rgba(245, 158, 11, 0.3)"); // Default primary
   const { t } = useTranslation();
+  const s = slides[i];
 
   useEffect(() => {
     if (slides.length <= 1) return;
@@ -17,8 +19,24 @@ export function HeroSlider({ articles }: { articles?: Slide[] }) {
     return () => clearInterval(t);
   }, [slides.length]);
 
+  useEffect(() => {
+    const img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = s.image;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      canvas.width = 1;
+      canvas.height = 1;
+      ctx.drawImage(img, 0, 0, 1, 1);
+      const [r, g, b] = ctx.getImageData(0, 0, 1, 1).data;
+      // Boost the color slightly for more vibrancy
+      setAccent(`rgba(${r}, ${g}, ${b}, 0.5)`);
+    };
+  }, [s.image]);
+
   if (slides.length === 0) return null;
-  const s = slides[i];
 
   return (
     <div className="relative h-[65vh] min-h-[500px] max-h-[750px] w-full overflow-hidden rounded-[40px] shadow-2xl border border-white/5 group">
@@ -50,26 +68,33 @@ export function HeroSlider({ articles }: { articles?: Slide[] }) {
           initial={{ y: 50, opacity: 0 }} 
           animate={{ y: 0, opacity: 1 }} 
           transition={{ duration: 0.8, type: "spring", damping: 20 }}
-          className="glass-2 p-8 md:p-12 rounded-[48px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+          className="glass-2 p-8 md:p-12 rounded-[48px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+          style={{ 
+            boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 40px ${accent.replace("0.5", "0.15")}`
+          }}
         >
+          {/* Subtle color tint overlay */}
+          <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundColor: accent }} />
+
           <motion.span 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="inline-block rounded-full bg-primary px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.3em] text-primary-foreground shadow-glow"
+            className="relative z-10 inline-block rounded-full px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.3em] text-white shadow-lg"
+            style={{ backgroundColor: accent.replace("0.5", "0.8") }}
           >
             {t(s.category)}
           </motion.span>
-          <Link to="/news/$slug" params={{ slug: s.slug }} className="block mt-6 group/link">
+          <Link to="/news/$slug" params={{ slug: s.slug }} className="block mt-6 group/link relative z-10">
             <h1 className="serif text-3xl md:text-6xl font-black text-white text-balance max-w-4xl leading-[1.1] tracking-tight group-hover/link:text-primary transition-colors duration-500">
               {t(s.title)}
             </h1>
           </Link>
-          <p className="mt-6 max-w-2xl text-base md:text-lg text-white/50 line-clamp-2 font-medium leading-relaxed">{t(s.excerpt)}</p>
-          <div className="mt-8 flex items-center gap-4 text-[11px] text-white/30 font-bold uppercase tracking-widest border-t border-white/5 pt-6">
+          <p className="mt-6 max-w-2xl text-base md:text-lg text-white/50 line-clamp-2 font-medium leading-relaxed relative z-10">{t(s.excerpt)}</p>
+          <div className="mt-8 flex items-center gap-4 text-[11px] text-white/30 font-bold uppercase tracking-widest border-t border-white/5 pt-6 relative z-10">
             <span className="text-white/60">{s.author}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accent }} />
             <span>{s.publishedAt}</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+            <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: accent }} />
             <span>{s.readTime} {t("min read")}</span>
           </div>
         </motion.div>
