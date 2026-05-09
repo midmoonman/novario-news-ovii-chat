@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RefreshCcw, Smile, Pencil, Plus } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
@@ -21,6 +21,8 @@ type Msg = {
   createdAt?: Timestamp;
   status?: "sending" | "sent" | "delivered" | "read";
   replyTo?: { id: string, content: string, avatar: string, name?: string };
+  isEdited?: boolean;
+  reactions?: { [emoji: string]: string[] };
 };
 
 const ROOM = "ovii-room";
@@ -264,6 +266,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     return saved === null ? true : saved === "true";
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [recDuration, setRecDuration] = useState(0);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
+  const [showReactionId, setShowReactionId] = useState<string | null>(null);
+  const recIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    if (editingId && editingText) {
+      setText(editingText);
+      inputRef.current?.focus();
+    }
+  }, [editingId, editingText]);
 
   useEffect(() => {
     localStorage.setItem("ovii_dark_mode", String(isDarkMode));
@@ -609,6 +623,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (e) e.preventDefault();
     const v = text.trim();
     if (!v) return;
+
+    if (editingId) {
+      await editMsg(editingId, v);
+      setText("");
+      if (inputRef.current) inputRef.current.style.height = "auto";
+      return;
+    }
+
     setText("");
 
     // Reset textarea height
@@ -624,6 +646,48 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (isImageUrl) await send("image", v);
     else await send("text", v.slice(0, 5000));
     setInputHeight(44); // Reset height after send
+  };
+
+  const editMsg = async (id: string, newContent: string) => {
+    if (!uid || !newContent) return;
+    try {
+      await setDoc(doc(db, "ovii", ROOM, "messages", id), {
+        content: newContent,
+        isEdited: true
+      }, { merge: true });
+      setEditingId(null);
+      setEditingText("");
+    } catch (e) {
+      toast.error("Failed to edit message");
+    }
+  };
+
+  const reactToMsg = async (id: string, emoji: string) => {
+    if (!uid) return;
+    try {
+      const msg = msgs.find(m => m.id === id);
+      if (!msg) return;
+      
+      const reactions = { ...(msg.reactions || {}) };
+      const users = reactions[emoji] || [];
+      
+      if (users.includes(uid)) {
+        reactions[emoji] = users.filter(u => u !== uid);
+        if (reactions[emoji].length === 0) delete reactions[emoji];
+      } else {
+        // Remove uid from other emojis first (WhatsApp style: only one reaction per user)
+        Object.keys(reactions).forEach(e => {
+          reactions[e] = reactions[e].filter(u => u !== uid);
+          if (reactions[e].length === 0) delete reactions[e];
+        });
+        reactions[emoji] = [...(reactions[emoji] || []), uid];
+      }
+      
+      await setDoc(doc(db, "ovii", ROOM, "messages", id), { reactions }, { merge: true });
+      setShowReactionId(null);
+    } catch (e) {
+      toast.error("Failed to react");
+    }
   };
 
   const uploadToCloudinary = async (file: File | Blob) => {
@@ -713,6 +777,26 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (rec.state === "recording") { rec.stop(); setRecording(false); setPres({ recording: false }); }
       }, 10 * 60 * 1000);
     } catch (e: any) { setError("Microphone permission denied"); }
+  };
+
+  useEffect(() => {
+    if (recording) {
+      setRecDuration(0);
+      recIntervalRef.current = setInterval(() => {
+        setRecDuration(prev => prev + 1);
+      }, 1000);
+    } else {
+      if (recIntervalRef.current) clearInterval(recIntervalRef.current);
+    }
+    return () => {
+      if (recIntervalRef.current) clearInterval(recIntervalRef.current);
+    };
+  }, [recording]);
+
+  const fmtRecTime = (s: number) => {
+    const m = Math.floor(s / 60);
+    const ss = s % 60;
+    return `${m}:${ss.toString().padStart(2, "0")}`;
   };
 
   const stopAndSendRec = () => {
@@ -921,6 +1005,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5">
+              {/* Refresh Button (Mobile Only) */}
+              <button
+                onClick={() => window.location.reload()}
+                className="md:hidden p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-95"
+                title="Refresh Chat"
+              >
+                <RefreshCcw className="w-5 h-5 text-emerald-500" />
+              </button>
+
 
               {noLockUntil && Date.now() < noLockUntil && (
                 <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider animate-pulse">
@@ -1253,6 +1346,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       {m.type === "text" && (
                                         <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                           {m.content}
+                                          {m.isEdited && <span className="text-[9px] opacity-40 ml-1 italic font-medium">edited</span>}
                                           {/* Use a larger spacer to ensure ample room for the timestamp */}
                                           <span className="inline-block w-[90px] h-[5px]" />
                                         </span>
@@ -1268,15 +1362,80 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     </div>
                                   </div>
 
-                                  {/* Desktop hover reply button */}
-                                  <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
-                                    <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
+                                  {/* Reactions Display */}
+                                  {m.reactions && Object.keys(m.reactions).length > 0 && (
+                                    <div className={`absolute -bottom-4 ${mine ? "right-2" : "left-2"} flex items-center gap-0.5 z-10`}>
+                                      <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border shadow-sm backdrop-blur-sm ${
+                                        isDarkMode ? "bg-[#202c33]/90 border-white/10" : "bg-white/90 border-black/10"
+                                      }`}>
+                                        {Object.entries(m.reactions).map(([emoji, users]) => (
+                                          <div key={emoji} className="flex items-center gap-0.5">
+                                            <span className="text-[12px]">{emoji}</span>
+                                            {users.length > 1 && <span className="text-[9px] font-bold opacity-60">{users.length}</span>}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Interaction Buttons (Desktop Hover) */}
+                                  <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-24" : "-right-24"} items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                    <button 
+                                      onClick={() => setShowReactionId(showReactionId === m.id ? null : m.id)} 
+                                      className="p-1.5 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary transition-all"
+                                    >
+                                      <Smile className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => setReplyingTo(m)} className="p-1.5 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary transition-all">
                                       <Reply className="w-4 h-4" />
                                     </button>
+                                    {mine && m.type === "text" && (
+                                      <button 
+                                        onClick={() => { setEditingId(m.id); setEditingText(m.content); }} 
+                                        className="p-1.5 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary transition-all"
+                                      >
+                                        <Pencil className="w-4 h-4" />
+                                      </button>
+                                    )}
                                   </div>
+
+                                  {/* Mobile Long Press Placeholder / Simple Tap Action */}
+                                  <div className="md:hidden absolute inset-0 rounded-[20px] active:bg-black/5 dark:active:bg-white/5 transition-colors" 
+                                    onContextMenu={(e) => {
+                                      e.preventDefault();
+                                      setShowReactionId(m.id);
+                                    }}
+                                  />
                                 </div>
                               )}
                             </div>
+
+                            {/* Reaction Picker Overlay */}
+                            <AnimatePresence>
+                              {showReactionId === m.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                                  exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                                  className={`absolute z-[100] ${mine ? "right-0" : "left-0"} bottom-full mb-2 p-1.5 rounded-full shadow-2xl border flex items-center gap-1 backdrop-blur-xl ${
+                                    isDarkMode ? "bg-[#233138]/95 border-white/10" : "bg-white/95 border-black/10"
+                                  }`}
+                                >
+                                  {["👍", "❤️", "😂", "😮", "😢", "🙏"].map(emoji => (
+                                    <button 
+                                      key={emoji} 
+                                      onClick={() => reactToMsg(m.id, emoji)}
+                                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-all active:scale-125 text-lg"
+                                    >
+                                      {emoji}
+                                    </button>
+                                  ))}
+                                  <button className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-all active:scale-125">
+                                    <Plus className="w-4 h-4 opacity-40" />
+                                  </button>
+                                </motion.div>
+                              )}
+                            </AnimatePresence>
 
                             {mine && (
                               <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
@@ -1355,6 +1514,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     }`}>
                     <div className="flex items-center gap-2.5 shrink-0">
                       <span className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_red] animate-pulse shrink-0" />
+                      <span className={`text-[12px] font-bold tabular-nums ${isDarkMode ? "text-white" : "text-black"}`}>{fmtRecTime(recDuration)}</span>
                       <RecordingVisualizer />
                     </div>
                     <motion.div
@@ -1393,7 +1553,29 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     <div className={`flex-1 flex flex-col min-w-0 rounded-[24px] overflow-hidden shadow-sm ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
                       }`}>
                       <AnimatePresence mode="wait">
-                        {replyingTo && (
+                        {editingId ? (
+                          <motion.div
+                            key="edit"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="flex items-center gap-2 px-4 pt-2 w-full border-b border-white/5 pb-1.5"
+                          >
+                            <div className="w-1 bg-[#25d366] h-8 rounded-full shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[10px] font-bold text-[#25d366] uppercase">Edit Message</div>
+                              <div className={`text-[11px] italic truncate leading-tight ${isDarkMode ? "text-white/50" : "text-black/50"}`}>
+                                {editingText}
+                              </div>
+                            </div>
+                            <button
+                              onClick={() => { setEditingId(null); setText(""); }}
+                              className={`shrink-0 p-1 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
+                            >
+                              <X className={`w-3.5 h-3.5 ${isDarkMode ? "text-white/40" : "text-black/40"}`} />
+                            </button>
+                          </motion.div>
+                        ) : replyingTo ? (
                           <motion.div
                             key="reply"
                             initial={{ opacity: 0, height: 0 }}
@@ -1406,7 +1588,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               <div className="text-[10px] font-bold text-[#25d366] truncate">{replyingTo.name || "User"}</div>
                               <div className={`text-[11px] italic truncate leading-tight ${isDarkMode ? "text-white/50" : "text-black/50"
                                 }`}>
-                                {replyingTo.type === "text" ? replyingTo.content : replyingTo.type === "image" ? "Photo" : "Voice Note"}
+                                {replyingTo.content}
                               </div>
                             </div>
                             <button
@@ -1417,7 +1599,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               <X className={`w-3.5 h-3.5 ${isDarkMode ? "text-white/40" : "text-black/40"}`} />
                             </button>
                           </motion.div>
-                        )}
+                        ) : null}
                       </AnimatePresence>
                       <textarea
                         ref={inputRef}

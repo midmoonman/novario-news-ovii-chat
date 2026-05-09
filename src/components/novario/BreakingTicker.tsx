@@ -21,8 +21,8 @@ export function BreakingTicker() {
 
   const loop = [...items, ...items];
   return (
-    <div className="flex items-stretch border-b border-white/5 bg-background overflow-hidden">
-      <div className="flex items-center gap-2 bg-primary px-4 py-2 text-primary-foreground font-black text-[10px] uppercase tracking-widest shrink-0">
+    <div className="flex items-stretch border-y border-border bg-card overflow-hidden">
+      <div className="flex items-center gap-2 bg-breaking px-4 py-2 text-breaking-foreground font-bold text-xs uppercase tracking-wider shrink-0">
         <span className="w-2 h-2 rounded-full bg-white animate-pulse-dot" />
         {t("Breaking")}
       </div>

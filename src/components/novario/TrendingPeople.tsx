@@ -49,28 +49,25 @@ export function TrendingPeople() {
   if (people.length === 0) return null;
 
   return (
-    <section className="py-8 relative">
-      <div className="flex items-center justify-between mb-6 border-b border-white/10 pb-2">
-        <h2 className="serif text-2xl font-bold tracking-tight">{t("Trending People")}</h2>
-        <span className="text-[10px] uppercase tracking-[0.2em] font-black text-primary/40">Buzzing</span>
-      </div>
-      <div className="flex gap-6 overflow-x-auto px-4 lg:px-0 scrollbar-hide pb-4">
+    <section className="py-6 border-b border-border">
+      <h2 className="serif text-2xl font-bold mb-5 px-4 lg:px-0">{t("Trending People")}</h2>
+      <div className="flex gap-5 overflow-x-auto px-4 lg:px-0 scrollbar-hide pb-4">
         {people.map((person) => (
           <Link
             key={person.id}
             to="/news/$slug"
             params={{ slug: person.slug }}
-            className="group flex flex-col items-center gap-3 shrink-0 w-24"
+            className="group flex flex-col items-center gap-3 shrink-0 w-24 transition-all hover:-translate-y-1"
           >
-            <div className="w-24 h-24 rounded-full overflow-hidden border border-white/10 group-hover:border-primary transition-all shadow-xl glass-2 p-1">
+            <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-transparent group-hover:border-primary transition-all shadow-md">
               <img
                 src={person.image}
                 alt={person.title}
-                className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-700"
+                className="w-full h-full object-cover"
                 loading="lazy"
               />
             </div>
-            <div className="text-[11px] font-black text-center leading-tight tracking-tight text-foreground/80 group-hover:text-primary transition-colors">
+            <div className="text-xs font-bold text-center leading-tight">
               {t(person.title)}
             </div>
           </Link>
