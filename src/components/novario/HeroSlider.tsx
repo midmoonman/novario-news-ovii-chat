@@ -79,8 +79,7 @@ export function HeroSlider({ articles }: { articles?: Slide[] }) {
           <motion.span 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="relative z-10 inline-block rounded-full px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.3em] text-white shadow-lg"
-            style={{ backgroundColor: accent.replace("0.5", "0.8") }}
+            className="relative z-10 inline-block rounded-full px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.3em] text-white shadow-lg bg-black/60"
           >
             {t(s.category)}
           </motion.span>
