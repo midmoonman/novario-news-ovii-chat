@@ -1357,62 +1357,49 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     )}
                                   </div>
 
-                                  {/* Mobile Long Press Action */}
-                                  <div className="md:hidden absolute inset-0 rounded-[20px] active:bg-black/5 dark:active:bg-white/5 transition-colors" 
-                                    onContextMenu={(e) => {
-                                      e.preventDefault();
-                                      setShowMobileMenuId(m.id);
-                                    }}
-                                    onClick={() => {
-                                      // On mobile, tap can also show menu for better accessibility
-                                      if (isMobileDevice()) setShowMobileMenuId(m.id);
-                                    }}
-                                  />
+                                  {/* Message Options (More icon) */}
+                                  <div className={`absolute top-0 ${mine ? "-left-8" : "-right-8"} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                    <button 
+                                      onClick={() => setShowMobileMenuId(showMobileMenuId === m.id ? null : m.id)}
+                                      className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-muted-foreground"
+                                    >
+                                      <MoreVertical className="w-4 h-4" />
+                                    </button>
+                                  </div>
+
+                                  {/* Localized Menu (No backdrop) */}
+                                  <AnimatePresence>
+                                    {showMobileMenuId === m.id && (
+                                      <motion.div
+                                        initial={{ opacity: 0, scale: 0.9, y: -5 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.9, y: -5 }}
+                                        className={`absolute z-[50] ${mine ? "right-full mr-2" : "left-full ml-2"} top-0 w-32 rounded-xl shadow-xl border overflow-hidden ${
+                                          isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
+                                        }`}
+                                      >
+                                        <button 
+                                          onClick={() => { setReplyingTo(m); setShowMobileMenuId(null); }}
+                                          className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-bold hover:bg-black/5 dark:hover:bg-white/5"
+                                        >
+                                          <Reply className="w-3.5 h-3.5" /> Reply
+                                        </button>
+                                        {mine && m.type === "text" && m.createdAt && (Date.now() - m.createdAt.toMillis() < 20 * 60 * 1000) && (
+                                          <button 
+                                            onClick={() => { setEditingId(m.id); setEditingText(m.content); setShowMobileMenuId(null); }}
+                                            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-bold hover:bg-black/5 dark:hover:bg-white/5 text-primary"
+                                          >
+                                            <Pencil className="w-3.5 h-3.5" /> Edit
+                                          </button>
+                                        )}
+                                      </motion.div>
+                                    )}
+                                  </AnimatePresence>
                                 </div>
                               )}
                             </div>
 
-                            {/* Mobile Context Menu */}
-                            <AnimatePresence>
-                              {showMobileMenuId === m.id && (
-                                <div className="fixed inset-0 z-[300] flex items-end justify-center sm:items-center p-4">
-                                  <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setShowMobileMenuId(null)} />
-                                  <motion.div
-                                    initial={{ y: "100%" }}
-                                    animate={{ y: 0 }}
-                                    exit={{ y: "100%" }}
-                                    className={`w-full max-w-sm rounded-t-[32px] sm:rounded-[32px] overflow-hidden shadow-2xl z-10 border border-white/10 ${
-                                      isDarkMode ? "bg-[#233138]" : "bg-white"
-                                    }`}
-                                  >
-                                    <div className="p-2 space-y-1">
-                                      <button 
-                                        onClick={() => { setReplyingTo(m); setShowMobileMenuId(null); }}
-                                        className="w-full flex items-center gap-3 px-4 py-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-2xl"
-                                      >
-                                        <Reply className="w-5 h-5 text-primary" />
-                                        <span className="font-bold">Reply</span>
-                                      </button>
-                                      {mine && m.type === "text" && m.createdAt && (Date.now() - m.createdAt.toMillis() < 20 * 60 * 1000) && (
-                                        <button 
-                                          onClick={() => { setEditingId(m.id); setEditingText(m.content); setShowMobileMenuId(null); }}
-                                          className="w-full flex items-center gap-3 px-4 py-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-2xl text-primary"
-                                        >
-                                          <Pencil className="w-5 h-5" />
-                                          <span className="font-bold">Edit Message</span>
-                                        </button>
-                                      )}
-                                      <button 
-                                        onClick={() => setShowMobileMenuId(null)}
-                                        className="w-full py-4 text-xs font-black uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity"
-                                      >
-                                        Cancel
-                                      </button>
-                                    </div>
-                                  </motion.div>
-                                </div>
-                              )}
-                            </AnimatePresence>
+
 
 
 
