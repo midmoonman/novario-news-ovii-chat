@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Header } from "@/components/novario/Header";
 import { BottomNav } from "@/components/novario/BottomNav";
 import { BreakingTicker } from "@/components/novario/BreakingTicker";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { getArticle, getNews } from "@/server/newsapi.functions";
 import { LiveIllustration } from "@/components/novario/LiveIllustration";
 import { ArticleTimeline } from "@/components/novario/ArticleTimeline";
@@ -134,7 +134,7 @@ function ArticlePage() {
                 <span className="text-[10px] uppercase tracking-[0.2em] font-black text-primary/40">Next Up</span>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                {related.map((a: import("@/server/newsapi.functions").RemoteArticle, i) => (
+                {related.map((a: import("@/server/newsapi.functions").RemoteArticle, i: number) => (
                   <motion.div
                     key={a.id}
                     initial={{ opacity: 0, y: 20 }}
