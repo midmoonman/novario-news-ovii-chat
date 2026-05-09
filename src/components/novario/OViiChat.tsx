@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
