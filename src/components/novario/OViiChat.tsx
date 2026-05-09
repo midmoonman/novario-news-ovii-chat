@@ -6,10 +6,9 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RefreshCcw, Smile, Pencil, Plus } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
-
 
 type Msg = {
   id: string;
@@ -22,7 +21,6 @@ type Msg = {
   createdAt?: Timestamp;
   status?: "sending" | "sent" | "delivered" | "read";
   replyTo?: { id: string, content: string, avatar: string, name?: string };
-  isEdited?: boolean;
 };
 
 const ROOM = "ovii-room";
@@ -267,17 +265,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [recDuration, setRecDuration] = useState(0);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState("");
-  const [showMobileMenuId, setShowMobileMenuId] = useState<string | null>(null);
-  const recIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  useEffect(() => {
-    if (editingId && editingText) {
-      setText(editingText);
-      inputRef.current?.focus();
-    }
-  }, [editingId, editingText]);
+  const recTimerRef = useRef<any>(null);
 
   useEffect(() => {
     localStorage.setItem("ovii_dark_mode", String(isDarkMode));
@@ -623,14 +611,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (e) e.preventDefault();
     const v = text.trim();
     if (!v) return;
-
-    if (editingId) {
-      await editMsg(editingId, v);
-      setText("");
-      if (inputRef.current) inputRef.current.style.height = "auto";
-      return;
-    }
-
     setText("");
 
     // Reset textarea height
@@ -646,20 +626,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (isImageUrl) await send("image", v);
     else await send("text", v.slice(0, 5000));
     setInputHeight(44); // Reset height after send
-  };
-
-  const editMsg = async (id: string, newContent: string) => {
-    if (!uid || !newContent) return;
-    try {
-      await setDoc(doc(db, "ovii", ROOM, "messages", id), {
-        content: newContent,
-        isEdited: true
-      }, { merge: true });
-      setEditingId(null);
-      setEditingText("");
-    } catch (e) {
-      toast.error("Failed to edit message");
-    }
   };
 
   const uploadToCloudinary = async (file: File | Blob) => {
@@ -743,44 +709,44 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       recRef.current = rec;
       rec.start();
       setRecording(true);
+      setRecDuration(0);
+      if (recTimerRef.current) clearInterval(recTimerRef.current);
+      recTimerRef.current = setInterval(() => {
+        setRecDuration(prev => prev + 1);
+      }, 1000);
       setPres({ recording: true });
       cancelRecRef.current = false;
       setTimeout(() => {
-        if (rec.state === "recording") { rec.stop(); setRecording(false); setPres({ recording: false }); }
+        if (rec.state === "recording") { 
+          if (recTimerRef.current) clearInterval(recTimerRef.current);
+          rec.stop(); 
+          setRecording(false); 
+          setPres({ recording: false }); 
+        }
       }, 10 * 60 * 1000);
     } catch (e: any) { setError("Microphone permission denied"); }
   };
 
-  useEffect(() => {
-    if (recording) {
-      setRecDuration(0);
-      recIntervalRef.current = setInterval(() => {
-        setRecDuration(prev => prev + 1);
-      }, 1000);
-    } else {
-      if (recIntervalRef.current) clearInterval(recIntervalRef.current);
-    }
-    return () => {
-      if (recIntervalRef.current) clearInterval(recIntervalRef.current);
-    };
-  }, [recording]);
-
-  const fmtRecTime = (s: number) => {
-    const m = Math.floor(s / 60);
-    const ss = s % 60;
-    return `${m}:${ss.toString().padStart(2, "0")}`;
+  const formatDuration = (sec: number) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s < 10 ? "0" : ""}${s}`;
   };
 
   const stopAndSendRec = () => {
+    if (recTimerRef.current) clearInterval(recTimerRef.current);
     if (recRef.current?.state === "recording") recRef.current.stop();
     setRecording(false);
+    setRecDuration(0);
     setPres({ recording: false });
   };
 
   const cancelRec = () => {
+    if (recTimerRef.current) clearInterval(recTimerRef.current);
     cancelRecRef.current = true;
     if (recRef.current?.state === "recording") recRef.current.stop();
     setRecording(false);
+    setRecDuration(0);
     setPres({ recording: false });
   };
 
@@ -979,19 +945,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             <div className="flex items-center gap-1.5">
               {/* Refresh Button (Mobile Only) */}
               <button
-                onClick={() => {
-                  const until = Date.now() + 30000; // 30s no-lock
-                  setNoLockUntil(until);
-                  localStorage.setItem("ovii_no_lock_until", until.toString());
-                  toast.success("Refreshing chat room...");
-                  setTimeout(() => window.location.reload(), 500);
-                }}
-                className="md:hidden p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-95"
-                title="Refresh Chat"
+                onClick={() => window.location.reload()}
+                className={`p-2 rounded-full transition-colors md:hidden ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
+                title="Refresh Page"
               >
-                <RefreshCcw className="w-5 h-5 text-emerald-500" />
+                <RotateCw className={`w-5 h-5 ${isDarkMode ? "text-white" : "text-black"}`} />
               </button>
-
 
               {noLockUntil && Date.now() < noLockUntil && (
                 <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider animate-pulse">
@@ -1232,7 +1191,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
 
                       return (
-                        <div key={m.id} className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-6" : "mt-1.5"}`}>
+                        <div key={m.id} className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}>
                           <motion.div
                             initial={{ opacity: 0, y: 12, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
@@ -1322,11 +1281,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                     <div className="relative overflow-hidden min-w-[60px]">
                                       {m.type === "text" && (
-                                        <span className="block break-words whitespace-pre-wrap leading-relaxed text-[15px] py-0.5">
+                                        <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                           {m.content}
-                                          {m.isEdited && <span className="text-[9px] opacity-40 ml-1.5 italic font-medium">edited</span>}
                                           {/* Use a larger spacer to ensure ample room for the timestamp */}
-                                          <span className="inline-block w-[85px] h-[5px]" />
+                                          <span className="inline-block w-[90px] h-[5px]" />
                                         </span>
                                       )}
                                       
@@ -1340,108 +1298,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     </div>
                                   </div>
 
-
-
-                                  {/* Interaction Buttons (Desktop Hover) */}
-                                  <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-16" : "-right-16"} items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
-                                    <button onClick={() => setReplyingTo(m)} className="p-1.5 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary transition-all">
+                                  {/* Desktop hover reply button */}
+                                  <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                    <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
                                       <Reply className="w-4 h-4" />
                                     </button>
-                                    {mine && m.type === "text" && m.createdAt && (Date.now() - m.createdAt.toMillis() < 20 * 60 * 1000) && (
-                                      <button 
-                                        onClick={() => { setEditingId(m.id); setEditingText(m.content); }} 
-                                        className="p-1.5 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary transition-all"
-                                      >
-                                        <Pencil className="w-4 h-4" />
-                                      </button>
-                                    )}
                                   </div>
-
-                                  {/* Message Options (More icon) - Centered Vertically */}
-                                  <div className={`absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} opacity-0 group-hover:opacity-100 transition-opacity flex items-center`}>
-                                    <button 
-                                      onClick={(e) => { e.stopPropagation(); setShowMobileMenuId(showMobileMenuId === m.id ? null : m.id); }}
-                                      className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-muted-foreground transition-colors"
-                                    >
-                                      <MoreVertical className="w-4 h-4" />
-                                    </button>
-                                  </div>
-
-                                  {/* Localized Menu (Compact & Safe Positioning) */}
-                                  <AnimatePresence>
-                                    {showMobileMenuId === m.id && (
-                                      <>
-                                        {/* Dismiss backdrop */}
-                                        <div className="fixed inset-0 z-[40]" onClick={() => setShowMobileMenuId(null)} />
-                                        
-                                        <motion.div
-                                          initial={{ opacity: 0, scale: 0.95, y: -5 }}
-                                          animate={{ opacity: 1, scale: 1, y: 0 }}
-                                          exit={{ opacity: 0, scale: 0.95, y: -5 }}
-                                          className={`absolute z-[50] ${mine ? "right-full mr-2" : "left-full ml-2"} top-1/2 -translate-y-1/2 w-40 rounded-2xl shadow-2xl border overflow-hidden backdrop-blur-xl ${
-                                            isDarkMode ? "bg-[#233138]/95 border-white/10" : "bg-white/95 border-black/10"
-                                          }`}
-                                        >
-                                          <button 
-                                            onClick={() => { setReplyingTo(m); setShowMobileMenuId(null); }}
-                                            className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                                          >
-                                            <Reply className="w-4 h-4 text-emerald-500" /> 
-                                            <span>Reply</span>
-                                          </button>
-                                          
-                                          {mine && m.type === "text" && m.createdAt && (Date.now() - m.createdAt.toMillis() < 20 * 60 * 1000) && (
-                                            <button 
-                                              onClick={() => { setEditingId(m.id); setEditingText(m.content); setShowMobileMenuId(null); }}
-                                              className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-t border-white/5"
-                                            >
-                                              <Pencil className="w-4 h-4 text-blue-500" /> 
-                                              <span>Edit</span>
-                                            </button>
-                                          )}
-
-                                          <div className="border-t border-white/5">
-                                            <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest opacity-30">Delete</div>
-                                            <button 
-                                              onClick={async () => {
-                                                // Delete for me logic: Filter out locally or add to a 'deletedFor' array in Firestore
-                                                // For simplicity, we'll hide it locally for this session
-                                                setMsgs(prev => prev.filter(msg => msg.id !== m.id));
-                                                setShowMobileMenuId(null);
-                                                toast.success("Message deleted for you");
-                                              }}
-                                              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
-                                            >
-                                              <Trash2 className="w-3.5 h-3.5 opacity-50" />
-                                              <span>Delete for me</span>
-                                            </button>
-                                            {mine && (
-                                              <button 
-                                                onClick={async () => {
-                                                  if (confirm("Delete for everyone?")) {
-                                                    await deleteDoc(doc(db, "ovii", ROOM, "messages", m.id));
-                                                    setShowMobileMenuId(null);
-                                                    toast.success("Message deleted for everyone");
-                                                  }
-                                                }}
-                                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-bold text-destructive hover:bg-destructive/10 transition-colors"
-                                              >
-                                                <Trash2 className="w-3.5 h-3.5" />
-                                                <span>Delete for everyone</span>
-                                              </button>
-                                            )}
-                                          </div>
-                                        </motion.div>
-                                      </>
-                                    )}
-                                  </AnimatePresence>
                                 </div>
                               )}
                             </div>
-
-
-
-
 
                             {mine && (
                               <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
@@ -1520,7 +1385,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     }`}>
                     <div className="flex items-center gap-2.5 shrink-0">
                       <span className="w-2 h-2 bg-red-500 rounded-full shadow-[0_0_8px_red] animate-pulse shrink-0" />
-                      <span className={`text-[12px] font-bold tabular-nums ${isDarkMode ? "text-white" : "text-black"}`}>{fmtRecTime(recDuration)}</span>
+                      <div className={`text-[13px] font-mono font-bold w-10 ${isDarkMode ? "text-white" : "text-black"}`}>
+                        {formatDuration(recDuration)}
+                      </div>
                       <RecordingVisualizer />
                     </div>
                     <motion.div
@@ -1559,29 +1426,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     <div className={`flex-1 flex flex-col min-w-0 rounded-[24px] overflow-hidden shadow-sm ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
                       }`}>
                       <AnimatePresence mode="wait">
-                        {editingId ? (
-                          <motion.div
-                            key="edit"
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="flex items-center gap-2 px-4 pt-2 w-full border-b border-white/5 pb-1.5"
-                          >
-                            <div className="w-1 bg-[#25d366] h-8 rounded-full shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <div className="text-[10px] font-bold text-[#25d366] uppercase">Edit Message</div>
-                              <div className={`text-[11px] italic truncate leading-tight ${isDarkMode ? "text-white/50" : "text-black/50"}`}>
-                                {editingText}
-                              </div>
-                            </div>
-                            <button
-                              onClick={() => { setEditingId(null); setText(""); }}
-                              className={`shrink-0 p-1 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
-                            >
-                              <X className={`w-3.5 h-3.5 ${isDarkMode ? "text-white/40" : "text-black/40"}`} />
-                            </button>
-                          </motion.div>
-                        ) : replyingTo ? (
+                        {replyingTo && (
                           <motion.div
                             key="reply"
                             initial={{ opacity: 0, height: 0 }}
@@ -1594,7 +1439,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               <div className="text-[10px] font-bold text-[#25d366] truncate">{replyingTo.name || "User"}</div>
                               <div className={`text-[11px] italic truncate leading-tight ${isDarkMode ? "text-white/50" : "text-black/50"
                                 }`}>
-                                {replyingTo.content}
+                                {replyingTo.type === "text" ? replyingTo.content : replyingTo.type === "image" ? "Photo" : "Voice Note"}
                               </div>
                             </div>
                             <button
@@ -1605,7 +1450,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               <X className={`w-3.5 h-3.5 ${isDarkMode ? "text-white/40" : "text-black/40"}`} />
                             </button>
                           </motion.div>
-                        ) : null}
+                        )}
                       </AnimatePresence>
                       <textarea
                         ref={inputRef}
