@@ -781,6 +781,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const mediaMsgs = msgs.filter(m => m.type === "voice" || m.type === "image");
   const unreadMedia = mediaMsgs.length;
 
+  // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
+  const rootStyle: React.CSSProperties = isMobileDevice() && mobileKeyboardOffset > 0
+    ? { paddingBottom: mobileKeyboardOffset }
+    : {};
+
   return (
     <AnimatePresence>
       <motion.div
@@ -798,6 +803,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.5 }}
           className="ovii-chat-frame w-full h-full md:max-w-[1200px] md:h-[92vh] md:rounded-[32px] md:shadow-2xl overflow-hidden flex flex-col relative border border-white/5"
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={handleDrop}
         >
           <Toaster position="top-center" />
 
@@ -889,18 +896,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           )}
         </AnimatePresence>
 
-        {/*
-          ── Chat Frame ──────────────────────────────────────────────────────
-          Mobile:  full-bleed, height 100%
-          Desktop: centered card, max-width 1440px, 20px margin, rounded, bordered
-          The CSS for .ovii-chat-frame lives in styles.css (see below comment).
-          We use a single wrapper — NO duplicate ovii-chat-inner.
-        */}
-        <div
-          className="ovii-chat-frame flex flex-col h-full w-full"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={handleDrop}
-        >
+
           {/* ── Header ── */}
           <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 ${
             isDarkMode 
