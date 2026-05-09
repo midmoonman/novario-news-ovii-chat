@@ -21,50 +21,66 @@ export function HeroSlider({ articles }: { articles?: Slide[] }) {
   const s = slides[i];
 
   return (
-    <div className="relative h-[62vh] min-h-[420px] max-h-[640px] w-full overflow-hidden rounded-2xl shadow-elegant">
-      <AnimatePresence mode="sync">
+    <div className="relative h-[65vh] min-h-[500px] max-h-[750px] w-full overflow-hidden rounded-[40px] shadow-2xl border border-white/5 group">
+      <AnimatePresence mode="wait">
         <motion.div
           key={s.id}
-          initial={{ opacity: 0, scale: 1.05 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.2 }}
+          transition={{ duration: 1 }}
           className="absolute inset-0"
         >
-          <img src={s.image} alt={s.title} loading="eager" className="h-full w-full object-cover" />
-          <div className="absolute inset-0 gradient-hero" />
+          <motion.img 
+            src={s.image} 
+            alt={s.title} 
+            loading="eager" 
+            className="h-full w-full object-cover"
+            initial={{ scale: 1.2, rotate: 1 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{ duration: 10, ease: "linear" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute inset-x-4 bottom-4 md:inset-x-8 md:bottom-8">
+      <div className="absolute inset-x-4 bottom-4 md:inset-x-10 md:bottom-10">
         <motion.div 
           key={s.id + "-t"} 
-          initial={{ y: 24, opacity: 0 }} 
+          initial={{ y: 50, opacity: 0 }} 
           animate={{ y: 0, opacity: 1 }} 
-          transition={{ duration: 0.7 }}
-          className="glass-2 p-6 md:p-10 rounded-[32px] border border-white/10"
+          transition={{ duration: 0.8, type: "spring", damping: 20 }}
+          className="glass-2 p-8 md:p-12 rounded-[48px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
         >
-          <span className="inline-block rounded-full bg-primary px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-primary-foreground">
+          <motion.span 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="inline-block rounded-full bg-primary px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.3em] text-primary-foreground shadow-glow"
+          >
             {t(s.category)}
-          </span>
-          <Link to="/news/$slug" params={{ slug: s.slug }} className="block mt-4 group">
-            <h1 className="serif text-2xl md:text-5xl font-black text-white text-balance max-w-3xl leading-[1.2] tracking-tight group-hover:text-primary transition-colors">
+          </motion.span>
+          <Link to="/news/$slug" params={{ slug: s.slug }} className="block mt-6 group/link">
+            <h1 className="serif text-3xl md:text-6xl font-black text-white text-balance max-w-4xl leading-[1.1] tracking-tight group-hover/link:text-primary transition-colors duration-500">
               {t(s.title)}
             </h1>
           </Link>
-          <p className="mt-4 max-w-2xl text-sm md:text-base text-white/60 line-clamp-2 font-medium leading-relaxed">{t(s.excerpt)}</p>
-          <div className="mt-6 flex items-center gap-3 text-[10px] text-white/40 font-bold uppercase tracking-widest">
-            <span>{s.author}</span><span>•</span><span>{s.publishedAt}</span><span>•</span><span>{s.readTime} {t("min read")}</span>
+          <p className="mt-6 max-w-2xl text-base md:text-lg text-white/50 line-clamp-2 font-medium leading-relaxed">{t(s.excerpt)}</p>
+          <div className="mt-8 flex items-center gap-4 text-[11px] text-white/30 font-bold uppercase tracking-widest border-t border-white/5 pt-6">
+            <span className="text-white/60">{s.author}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+            <span>{s.publishedAt}</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-primary/40" />
+            <span>{s.readTime} {t("min read")}</span>
           </div>
         </motion.div>
       </div>
 
-      <div className="absolute right-4 bottom-4 md:right-8 md:bottom-8 flex gap-2">
+      <div className="absolute right-8 bottom-8 md:right-16 md:bottom-16 flex gap-3 z-20">
         {slides.map((_, k) => (
           <button
             key={k}
             onClick={() => setI(k)}
-            className={`h-1.5 rounded-full transition-all ${k === i ? "w-8 bg-primary" : "w-3 bg-white/40"}`}
+            className={`h-2 rounded-full transition-all duration-500 ${k === i ? "w-12 bg-primary shadow-glow" : "w-4 bg-white/20 hover:bg-white/40"}`}
             aria-label={`Slide ${k + 1}`}
           />
         ))}

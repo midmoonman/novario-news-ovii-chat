@@ -76,34 +76,47 @@ export function CategoryGrid({
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {list.map((a) => (
-          <Link
-            key={a.id}
-            to="/news/$slug"
-            params={{ slug: a.slug }}
-            className="group glass-2 rounded-[32px] overflow-hidden hover:scale-[1.02] transition-all duration-500 shadow-xl"
-          >
-            <div className="aspect-[16/10] overflow-hidden relative">
-              <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            </div>
-            <div className="p-6">
-              <div className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mb-2">{t(a.category)}</div>
-              <h3 className="serif text-[19px] font-black leading-snug tracking-tight text-balance line-clamp-2 group-hover:text-primary transition-colors">{t(a.title)}</h3>
-              <p className="mt-3 text-sm text-muted-foreground font-medium line-clamp-2 leading-relaxed opacity-70">{t(a.excerpt)}</p>
-              <div className="mt-6 flex items-center gap-3 text-[10px] text-muted-foreground font-bold uppercase tracking-widest border-t border-white/5 pt-4">
-                <span className="text-foreground/60">{a.author}</span>
-                <span className="w-1 h-1 rounded-full bg-border" />
-                <span>{a.publishedAt}</span>
-              </div>
-            </div>
-          </Link>
-        ))}
+      <motion.div 
+        layout
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+      >
+        <AnimatePresence mode="popLayout">
+          {list.map((a) => (
+            <motion.div
+              key={a.id}
+              layout
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              transition={{ duration: 0.4 }}
+            >
+              <Link
+                to="/news/$slug"
+                params={{ slug: a.slug }}
+                className="group block glass-2 rounded-[32px] overflow-hidden hover:scale-[1.02] transition-all duration-500 shadow-xl h-full"
+              >
+                <div className="aspect-[16/10] overflow-hidden relative">
+                  <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <div className="p-6">
+                  <div className="text-[10px] text-primary font-black uppercase tracking-[0.2em] mb-2">{t(a.category)}</div>
+                  <h3 className="serif text-[19px] font-black leading-snug tracking-tight text-balance line-clamp-2 group-hover:text-primary transition-colors">{t(a.title)}</h3>
+                  <p className="mt-3 text-sm text-muted-foreground font-medium line-clamp-2 leading-relaxed opacity-70">{t(a.excerpt)}</p>
+                  <div className="mt-6 flex items-center gap-3 text-[10px] text-muted-foreground font-bold uppercase tracking-widest border-t border-white/5 pt-4">
+                    <span className="text-foreground/60">{a.author}</span>
+                    <span className="w-1 h-1 rounded-full bg-border" />
+                    <span>{a.publishedAt}</span>
+                  </div>
+                </div>
+              </Link>
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {list.length === 0 && (
           <div className="col-span-full py-12 text-center text-muted-foreground">{t("No stories in this section yet.")}</div>
         )}
-      </div>
+      </motion.div>
 
       {list.length > 0 && (
         <div className="mt-8 py-8 flex justify-center">
