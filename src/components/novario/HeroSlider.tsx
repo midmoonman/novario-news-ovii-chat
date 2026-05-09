@@ -68,9 +68,9 @@ export function HeroSlider({ articles }: { articles?: Slide[] }) {
           initial={{ y: 50, opacity: 0 }} 
           animate={{ y: 0, opacity: 1 }} 
           transition={{ duration: 0.8, type: "spring", damping: 20 }}
-          className="glass-2 p-8 md:p-12 rounded-[48px] border border-white/10 shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+          className="p-8 md:p-12 rounded-[48px] bg-black/40 backdrop-blur-none border border-white/5 shadow-2xl relative overflow-hidden"
           style={{ 
-            boxShadow: `0 20px 50px rgba(0,0,0,0.5), 0 0 40px ${accent.replace("0.5", "0.15")}`
+            boxShadow: `0 20px 60px rgba(0,0,0,0.8), 0 0 30px ${accent.replace("0.5", "0.2")}`
           }}
         >
           {/* Subtle color tint overlay */}
