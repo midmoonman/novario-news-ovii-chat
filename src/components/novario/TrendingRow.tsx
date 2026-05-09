@@ -22,18 +22,18 @@ export function TrendingRow({ articles }: { articles?: Item[] }) {
             key={a.id}
             to="/news/$slug"
             params={{ slug: a.slug }}
-            className="group relative shrink-0 w-72 rounded-xl overflow-hidden bg-card border border-border hover:border-primary/50 transition-all"
+            className="group relative shrink-0 w-72 rounded-[24px] overflow-hidden glass-2 hover:scale-[1.02] transition-all duration-500"
           >
             <div className="relative h-40 overflow-hidden">
-              <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-              <div className="absolute top-2 left-2 bg-background/80 backdrop-blur rounded-full px-2 py-1 text-xs font-bold text-primary">
-                #{idx + 1}
+              <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+              <div className="absolute top-3 left-3 glass-2-light rounded-full w-8 h-8 flex items-center justify-center text-xs font-black text-primary">
+                {idx + 1}
               </div>
             </div>
-            <div className="p-4">
-              <div className="text-xs text-primary font-semibold uppercase tracking-wide">{a.category}</div>
-              <h3 className="mt-1 serif font-bold leading-snug line-clamp-3">{a.title}</h3>
-              <div className="mt-3 text-xs text-muted-foreground">{a.publishedAt} • {a.readTime} min</div>
+            <div className="p-5">
+              <div className="text-[9px] text-primary font-black uppercase tracking-[0.2em]">{a.category}</div>
+              <h3 className="mt-2 serif font-bold leading-snug line-clamp-3 text-[16px] group-hover:text-primary transition-colors">{a.title}</h3>
+              <div className="mt-4 text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{a.publishedAt} • {a.readTime} min read</div>
             </div>
           </Link>
         ))}

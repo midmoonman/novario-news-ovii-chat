@@ -78,52 +78,65 @@ function NewsHome() {
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10 }}
-      transition={{ duration: 0.3 }}
-      className="min-h-screen bg-background text-foreground flex flex-col"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden"
     >
-      <Header />
-      <BreakingTicker />
-      <main className="mx-auto max-w-7xl w-full px-4 py-6 space-y-12 flex-1">
-        <HeroSlider articles={heroPool} />
-        <TrendingRow articles={data.all.slice(0, 12)} />
-        <TrendingPeople />
+      {/* Background blobs for glassmorphism effect */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-primary/10 blur-[120px] animate-float" />
+        <div className="absolute bottom-[10%] right-[-10%] w-[50%] h-[50%] rounded-full bg-blue-500/10 blur-[120px] animate-float" style={{ animationDelay: "-5s" }} />
+        <div className="absolute top-[40%] right-[20%] w-[30%] h-[30%] rounded-full bg-purple-500/10 blur-[120px] animate-float" style={{ animationDelay: "-10s" }} />
+      </div>
 
-        {/* Per-section strips so the homepage isn't repetitive */}
-        {(["India", "World", "Business", "Tech", "Sports"] as const).map((cat) => {
-          const list = data.byCategory[cat]?.slice(0, 4) ?? [];
-          if (list.length === 0) return null;
-          return (
-            <section key={cat}>
-              <div className="flex items-center justify-between mb-5 border-b border-border pb-2">
-                <h2 className="serif text-2xl font-bold">{cat}</h2>
-                <Link to="/news" search={{ cat }} className="text-xs uppercase tracking-wider text-primary hover:underline">More {cat} →</Link>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-                {list.map((a: import("@/server/newsapi.functions").RemoteArticle) => (
-                  <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group rounded-xl overflow-hidden bg-card border border-border hover:border-primary/40 transition-all">
-                    <div className="aspect-[16/10] overflow-hidden">
-                      <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                    </div>
-                    <div className="p-4">
-                      <div className="text-[10px] text-primary font-bold uppercase tracking-wider">{a.source}</div>
-                      <h3 className="mt-2 serif font-bold leading-snug line-clamp-3">{a.title}</h3>
-                      <div className="mt-3 text-xs text-muted-foreground">{a.publishedAt} · {a.readTime} min</div>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            </section>
-          );
-        })}
+      <div className="relative z-10 flex flex-col min-h-screen">
+        <Header />
+        <BreakingTicker />
+        <main className="mx-auto max-w-7xl w-full px-4 py-6 space-y-12 flex-1">
+          <HeroSlider articles={heroPool} />
+          <TrendingRow articles={data.all.slice(0, 12)} />
+          <TrendingPeople />
 
-        <div className="pt-4">
-          <CategoryGrid initial="Top" articles={data.all} categories={CATEGORIES as unknown as string[]} />
-        </div>
-      </main>
-      <BottomNav />
+          {/* Per-section strips */}
+          {(["India", "World", "Business", "Tech", "Sports"] as const).map((cat) => {
+            const list = data.byCategory[cat]?.slice(0, 4) ?? [];
+            if (list.length === 0) return null;
+            return (
+              <section key={cat} className="relative">
+                <div className="flex items-center justify-between mb-5 border-b border-white/10 pb-2">
+                  <h2 className="serif text-2xl font-bold tracking-tight">{cat}</h2>
+                  <Link to="/news" search={{ cat }} className="text-[10px] uppercase tracking-[0.2em] font-black text-primary hover:opacity-70 transition-opacity">More {cat} →</Link>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                  {list.map((a: import("@/server/newsapi.functions").RemoteArticle) => (
+                    <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group glass-2 rounded-[24px] overflow-hidden hover:scale-[1.02] transition-all duration-500">
+                      <div className="aspect-[16/10] overflow-hidden relative">
+                        <img src={a.image} alt={a.title} loading="lazy" className="h-full w-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                      <div className="p-5">
+                        <div className="text-[9px] text-primary font-black uppercase tracking-[0.2em] mb-2">{a.source}</div>
+                        <h3 className="serif font-bold leading-[1.4] line-clamp-3 text-[17px] group-hover:text-primary transition-colors">{a.title}</h3>
+                        <div className="mt-4 flex items-center gap-3 text-[10px] text-muted-foreground font-bold uppercase tracking-wider">
+                          <span>{a.publishedAt}</span>
+                          <span className="w-1 h-1 rounded-full bg-border" />
+                          <span>{a.readTime} min read</span>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            );
+          })}
+
+          <div className="pt-4">
+            <CategoryGrid initial="Top" articles={data.all} categories={CATEGORIES as unknown as string[]} />
+          </div>
+        </main>
+        <BottomNav />
+      </div>
     </motion.div>
   );
 }

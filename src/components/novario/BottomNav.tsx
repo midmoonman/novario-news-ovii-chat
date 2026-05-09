@@ -6,7 +6,7 @@ export function BottomNav() {
   const [joined, setJoined] = useState(false);
   const { t } = useTranslation();
   return (
-    <footer className="border-t border-border bg-card/50 mt-16">
+    <footer className="mt-16 glass-2 border-t border-white/10">
       <div className="mx-auto max-w-7xl px-4 py-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div className="col-span-2 md:col-span-1">

@@ -36,18 +36,24 @@ export function HeroSlider({ articles }: { articles?: Slide[] }) {
         </motion.div>
       </AnimatePresence>
 
-      <div className="absolute inset-x-0 bottom-0 p-6 md:p-10">
-        <motion.div key={s.id + "-t"} initial={{ y: 24, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.7 }}>
-          <span className="inline-block rounded-full bg-primary/90 px-3 py-1 text-xs font-bold uppercase tracking-wider text-primary-foreground">
+      <div className="absolute inset-x-4 bottom-4 md:inset-x-8 md:bottom-8">
+        <motion.div 
+          key={s.id + "-t"} 
+          initial={{ y: 24, opacity: 0 }} 
+          animate={{ y: 0, opacity: 1 }} 
+          transition={{ duration: 0.7 }}
+          className="glass-2 p-6 md:p-10 rounded-[32px] border border-white/10"
+        >
+          <span className="inline-block rounded-full bg-primary px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-primary-foreground">
             {t(s.category)}
           </span>
-          <Link to="/news/$slug" params={{ slug: s.slug }} className="block mt-3 hover:opacity-90">
-            <h1 className="serif text-2xl md:text-5xl font-bold text-white text-balance max-w-3xl leading-tight">
+          <Link to="/news/$slug" params={{ slug: s.slug }} className="block mt-4 group">
+            <h1 className="serif text-2xl md:text-5xl font-black text-white text-balance max-w-3xl leading-[1.2] tracking-tight group-hover:text-primary transition-colors">
               {t(s.title)}
             </h1>
           </Link>
-          <p className="mt-3 max-w-2xl text-sm md:text-base text-white/80 line-clamp-2">{t(s.excerpt)}</p>
-          <div className="mt-4 flex items-center gap-3 text-xs text-white/70">
+          <p className="mt-4 max-w-2xl text-sm md:text-base text-white/60 line-clamp-2 font-medium leading-relaxed">{t(s.excerpt)}</p>
+          <div className="mt-6 flex items-center gap-3 text-[10px] text-white/40 font-bold uppercase tracking-widest">
             <span>{s.author}</span><span>•</span><span>{s.publishedAt}</span><span>•</span><span>{s.readTime} {t("min read")}</span>
           </div>
         </motion.div>

@@ -40,9 +40,9 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur bg-background/80 border-b border-border w-full overflow-x-hidden">
+    <header className="sticky top-0 z-40 glass-2-light border-b border-white/10 w-full overflow-x-hidden">
       <div className="mx-auto max-w-7xl px-4 w-full">
-        <div className="flex items-center justify-between gap-4 py-2 text-xs text-muted-foreground border-b border-border/60 min-w-0">
+        <div className="flex items-center justify-between gap-4 py-2 text-[10px] uppercase tracking-widest font-bold text-muted-foreground border-b border-white/5 min-w-0">
           <div suppressHydrationWarning className="truncate">{today || "\u00A0"}</div>
           <div className="flex items-center gap-3 md:gap-6 shrink-0">
             <div className="hidden md:flex items-center gap-6">
