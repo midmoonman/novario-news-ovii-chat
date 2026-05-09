@@ -783,36 +783,59 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         {/* ── Avatar Picker Overlay ── */}
         {showAvatarPicker && (
           <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4">
-            <div className="w-full max-w-sm rounded-2xl border border-border bg-card p-6 shadow-elegant text-center">
-              <h2 className="text-xl font-bold mb-2">Select Your Identity</h2>
-              <p className="text-xs text-muted-foreground mb-4">Enter your name and pick an avatar.</p>
-              <input
-                type="text"
-                placeholder="Your Name"
-                maxLength={20}
-                value={inputName}
-                onChange={e => setInputName(e.target.value)}
-                className="w-full bg-background border border-border rounded-md px-3 py-2 text-sm mb-6 focus:outline-none focus:ring-2 focus:ring-primary/40 text-center"
-              />
-              <div className="grid grid-cols-4 gap-4 mb-6">
-                {AVATARS.map((av) => (
-                  <button
-                    key={av.id}
-                    disabled={!inputName.trim()}
-                    onClick={() => {
-                      setAvatar(av.url);
-                      setName(inputName.trim());
-                      localStorage.setItem("ovii-avatar-choice", av.url);
-                      localStorage.setItem("ovii-name", inputName.trim());
-                      setShowAvatarPicker(false);
-                    }}
-                    className="rounded-full overflow-hidden border-2 border-transparent hover:border-primary transition-all hover:scale-110 disabled:opacity-30 disabled:hover:scale-100 disabled:hover:border-transparent"
-                  >
-                    <img src={av.url} alt={av.name} className="w-full h-auto" />
-                  </button>
-                ))}
+              <div className="w-full max-w-sm rounded-[32px] border border-white/20 bg-white/10 backdrop-blur-2xl p-8 shadow-2xl text-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
+                
+                {/* Back button */}
+                <button 
+                  onClick={() => setShowAvatarPicker(false)}
+                  className="absolute top-4 left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 transition-all active:scale-90"
+                >
+                  <ArrowLeftRight className="w-4 h-4 rotate-180" />
+                </button>
+
+                <h2 className="text-2xl font-black mb-1 text-white tracking-tight">Profile</h2>
+                <p className="text-xs text-white/50 mb-8 font-medium">Customize your presence in the room</p>
+                
+                <div className="space-y-6 relative z-10">
+                  <div className="text-left">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1 mb-1.5 block">Display Name</label>
+                    <input
+                      type="text"
+                      placeholder="Enter your name..."
+                      maxLength={20}
+                      value={inputName}
+                      onChange={e => setInputName(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-white/20"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1 mb-3 block text-left">Choose Avatar</label>
+                    <div className="grid grid-cols-4 gap-4 max-h-[280px] overflow-y-auto pr-2 scrollbar-hide">
+                      {AVATARS.map((av) => (
+                        <button
+                          key={av.id}
+                          disabled={!inputName.trim()}
+                          onClick={() => {
+                            setAvatar(av.url);
+                            setName(inputName.trim());
+                            localStorage.setItem("ovii-avatar-choice", av.url);
+                            localStorage.setItem("ovii-name", inputName.trim());
+                            setShowAvatarPicker(false);
+                            toast.success("Profile updated");
+                          }}
+                          className={`rounded-full overflow-hidden border-2 transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${
+                            avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : "border-transparent hover:border-white/30"
+                          }`}
+                        >
+                          <img src={av.url} alt={av.name} className="w-full h-auto" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
               </div>
-            </div>
           </div>
         )}
 
@@ -856,7 +879,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           onDrop={handleDrop}
         >
           {/* ── Header ── */}
-          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 shadow-md ${isDarkMode ? "bg-[#202c33] border-b border-white/5 text-white" : "bg-[#f0f2f5] border-b border-black/5 text-black"
+          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 ${
+            isDarkMode 
+              ? "bg-[#202c33]/70 border-white/5 text-white shadow-[0_4px_30px_rgba(0,0,0,0.1)]" 
+              : "bg-white/70 border-black/5 text-black shadow-[0_4px_30px_rgba(0,0,0,0.05)]"
             }`}>
             <div className="flex items-center gap-3">
               <div 
@@ -894,19 +920,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5">
-              {/* My Profile Button */}
-              <button 
-                onClick={() => setShowAvatarPicker(true)}
-                className="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-95 border border-transparent hover:border-border/40"
-              >
-                <div className="h-8 w-8 rounded-full overflow-hidden border border-primary/20 shadow-sm shrink-0 bg-muted">
-                  <img src={avatar} alt="Me" className="w-full h-full object-cover" />
-                </div>
-                <div className="hidden sm:flex flex-col items-start">
-                  <span className="text-[10px] font-bold leading-tight truncate max-w-[80px]">{name || "Me"}</span>
-                  <span className="text-[8px] opacity-60 leading-none">Edit</span>
-                </div>
-              </button>
+
               {noLockUntil && Date.now() < noLockUntil && (
                 <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider animate-pulse">
                   <ShieldOff className="w-3 h-3" />
@@ -947,13 +961,33 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className={`absolute right-0 mt-2 w-56 rounded-2xl shadow-elegant z-50 overflow-hidden border ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/5"
+                      className={`absolute right-0 mt-2 w-56 rounded-[24px] shadow-[0_10px_40px_rgba(0,0,0,0.2)] z-50 overflow-hidden border backdrop-blur-2xl transition-all ${
+                        isDarkMode ? "bg-[#233138]/90 border-white/10" : "bg-white/90 border-black/10"
                         }`}
                     >
-                      <div className="py-1">
+                      <div className="py-2">
+                        {/* Profile Item */}
+                        <button
+                          onClick={() => { setShowAvatarPicker(true); setShowMenu(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${
+                            isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
+                            }`}
+                        >
+                          <div className="w-8 h-8 rounded-full overflow-hidden border border-primary/20 shrink-0">
+                            <img src={avatar} className="w-full h-full object-cover" alt="" />
+                          </div>
+                          <div className="flex-1 text-left">
+                            <div className="font-bold leading-tight">Profile</div>
+                            <div className="text-[10px] opacity-50 font-medium">Edit name & avatar</div>
+                          </div>
+                        </button>
+
+                        <div className={`h-px mx-4 my-1 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+
                         <button
                           onClick={() => { setShowFolder(true); setShowMenu(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${
+                            isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
                             }`}
                         >
                           <Folder className="w-4 h-4 text-destructive" />

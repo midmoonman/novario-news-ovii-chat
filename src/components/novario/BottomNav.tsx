@@ -10,12 +10,8 @@ export function BottomNav() {
       <div className="mx-auto max-w-7xl px-4 py-10">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div className="col-span-2 md:col-span-1">
-            <Link to="/news" className="mb-3 inline-block">
-              <img 
-                src="/novario-brand.png" 
-                alt="Novario News" 
-                className="h-8 w-auto object-contain rounded-sm"
-              />
+            <Link to="/news" className="serif text-2xl font-extrabold mb-3 inline-block">
+              Nov<span className="text-primary">a</span>rio
             </Link>
             <p className="text-muted-foreground text-xs leading-relaxed mt-2">
               {t("Independent journalism for a connected India. Premium reporting from newsrooms in 14 cities.")}

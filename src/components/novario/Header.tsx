@@ -61,12 +61,11 @@ export function Header() {
         )}
 
         <div className="flex items-center justify-between py-4 min-w-0 gap-2">
-          <Link to="/news" className="flex items-center gap-2 shrink-0">
-            <img 
-              src="/novario-brand.png" 
-              alt="Novario News" 
-              className="h-10 md:h-12 w-auto object-contain rounded-sm"
-            />
+          <Link to="/news" className="flex items-baseline gap-2 shrink-0">
+            <span className="serif text-3xl md:text-4xl font-extrabold tracking-tight">
+              Nov<span className="text-primary">a</span>rio
+            </span>
+            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:inline">News</span>
           </Link>
           <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
             {NAV.map((n) => {
