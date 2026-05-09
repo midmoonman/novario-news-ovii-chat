@@ -959,23 +959,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 <AnimatePresence>
                   {showMenu && (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      onClick={() => setShowMenu(false)}
-                      className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
-                    />
-                  )}
-                </AnimatePresence>
-
-                <AnimatePresence>
-                  {showMenu && (
-                    <motion.div
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className={`absolute right-0 mt-2 w-56 rounded-[24px] shadow-[0_10px_40px_rgba(0,0,0,0.2)] z-50 overflow-hidden border backdrop-blur-2xl transition-all ${
-                        isDarkMode ? "bg-[#233138]/90 border-white/10" : "bg-white/90 border-black/10"
+                      className={`absolute right-0 mt-2 w-64 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden border backdrop-blur-[40px] transition-all ${
+                        isDarkMode ? "bg-[#233138]/80 border-white/10" : "bg-white/80 border-black/10"
                         }`}
                     >
                       <div className="py-2">
