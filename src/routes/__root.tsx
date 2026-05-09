@@ -1,6 +1,8 @@
-import { Suspense, useEffect, useState, lazy } from "react";
+import { Suspense, useEffect, useState, lazy, useRef } from "react";
 import { Outlet, Link, createRootRoute } from "@tanstack/react-router";
 import { PasswordModal } from "@/components/novario/PasswordModal";
+import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
+import { db, ensureAnonAuth } from "@/lib/firebase";
 
 const OViiChat = lazy(() => import("@/components/novario/OViiChat").then(m => ({ default: m.OViiChat })));
 
@@ -39,6 +41,20 @@ function RootComponent() {
     const noLockUntil = localStorage.getItem("ovii_no_lock_until");
     return (noLockUntil && parseInt(noLockUntil) > Date.now());
   });
+  const initialLoadRef = useRef(true);
+
+  // ── Presence Logic ─────────────────────────────────────────────────────
+  useEffect(() => {
+    (async () => {
+      try {
+        await ensureAnonAuth();
+      } catch (e) {
+        console.error("Auth failed", e);
+      }
+    })();
+  }, []);
+
+
 
   const chatOpen = showOvii && unlocked;
 

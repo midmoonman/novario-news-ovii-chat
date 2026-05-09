@@ -781,26 +781,26 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const mediaMsgs = msgs.filter(m => m.type === "voice" || m.type === "image");
   const unreadMedia = mediaMsgs.length;
 
-  // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
-  const rootStyle: React.CSSProperties = isMobileDevice() && mobileKeyboardOffset > 0
-    ? { paddingBottom: mobileKeyboardOffset }
-    : {};
-
   return (
-    <>
-      {/*
-        ARCHITECTURE:
-        .ovii-chat-root     → position:fixed; inset:0; overflow:hidden (CSS in styles.css)
-          .ovii-chat-frame  → desktop: centered card with max-width; mobile: full-bleed
-            header          → shrink-0
-            .ovii-body      → flex-1; overflow:hidden; display:flex
-              .ovii-msgs-col → flex-1; overflow:hidden; flex-col
-                scroll area → flex-1; overflow-y:auto; overflow-x:hidden
-              .ovii-sidebar  → desktop only, 380px
-            input bar       → shrink-0
-      */}
-      <div className={`ovii-chat-root transition-colors duration-300 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"}`} style={rootStyle}>
-        <Toaster position="top-center" />
+    <AnimatePresence>
+      <motion.div
+        key="ovii-chat-root"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center bg-[#0b141a]/95 backdrop-blur-3xl transition-colors duration-300 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"}`}
+        style={rootStyle}
+      >
+        <motion.div
+          key="ovii-chat-frame"
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.5 }}
+          className="ovii-chat-frame w-full h-full md:max-w-[1200px] md:h-[92vh] md:rounded-[32px] md:shadow-2xl overflow-hidden flex flex-col relative border border-white/5"
+        >
+          <Toaster position="top-center" />
+
 
         {/* ── Avatar Picker Overlay ── */}
         {showAvatarPicker && (
@@ -1182,7 +1182,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 )}
 
                  <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-3.5 sm:px-6">
-                  <AnimatePresence>
+                  <AnimatePresence mode="popLayout" initial={false}>
                     {chatMsgs.map((m, i) => {
                       const mine = m.uid === uid;
                       const prevMsg = chatMsgs[i - 1];
@@ -1191,7 +1191,20 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
 
                       return (
-                        <div key={m.id} className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}>
+                        <motion.div
+                          key={m.id}
+                          layout
+                          initial={{ opacity: 0, y: 20, scale: 0.8, originX: mine ? 1 : 0 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          transition={{ 
+                            type: "spring", 
+                            damping: 25, 
+                            stiffness: 400,
+                            layout: { duration: 0.2 }
+                          }}
+                          className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
+                        >
                           <motion.div
                             initial={{ opacity: 0, y: 12, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
@@ -1314,7 +1327,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               </div>
                             )}
                           </motion.div>
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </AnimatePresence>
@@ -1552,8 +1565,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             </AnimatePresence>
 
           </div>{/* end body */}
-        </div>{/* end ovii-chat-frame */}
-      </div>{/* end ovii-chat-root */}
+        </motion.div>{/* end ovii-chat-frame */}
+      </motion.div>{/* end ovii-chat-root */}
 
       {/* ── Full Image Preview Overlay ── */}
       <AnimatePresence>
@@ -1562,7 +1575,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-4 sm:p-10"
+            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-10"
             onClick={() => setSelectedImage(null)}
           >
             <motion.button
@@ -1584,21 +1597,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             </motion.button>
             
             <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
               className="relative max-w-5xl w-full h-full flex items-center justify-center"
               onClick={(e) => e.stopPropagation()}
             >
               <img 
                 src={selectedImage} 
                 alt="" 
-                className="max-w-full max-h-full object-contain shadow-2xl rounded-lg"
+                className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl"
               />
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </>
+    </AnimatePresence>
   );
 }
