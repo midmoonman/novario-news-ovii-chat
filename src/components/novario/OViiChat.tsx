@@ -9,7 +9,6 @@ import { AVATARS } from "@/lib/avatars";
 import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RefreshCcw, Smile, Pencil, Plus } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
-import EmojiPicker, { Theme as EmojiTheme } from "emoji-picker-react";
 
 
 type Msg = {
@@ -1416,106 +1415,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </AnimatePresence>
 
 
-                            {/* Reaction Picker Overlay */}
-                            <AnimatePresence>
-                              {showReactionId === m.id && (
-                                <>
-                                  <div className="fixed inset-0 z-[90]" onClick={() => setShowReactionId(null)} />
-                                  <motion.div
-                                    initial={{ opacity: 0, scale: 0.8, y: 10 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.8, y: 10 }}
-                                    className={`absolute z-[100] ${mine ? "right-0" : "left-0"} bottom-full mb-2 p-1.5 rounded-full shadow-2xl border flex items-center gap-1 backdrop-blur-xl ${
-                                      isDarkMode ? "bg-[#233138]/95 border-white/10" : "bg-white/95 border-black/10"
-                                    }`}
-                                  >
-                                    {["👍", "❤️", "😂", "😮", "😢", "🙏"].map(emoji => (
-                                      <button 
-                                        key={emoji} 
-                                        onClick={() => reactToMsg(m.id, emoji)}
-                                        className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-all active:scale-125 text-lg"
-                                      >
-                                        {emoji}
-                                      </button>
-                                    ))}
-                                    <button 
-                                      onClick={() => { setShowFullEmojiPickerId(m.id); setShowReactionId(null); }}
-                                      className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-black/10 dark:hover:bg-white/10 transition-all active:scale-125"
-                                    >
-                                      <Plus className="w-4 h-4 opacity-40" />
-                                    </button>
-                                  </motion.div>
-                                </>
-                              )}
-                            </AnimatePresence>
-
-                            {/* Full Emoji Picker */}
-                            <AnimatePresence>
-                              {showFullEmojiPickerId === m.id && (
-                                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowFullEmojiPickerId(null)} />
-                                  <motion.div 
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    className="z-10 relative"
-                                  >
-                                    <EmojiPicker 
-                                      onEmojiClick={(emojiObj) => {
-                                        reactToMsg(m.id, emojiObj.emoji);
-                                        setShowFullEmojiPickerId(null);
-                                      }}
-                                      theme={isDarkMode ? EmojiTheme.DARK : EmojiTheme.LIGHT}
-                                      width={320}
-                                      height={400}
-                                    />
-                                  </motion.div>
-                                </div>
-                              )}
-                            </AnimatePresence>
-
-                            {/* Reaction Details Modal (To remove reaction) */}
-                            <AnimatePresence>
-                              {showReactionStatsId === m.id && (
-                                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-                                  <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setShowReactionStatsId(null)} />
-                                  <motion.div 
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    className={`w-full max-w-[280px] rounded-2xl p-4 shadow-2xl border z-10 ${
-                                      isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/10 text-black"
-                                    }`}
-                                  >
-                                    <h3 className="text-xs font-black uppercase tracking-widest opacity-40 mb-4 text-center">Reactions</h3>
-                                    <div className="space-y-2">
-                                      {Object.entries(m.reactions || {}).map(([emoji, users]) => (
-                                        <div key={emoji} className="flex items-center justify-between p-2 rounded-xl bg-black/5 dark:bg-white/5">
-                                          <div className="flex items-center gap-3">
-                                            <span className="text-xl">{emoji}</span>
-                                            <span className="text-xs font-bold opacity-60">{users.length} {users.length === 1 ? "reaction" : "reactions"}</span>
-                                          </div>
-                                          {users.includes(uid!) && (
-                                            <button 
-                                              onClick={() => reactToMsg(m.id, emoji)}
-                                              className="text-[10px] font-bold text-destructive uppercase tracking-widest hover:underline"
-                                            >
-                                              Remove
-                                            </button>
-                                          )}
-                                        </div>
-                                      ))}
-                                    </div>
-                                    <button 
-                                      onClick={() => setShowReactionStatsId(null)}
-                                      className="w-full mt-4 py-2 text-xs font-black uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity"
-                                    >
-                                      Close
-                                    </button>
-                                  </motion.div>
-                                </div>
-                              )}
-                            </AnimatePresence>
 
                             {mine && (
                               <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
