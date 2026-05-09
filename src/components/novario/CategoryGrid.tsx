@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ARTICLES, CATEGORIES, type Article } from "@/lib/news";
 import { getNews, type RemoteArticle } from "@/server/newsapi.functions";
 import { useTranslation } from "@/lib/i18n";

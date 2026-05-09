@@ -142,7 +142,7 @@ function NewsHome() {
                   </Link>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-                  {list.map((a: import("@/server/newsapi.functions").RemoteArticle, i) => (
+                  {list.map((a: import("@/server/newsapi.functions").RemoteArticle) => (
                     <motion.div
                       key={a.id}
                       whileHover={{ y: -10, scale: 1.02 }}
