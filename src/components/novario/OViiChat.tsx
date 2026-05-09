@@ -24,7 +24,6 @@ type Msg = {
   status?: "sending" | "sent" | "delivered" | "read";
   replyTo?: { id: string, content: string, avatar: string, name?: string };
   isEdited?: boolean;
-  reactions?: { [emoji: string]: string[] };
 };
 
 const ROOM = "ovii-room";
@@ -271,9 +270,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [recDuration, setRecDuration] = useState(0);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
-  const [showReactionId, setShowReactionId] = useState<string | null>(null);
-  const [showFullEmojiPickerId, setShowFullEmojiPickerId] = useState<string | null>(null);
-  const [showReactionStatsId, setShowReactionStatsId] = useState<string | null>(null);
   const [showMobileMenuId, setShowMobileMenuId] = useState<string | null>(null);
   const recIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -664,34 +660,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       setEditingText("");
     } catch (e) {
       toast.error("Failed to edit message");
-    }
-  };
-
-  const reactToMsg = async (id: string, emoji: string) => {
-    if (!uid) return;
-    try {
-      const msg = msgs.find(m => m.id === id);
-      if (!msg) return;
-      
-      const reactions = { ...(msg.reactions || {}) };
-      const users = reactions[emoji] || [];
-      
-      if (users.includes(uid)) {
-        reactions[emoji] = users.filter(u => u !== uid);
-        if (reactions[emoji].length === 0) delete reactions[emoji];
-      } else {
-        // Remove uid from other emojis first (WhatsApp style: only one reaction per user)
-        Object.keys(reactions).forEach(e => {
-          reactions[e] = reactions[e].filter(u => u !== uid);
-          if (reactions[e].length === 0) delete reactions[e];
-        });
-        reactions[emoji] = [...(reactions[emoji] || []), uid];
-      }
-      
-      await setDoc(doc(db, "ovii", ROOM, "messages", id), { reactions }, { merge: true });
-      setShowReactionId(null);
-    } catch (e) {
-      toast.error("Failed to react");
     }
   };
 
@@ -1265,7 +1233,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
 
                       return (
-                        <div key={m.id} className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}>
+                        <div key={m.id} className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-6" : "mt-1.5"}`}>
                           <motion.div
                             initial={{ opacity: 0, y: 12, scale: 0.9 }}
                             animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
@@ -1355,11 +1323,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                     <div className="relative overflow-hidden min-w-[60px]">
                                       {m.type === "text" && (
-                                        <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
+                                        <span className="block break-words whitespace-pre-wrap leading-relaxed text-[15px] py-0.5">
                                           {m.content}
-                                          {m.isEdited && <span className="text-[9px] opacity-40 ml-1 italic font-medium">edited</span>}
+                                          {m.isEdited && <span className="text-[9px] opacity-40 ml-1.5 italic font-medium">edited</span>}
                                           {/* Use a larger spacer to ensure ample room for the timestamp */}
-                                          <span className="inline-block w-[90px] h-[5px]" />
+                                          <span className="inline-block w-[85px] h-[5px]" />
                                         </span>
                                       )}
                                       
@@ -1373,37 +1341,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     </div>
                                   </div>
 
-                                  {/* Reactions Display */}
-                                  {m.reactions && Object.keys(m.reactions).length > 0 && (
-                                    <button 
-                                      onClick={() => setShowReactionStatsId(m.id)}
-                                      className={`absolute -bottom-4 ${mine ? "right-2" : "left-2"} flex items-center gap-0.5 z-10 active:scale-95 transition-transform`}
-                                    >
-                                      <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full border shadow-sm backdrop-blur-sm ${
-                                        isDarkMode ? "bg-[#202c33]/90 border-white/10" : "bg-white/90 border-black/10"
-                                      }`}>
-                                        {Object.entries(m.reactions).map(([emoji, users]) => (
-                                          <div key={emoji} className="flex items-center gap-0.5">
-                                            <span className="text-[12px]">{emoji}</span>
-                                            {users.length > 1 && <span className="text-[9px] font-bold opacity-60">{users.length}</span>}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    </button>
-                                  )}
+
 
                                   {/* Interaction Buttons (Desktop Hover) */}
-                                  <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-24" : "-right-24"} items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
-                                    <button 
-                                      onClick={() => setShowReactionId(showReactionId === m.id ? null : m.id)} 
-                                      className="p-1.5 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary transition-all"
-                                    >
-                                      <Smile className="w-4 h-4" />
-                                    </button>
+                                  <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-16" : "-right-16"} items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity`}>
                                     <button onClick={() => setReplyingTo(m)} className="p-1.5 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary transition-all">
                                       <Reply className="w-4 h-4" />
                                     </button>
-                                    {mine && m.type === "text" && (
+                                    {mine && m.type === "text" && m.createdAt && (Date.now() - m.createdAt.toMillis() < 20 * 60 * 1000) && (
                                       <button 
                                         onClick={() => { setEditingId(m.id); setEditingText(m.content); }} 
                                         className="p-1.5 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary transition-all"
@@ -1443,20 +1388,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   >
                                     <div className="p-2 space-y-1">
                                       <button 
-                                        onClick={() => { setShowReactionId(m.id); setShowMobileMenuId(null); }}
-                                        className="w-full flex items-center gap-3 px-4 py-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-2xl"
-                                      >
-                                        <Smile className="w-5 h-5 text-primary" />
-                                        <span className="font-bold">React to Message</span>
-                                      </button>
-                                      <button 
                                         onClick={() => { setReplyingTo(m); setShowMobileMenuId(null); }}
                                         className="w-full flex items-center gap-3 px-4 py-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-2xl"
                                       >
                                         <Reply className="w-5 h-5 text-primary" />
                                         <span className="font-bold">Reply</span>
                                       </button>
-                                      {mine && m.type === "text" && (
+                                      {mine && m.type === "text" && m.createdAt && (Date.now() - m.createdAt.toMillis() < 20 * 60 * 1000) && (
                                         <button 
                                           onClick={() => { setEditingId(m.id); setEditingText(m.content); setShowMobileMenuId(null); }}
                                           className="w-full flex items-center gap-3 px-4 py-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-2xl text-primary"
