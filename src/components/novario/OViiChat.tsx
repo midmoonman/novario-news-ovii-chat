@@ -782,8 +782,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
         {/* ── Avatar Picker Overlay ── */}
         {showAvatarPicker && (
-          <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-xl flex items-center justify-center p-4">
-              <div className="w-full max-w-sm rounded-[32px] border border-white/20 bg-white/10 backdrop-blur-2xl p-8 shadow-2xl text-center relative overflow-hidden">
+          <div className="absolute inset-0 z-50 bg-background/95 flex items-center justify-center p-4">
+              <div className="w-full max-w-sm rounded-[32px] border border-white/20 bg-card p-8 shadow-2xl text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
                 
                 {/* Close button */}
@@ -962,8 +962,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className={`absolute right-0 mt-2 w-64 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden border backdrop-blur-[40px] transition-all ${
-                        isDarkMode ? "bg-[#233138]/80 border-white/10" : "bg-white/80 border-black/10"
+                      className={`absolute right-0 mt-2 w-64 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden border transition-all ${
+                        isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
                         }`}
                     >
                       <div className="py-2">
@@ -1115,7 +1115,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               {/* Scroll area — overflow-x:hidden prevents horizontal bleed from drag */}
               <div
                 ref={scrollRef}
-                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col items-stretch touch-pan-y relative"
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col items-stretch touch-pan-y relative transition-all duration-300"
                 style={{
                   overscrollBehavior: "contain",
                   overflowX: "hidden",
@@ -1184,8 +1184,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }
                               }
                             }}
-                            className={`relative flex gap-2 group w-fit max-w-[88%] md:max-w-[70%] lg:max-w-[65%] ${mine ? "ml-auto" : "mr-auto"}`}
-                          >
+                             className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[550px] lg:max-w-[600px] ${mine ? "ml-auto" : "mr-auto"}`}
+                           >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                               }`}>
                               <Reply className="w-5 h-5 text-primary/40" />
@@ -1214,7 +1214,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[18px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-4 sm:py-2 min-w-[80px] sm:min-w-[120px]"} text-[13.5px] sm:text-[14.5px] leading-[1.5] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
+                                  className={`rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-4 py-2 sm:px-5 sm:py-2.5 min-w-[80px] sm:min-w-[140px]"} text-[14px] sm:text-[15px] leading-relaxed break-words relative flex flex-col shadow-md transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                       : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
