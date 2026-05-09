@@ -210,7 +210,11 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { 
         <div key={date} className="space-y-3">
           <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
           {items.map(m => (
-            <div key={m.id} className="bg-card/30 border border-border/10 p-2.5 rounded-2xl flex items-center gap-4 lg:gap-6 shadow-sm hover:bg-card/50 transition-all group">
+            <div key={m.id} className={`p-2.5 rounded-2xl flex items-center gap-4 lg:gap-6 shadow-sm transition-all group border ${
+              isDarkMode 
+                ? "bg-card/30 border-white/5 hover:bg-card/50" 
+                : "bg-white border-black/5 hover:bg-black/5 shadow-md"
+            }`}>
               <div className="flex-1 min-w-0">
                 {m.type === "voice" ? (
                   <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
@@ -259,6 +263,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     const saved = localStorage.getItem("ovii_dark_mode");
     return saved === null ? true : saved === "true";
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     localStorage.setItem("ovii_dark_mode", String(isDarkMode));
@@ -470,6 +475,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             return msg;
           });
           setMsgs(list);
+          setIsLoading(false);
           const tnow = Date.now();
           for (const m of list) {
             if (m.uid !== u.uid && m.status !== "read" && !s.metadata.hasPendingWrites) {
@@ -563,7 +569,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   useEffect(() => { 
     const timer = setTimeout(() => scrollToBottom(false), 100); 
     return () => clearTimeout(timer);
-  }, [msgs.length]);
+  }, [msgs.length, isTyping]);
+
+  useEffect(() => {
+    if (isTyping) {
+      const timer = setTimeout(() => scrollToBottom(true), 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isTyping]);
 
   const setPres = (data: any) => {
     if (uid) setDoc(doc(db, "ovii", ROOM, "presence", uid), data, { merge: true }).catch(() => { });
@@ -811,9 +824,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed inset-0 z-[150] bg-background flex flex-col"
+              className={`fixed inset-0 z-[150] flex flex-col ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
             >
-              <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/80 backdrop-blur-md sticky top-0 z-10">
+              <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${
+                isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
+              }`}>
                 <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
                   <Folder className="w-5 h-5 text-destructive" /> FILES
                 </h2>
@@ -844,11 +859,19 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 shadow-md ${isDarkMode ? "bg-[#202c33] border-b border-white/5 text-white" : "bg-[#f0f2f5] border-b border-black/5 text-black"
             }`}>
             <div className="flex items-center gap-3">
-              <div className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm">
+              <div 
+                className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all active:scale-95"
+                onClick={() => {
+                  if (!otherAvatar) {
+                    setShowAvatarPicker(true);
+                  }
+                }}
+                title={!otherAvatar ? "Edit Profile" : ""}
+              >
                 {otherAvatar ? (
                   <img src={otherAvatar} alt="" className="w-full h-full object-cover" />
                 ) : avatar ? (
-                  <img src={avatar} alt="" className="w-full h-full object-cover opacity-40 grayscale" />
+                  <img src={avatar} alt="" className="w-full h-full object-cover" />
                 ) : null}
               </div>
               <div>
@@ -871,6 +894,19 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </div>
             <div className="flex items-center gap-1.5">
+              {/* My Profile Button */}
+              <button 
+                onClick={() => setShowAvatarPicker(true)}
+                className="flex items-center gap-2 p-1 pr-3 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-95 border border-transparent hover:border-border/40"
+              >
+                <div className="h-8 w-8 rounded-full overflow-hidden border border-primary/20 shadow-sm shrink-0 bg-muted">
+                  <img src={avatar} alt="Me" className="w-full h-full object-cover" />
+                </div>
+                <div className="hidden sm:flex flex-col items-start">
+                  <span className="text-[10px] font-bold leading-tight truncate max-w-[80px]">{name || "Me"}</span>
+                  <span className="text-[8px] opacity-60 leading-none">Edit</span>
+                </div>
+              </button>
               {noLockUntil && Date.now() < noLockUntil && (
                 <div className="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-bold uppercase tracking-wider animate-pulse">
                   <ShieldOff className="w-3 h-3" />
@@ -1055,9 +1091,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 <div className="flex-1" />
 
                 {error && <div className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-md p-3 mb-3">{error}</div>}
-                {!error && chatMsgs.length === 0 && (
+                {!error && isLoading && (
+                  <div className="h-full flex items-center justify-center text-center my-auto">
+                    <div className="flex flex-col items-center gap-4">
+                      <div className="w-10 h-10 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                      <div className="text-muted-foreground text-sm font-medium animate-pulse">Loading messages...</div>
+                    </div>
+                  </div>
+                )}
+                {!error && !isLoading && chatMsgs.length === 0 && (
                   <div className="h-full flex items-center justify-center text-center text-muted-foreground text-sm my-auto">
-                    <div><div className="text-4xl mb-2">👋</div>No messages yet.</div>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                    >
+                      <div className="text-5xl mb-4 grayscale opacity-40">💬</div>
+                      <div className="font-bold text-lg mb-1">No messages yet</div>
+                      <div className="text-xs opacity-60">Send a message to start the conversation</div>
+                    </motion.div>
                   </div>
                 )}
 
@@ -1094,7 +1145,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }
                               }
                             }}
-                            className={`relative flex gap-2 group w-fit max-w-[88%] md:max-w-[90%] ${mine ? "ml-auto" : "mr-auto"}`}
+                            className={`relative flex gap-2 group w-fit max-w-[88%] md:max-w-[70%] lg:max-w-[65%] ${mine ? "ml-auto" : "mr-auto"}`}
+                          >
                           >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                               }`}>
@@ -1124,7 +1176,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[18px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-3 sm:py-1.5 min-w-[100px]"} text-[13.5px] leading-[1.4] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
+                                  className={`rounded-[18px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-4 sm:py-2 min-w-[80px] sm:min-w-[120px]"} text-[13.5px] sm:text-[14.5px] leading-[1.5] break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                       : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
@@ -1407,9 +1459,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   animate={{ width: 380, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
                   transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                  className="hidden lg:flex flex-col border-l border-border/40 bg-muted/5 relative overflow-hidden shrink-0"
+                  className={`hidden lg:flex flex-col border-l relative overflow-hidden shrink-0 ${
+                    isDarkMode ? "bg-[#202c33]/20 border-white/5" : "bg-white/40 border-black/5"
+                  }`}
                 >
-                  <div className="p-4 border-b border-border/60 flex items-center justify-between bg-background/40 backdrop-blur-md sticky top-0 z-10">
+                  <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${
+                    isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
+                  }`}>
                     <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2.5">
                       <Folder className="w-4 h-4 text-destructive" /> FILES
                     </h2>
