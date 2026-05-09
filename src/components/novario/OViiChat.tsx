@@ -786,12 +786,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               <div className="w-full max-w-sm rounded-[32px] border border-white/20 bg-white/10 backdrop-blur-2xl p-8 shadow-2xl text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
                 
-                {/* Back button */}
+                {/* Close button */}
                 <button 
                   onClick={() => setShowAvatarPicker(false)}
-                  className="absolute top-4 left-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 transition-all active:scale-90"
+                  className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 transition-all active:scale-90"
+                  title="Close"
                 >
-                  <ArrowLeftRight className="w-4 h-4 rotate-180" />
+                  <X className="w-5 h-5" />
                 </button>
 
                 <h2 className="text-2xl font-black mb-1 text-white tracking-tight">Profile</h2>
@@ -958,6 +959,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 <AnimatePresence>
                   {showMenu && (
                     <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      onClick={() => setShowMenu(false)}
+                      className="fixed inset-0 z-40 bg-black/20 backdrop-blur-[2px]"
+                    />
+                  )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                  {showMenu && (
+                    <motion.div
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
@@ -967,19 +980,23 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     >
                       <div className="py-2">
                         {/* Profile Item */}
-                        <button
+                         <button
                           onClick={() => { setShowAvatarPicker(true); setShowMenu(false); }}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${
                             isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
                             }`}
                         >
-                          <div className="w-8 h-8 rounded-full overflow-hidden border border-primary/20 shrink-0">
+                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 shrink-0 shadow-sm">
                             <img src={avatar} className="w-full h-full object-cover" alt="" />
                           </div>
-                          <div className="flex-1 text-left">
-                            <div className="font-bold leading-tight">Profile</div>
-                            <div className="text-[10px] opacity-50 font-medium">Edit name & avatar</div>
+                          <div className="flex-1 text-left min-w-0">
+                            <div className="font-black leading-tight truncate">{name || "Me"}</div>
+                            <div className="text-[10px] flex items-center gap-1.5 font-bold uppercase tracking-wider">
+                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                              <span className="text-emerald-500/80">Online</span>
+                            </div>
                           </div>
+                          <ChevronLeft className="w-4 h-4 rotate-180 opacity-30" />
                         </button>
 
                         <div className={`h-px mx-4 my-1 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
