@@ -1357,42 +1357,82 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     )}
                                   </div>
 
-                                  {/* Message Options (More icon) */}
-                                  <div className={`absolute top-0 ${mine ? "-left-8" : "-right-8"} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                  {/* Message Options (More icon) - Centered Vertically */}
+                                  <div className={`absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} opacity-0 group-hover:opacity-100 transition-opacity flex items-center`}>
                                     <button 
-                                      onClick={() => setShowMobileMenuId(showMobileMenuId === m.id ? null : m.id)}
-                                      className="p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-muted-foreground"
+                                      onClick={(e) => { e.stopPropagation(); setShowMobileMenuId(showMobileMenuId === m.id ? null : m.id); }}
+                                      className="p-1.5 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-muted-foreground transition-colors"
                                     >
                                       <MoreVertical className="w-4 h-4" />
                                     </button>
                                   </div>
 
-                                  {/* Localized Menu (No backdrop) */}
+                                  {/* Localized Menu (Compact & Safe Positioning) */}
                                   <AnimatePresence>
                                     {showMobileMenuId === m.id && (
-                                      <motion.div
-                                        initial={{ opacity: 0, scale: 0.9, y: -5 }}
-                                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                                        exit={{ opacity: 0, scale: 0.9, y: -5 }}
-                                        className={`absolute z-[50] ${mine ? "right-full mr-2" : "left-full ml-2"} top-0 w-32 rounded-xl shadow-xl border overflow-hidden ${
-                                          isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
-                                        }`}
-                                      >
-                                        <button 
-                                          onClick={() => { setReplyingTo(m); setShowMobileMenuId(null); }}
-                                          className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-bold hover:bg-black/5 dark:hover:bg-white/5"
+                                      <>
+                                        {/* Dismiss backdrop */}
+                                        <div className="fixed inset-0 z-[40]" onClick={() => setShowMobileMenuId(null)} />
+                                        
+                                        <motion.div
+                                          initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                                          animate={{ opacity: 1, scale: 1, y: 0 }}
+                                          exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                                          className={`absolute z-[50] ${mine ? "right-full mr-2" : "left-full ml-2"} top-1/2 -translate-y-1/2 w-40 rounded-2xl shadow-2xl border overflow-hidden backdrop-blur-xl ${
+                                            isDarkMode ? "bg-[#233138]/95 border-white/10" : "bg-white/95 border-black/10"
+                                          }`}
                                         >
-                                          <Reply className="w-3.5 h-3.5" /> Reply
-                                        </button>
-                                        {mine && m.type === "text" && m.createdAt && (Date.now() - m.createdAt.toMillis() < 20 * 60 * 1000) && (
                                           <button 
-                                            onClick={() => { setEditingId(m.id); setEditingText(m.content); setShowMobileMenuId(null); }}
-                                            className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-bold hover:bg-black/5 dark:hover:bg-white/5 text-primary"
+                                            onClick={() => { setReplyingTo(m); setShowMobileMenuId(null); }}
+                                            className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
                                           >
-                                            <Pencil className="w-3.5 h-3.5" /> Edit
+                                            <Reply className="w-4 h-4 text-emerald-500" /> 
+                                            <span>Reply</span>
                                           </button>
-                                        )}
-                                      </motion.div>
+                                          
+                                          {mine && m.type === "text" && m.createdAt && (Date.now() - m.createdAt.toMillis() < 20 * 60 * 1000) && (
+                                            <button 
+                                              onClick={() => { setEditingId(m.id); setEditingText(m.content); setShowMobileMenuId(null); }}
+                                              className="w-full flex items-center gap-2.5 px-4 py-3 text-[13px] font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors border-t border-white/5"
+                                            >
+                                              <Pencil className="w-4 h-4 text-blue-500" /> 
+                                              <span>Edit</span>
+                                            </button>
+                                          )}
+
+                                          <div className="border-t border-white/5">
+                                            <div className="px-4 py-1.5 text-[10px] font-black uppercase tracking-widest opacity-30">Delete</div>
+                                            <button 
+                                              onClick={async () => {
+                                                // Delete for me logic: Filter out locally or add to a 'deletedFor' array in Firestore
+                                                // For simplicity, we'll hide it locally for this session
+                                                setMsgs(prev => prev.filter(msg => msg.id !== m.id));
+                                                setShowMobileMenuId(null);
+                                                toast.success("Message deleted for you");
+                                              }}
+                                              className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+                                            >
+                                              <Trash2 className="w-3.5 h-3.5 opacity-50" />
+                                              <span>Delete for me</span>
+                                            </button>
+                                            {mine && (
+                                              <button 
+                                                onClick={async () => {
+                                                  if (confirm("Delete for everyone?")) {
+                                                    await deleteDoc(doc(db, "ovii", ROOM, "messages", m.id));
+                                                    setShowMobileMenuId(null);
+                                                    toast.success("Message deleted for everyone");
+                                                  }
+                                                }}
+                                                className="w-full flex items-center gap-2.5 px-4 py-2.5 text-[12px] font-bold text-destructive hover:bg-destructive/10 transition-colors"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                                <span>Delete for everyone</span>
+                                              </button>
+                                            )}
+                                          </div>
+                                        </motion.div>
+                                      </>
                                     )}
                                   </AnimatePresence>
                                 </div>
