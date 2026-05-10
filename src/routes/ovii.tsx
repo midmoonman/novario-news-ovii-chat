@@ -4,6 +4,7 @@ import { PasswordModal } from "@/components/novario/PasswordModal";
 
 // Lazy load chat to keep initial bundle small
 const OViiChat = lazy(() => import("@/components/novario/OViiChat").then(m => ({ default: m.OViiChat })));
+const MasterRoom = lazy(() => import("@/components/novario/MasterRoom").then(m => ({ default: m.MasterRoom })));
 
 export const Route = createFileRoute("/ovii")({
   head: () => ({
@@ -20,9 +21,16 @@ export const Route = createFileRoute("/ovii")({
 function OViiPage() {
   const [unlocked, setUnlocked] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("ovii_unlocked") === "true";
+      return localStorage.getItem("ovii_unlocked") === "true" || localStorage.getItem("ovii_master") === "true";
     }
     return false;
+  });
+
+  const [mode, setMode] = useState<"chat" | "master">(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem("ovii_master") === "true" ? "master" : "chat";
+    }
+    return "chat";
   });
 
   useEffect(() => {
@@ -41,14 +49,20 @@ function OViiPage() {
     };
   }, []);
 
-  const handleUnlock = () => {
+  const handleUnlock = (m: "chat" | "master") => {
     setUnlocked(true);
-    localStorage.setItem("ovii_unlocked", "true");
+    setMode(m);
+    if (m === "master") {
+      localStorage.setItem("ovii_master", "true");
+    } else {
+      localStorage.setItem("ovii_unlocked", "true");
+    }
   };
 
   const handleLock = () => {
     setUnlocked(false);
     localStorage.removeItem("ovii_unlocked");
+    localStorage.removeItem("ovii_master");
   };
 
   return (
@@ -60,7 +74,11 @@ function OViiPage() {
             <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           </div>
         }>
-          <OViiChat onLock={handleLock} />
+          {mode === "master" ? (
+            <MasterRoom onLock={handleLock} />
+          ) : (
+            <OViiChat onLock={handleLock} />
+          )}
         </Suspense>
       )}
     </div>

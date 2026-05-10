@@ -10,6 +10,8 @@ export function PasswordModal({ onUnlock }: { onUnlock: (mode: "chat" | "master"
     e.preventDefault();
     if (val === "112233") {
       onUnlock("chat");
+    } else if (val === "786786") {
+      onUnlock("master");
     } else {
       setErr("Wrong key. Try again.");
       setShake((s) => s + 1);
