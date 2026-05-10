@@ -938,9 +938,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const unreadMedia = mediaMsgs.length;
 
   // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
-  const rootStyle: React.CSSProperties = isMobileDevice() && mobileKeyboardOffset > 0
-    ? { paddingBottom: mobileKeyboardOffset }
-    : {};
+  const rootStyle: React.CSSProperties = {
+    ...(isMobileDevice() && mobileKeyboardOffset > 0 ? { paddingBottom: mobileKeyboardOffset } : {}),
+    backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='${isDarkMode ? "%23ffffff15" : "%2300000010"}'/%3E%3C/svg%3E")`,
+    backgroundSize: "20px 20px"
+  };
 
   return (
     <AnimatePresence>
@@ -1295,9 +1297,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col items-stretch touch-pan-y relative transition-all duration-300"
                 style={{
                   overscrollBehavior: "contain",
-                  overflowX: "hidden",
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='${isDarkMode ? "%23ffffff15" : "%2300000010"}'/%3E%3C/svg%3E")`,
-                  backgroundSize: "20px 20px"
+                  overflowX: "hidden"
                 }}
                 onScroll={(e) => {
                   const t = e.currentTarget;
@@ -1545,8 +1545,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </AnimatePresence>
 
               {/* Input bar */}
-              <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
-                }`}>
+              <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 bg-transparent`}>
                 <input
                   ref={fileRef}
                   type="file"
