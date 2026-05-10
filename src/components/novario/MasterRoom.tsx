@@ -36,9 +36,20 @@ type MasterStats = {
 
 const ROOM = "ovii-room";
 
+type MasterMsg = {
+  id: string;
+  uid: string;
+  avatar: string;
+  name?: string;
+  type: "text" | "image" | "voice";
+  content: string;
+  caption?: string;
+  createdAt?: any;
+};
+
 export function MasterRoom({ onLock }: { onLock: () => void }) {
   const [users, setUsers] = useState<UserPresence[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [messages, setMessages] = useState<MasterMsg[]>([]);
   const [stats, setStats] = useState<MasterStats>({
     totalMessages: 0,
     activeUsers: 0,
@@ -66,7 +77,7 @@ export function MasterRoom({ onLock }: { onLock: () => void }) {
 
     // 2. Listen for Messages (Realtime Preview)
     const unsubMsgs = onSnapshot(query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "desc"), limit(50)), (snap) => {
-      const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      const list = snap.docs.map(d => ({ id: d.id, ...d.data() } as MasterMsg));
       setMessages(list);
       
       // Update basic stats
