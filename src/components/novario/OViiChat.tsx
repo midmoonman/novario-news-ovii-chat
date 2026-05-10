@@ -1644,9 +1644,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           const val = e.target.value;
                           setText(val);
                           
-                          // Correct autogrow: reset to auto then measure scrollHeight
-                          e.target.style.height = "auto";
-                          const nextH = Math.max(44, Math.min(e.target.scrollHeight, 350));
+                          // WhatsApp style smooth autogrow
+                          const prevH = e.target.style.height;
+                          e.target.style.height = '1px';
+                          const nextH = Math.max(44, Math.min(e.target.scrollHeight, 138));
+                          e.target.style.height = prevH;
                           setInputHeight(nextH);
 
                           if (uid) {
@@ -1656,7 +1658,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                           }
                         }}
-                        className={`flex-1 bg-transparent px-4 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
+                        className={`flex-1 bg-transparent px-4 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words transition-[height] duration-150 ease-out ${isDarkMode ? "text-white" : "text-black"
                           }`}
                         style={{ height: `${inputHeight}px` }}
                       />
