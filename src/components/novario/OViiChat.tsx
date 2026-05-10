@@ -19,6 +19,22 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
     let alive = true;
     const fetchMetadata = async () => {
       try {
+        // Try Microlink first - excellent for social media (Instagram, Reels, etc.)
+        const microRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+        if (microRes.ok) {
+          const data = await microRes.json();
+          if (alive && data.status === "success") {
+            setPreview({
+              title: data.data.title,
+              description: data.data.description,
+              image: data.data.image?.url || data.data.logo?.url || data.data.screenshot?.url
+            });
+            setLoading(false);
+            return;
+          }
+        }
+
+        // Fallback to manual parsing via allorigins
         const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
         const res = await fetch(proxy);
         if (!res.ok) throw new Error("Fetch failed");
@@ -50,7 +66,7 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
   }, [url]);
 
   if (loading) return (
-    <div className={`mt-2 rounded-xl p-2 border animate-pulse flex gap-3 ${isDarkMode ? "bg-black/20 border-white/5" : "bg-black/5 border-black/5"}`}>
+    <div className={`mt-2 rounded-xl p-2 border animate-pulse flex gap-3 mb-2 ${isDarkMode ? "bg-black/20 border-white/5" : "bg-black/5 border-black/5"}`}>
       <div className="w-12 h-12 rounded-lg bg-muted/40 shrink-0" />
       <div className="flex-1 space-y-2">
         <div className="h-3 w-3/4 bg-muted/40 rounded" />
@@ -67,7 +83,7 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
       href={url} 
       target="_blank" 
       rel="noopener noreferrer" 
-      className={`block mt-2 rounded-xl overflow-hidden border transition-all hover:brightness-110 active:scale-[0.98] group/link ${
+      className={`block mt-2 mb-6 rounded-xl overflow-hidden border transition-all hover:brightness-110 active:scale-[0.98] group/link ${
         isDarkMode ? "bg-[#0b141a]/60 border-white/5" : "bg-black/5 border-black/10"
       } no-underline`}
     >
@@ -405,6 +421,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [isLoading, setIsLoading] = useState(true);
   const [recDuration, setRecDuration] = useState(0);
   const recTimerRef = useRef<any>(null);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("ovii_dark_mode", String(isDarkMode));
@@ -793,7 +810,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   };
 
   const clearChat = async () => {
-    if (!confirm("Are you sure you want to clear all messages? This cannot be undone.")) return;
+    setShowClearConfirm(false);
     try {
       const q = query(collection(db, "ovii", ROOM, "messages"));
       const snapshot = await getDocs(q);
@@ -1226,7 +1243,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
                         <button
-                          onClick={clearChat}
+                          onClick={() => { setShowClearConfirm(true); setShowMenu(false); }}
                           className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-destructive/10 text-destructive" : "hover:bg-destructive/5 text-destructive"
                             }`}
                         >
@@ -1234,6 +1251,54 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           <div className="flex-1 text-left font-medium">Clear Chat</div>
                         </button>
                       </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Custom Clear Chat Confirmation Modal */}
+                <AnimatePresence>
+                  {showClearConfirm && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                    >
+                      <motion.div
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                        className={`w-full max-w-sm rounded-[32px] overflow-hidden border shadow-2xl p-8 relative ${
+                          isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/10 text-black"
+                        }`}
+                      >
+                        <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
+                        <div className="flex flex-col items-center text-center">
+                          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
+                            <Trash2 className="w-8 h-8 text-destructive" />
+                          </div>
+                          <h3 className="text-xl font-black mb-3 tracking-tight">Clear all messages?</h3>
+                          <p className="text-sm opacity-60 font-medium mb-8">
+                            This will permanently delete all messages in this room for everyone. This action cannot be undone.
+                          </p>
+                          <div className="flex flex-col w-full gap-3">
+                            <button
+                              onClick={clearChat}
+                              className="w-full py-4 rounded-2xl bg-destructive text-white font-bold text-sm transition-all hover:bg-destructive/90 active:scale-[0.98] shadow-lg shadow-destructive/20"
+                            >
+                              Yes, Clear Everything
+                            </button>
+                            <button
+                              onClick={() => setShowClearConfirm(false)}
+                              className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${
+                                isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
+                              }`}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      </motion.div>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -1435,6 +1500,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                             }
                                             return null;
                                           })()}
+                                          <div className="h-4 w-full" /> {/* Extra spacing for the status ticks */}
                                         </>
                                       )}
                                       
