@@ -105,7 +105,14 @@ export function MasterRoom({ onLock }: { onLock: () => void }) {
   };
 
   return (
-    <div className="h-full w-full bg-[#0b141a] text-[#e9edef] flex flex-col font-sans overflow-hidden">
+    <div className="h-full w-full bg-[#050505] text-[#e9edef] flex flex-col font-sans overflow-hidden">
+      {/* ── Top Bar: Administrator Alert ── */}
+      <div className="bg-destructive/10 border-b border-destructive/20 py-1.5 px-4 text-center">
+        <span className="text-[9px] font-black text-destructive uppercase tracking-[0.3em] flex items-center justify-center gap-2">
+          <ShieldAlert className="w-3 h-3" /> Secure Administrative Session Active
+        </span>
+      </div>
+
       {/* ── Header ── */}
       <header className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-[#111b21]/80 backdrop-blur-md sticky top-0 z-50">
         <div className="flex items-center gap-3">

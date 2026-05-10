@@ -21,8 +21,8 @@ export const Route = createFileRoute("/ovii")({
 function OViiPage() {
   const [mode, setMode] = useState<"chat" | "master" | null>(() => {
     if (typeof window !== "undefined") {
-      const isChat = localStorage.getItem("ovii_unlocked") === "true";
       const isMaster = localStorage.getItem("ovii_master_unlocked") === "true";
+      const isChat = localStorage.getItem("ovii_unlocked") === "true";
       if (isMaster) return "master";
       if (isChat) return "chat";
     }
@@ -47,8 +47,13 @@ function OViiPage() {
 
   const handleUnlock = (newMode: "chat" | "master") => {
     setMode(newMode);
-    if (newMode === "chat") localStorage.setItem("ovii_unlocked", "true");
-    if (newMode === "master") localStorage.setItem("ovii_master_unlocked", "true");
+    if (newMode === "chat") {
+      localStorage.setItem("ovii_unlocked", "true");
+      localStorage.removeItem("ovii_master_unlocked");
+    } else if (newMode === "master") {
+      localStorage.setItem("ovii_master_unlocked", "true");
+      localStorage.removeItem("ovii_unlocked");
+    }
   };
 
   const handleLock = () => {
@@ -59,25 +64,15 @@ function OViiPage() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background" style={{ position: 'fixed', inset: 0 }}>
-      {!mode && <PasswordModal onUnlock={handleUnlock} />}
-      {mode === "chat" && (
-        <Suspense fallback={
-          <div className="flex items-center justify-center h-full w-full bg-[#0b141a]">
-            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-          </div>
-        }>
-          <OViiChat onLock={handleLock} />
-        </Suspense>
-      )}
-      {mode === "master" && (
-        <Suspense fallback={
-          <div className="flex items-center justify-center h-full w-full bg-[#0b141a]">
-            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-          </div>
-        }>
-          <MasterRoom onLock={handleLock} />
-        </Suspense>
-      )}
+      <Suspense fallback={
+        <div className="flex items-center justify-center h-full w-full bg-[#0b141a]">
+          <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+        </div>
+      }>
+        {!mode && <PasswordModal onUnlock={handleUnlock} />}
+        {mode === "chat" && <OViiChat onLock={handleLock} />}
+        {mode === "master" && <MasterRoom onLock={handleLock} />}
+      </Suspense>
     </div>
   );
 }
