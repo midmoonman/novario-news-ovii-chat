@@ -1404,7 +1404,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-4 sm:py-2 min-w-[70px]"} text-[14px] sm:text-[15px] leading-relaxed break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
+                                  className={`rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-4 py-2 sm:px-5 sm:py-2.5 min-w-[80px] sm:min-w-[140px]"} text-[14px] sm:text-[15px] leading-relaxed break-words relative flex flex-col shadow-md transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                       : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
@@ -1439,12 +1439,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       </div>
                                     )}
 
-                                      <div className="relative min-w-[60px]">
+                                      <div className="relative overflow-hidden min-w-[60px]">
                                         {m.type === "text" && (
                                           <>
                                             <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                               {m.content}
-                                              <span className="inline-block w-[65px] h-[10px]" />
+                                              {/* Use a larger spacer to ensure ample room for the timestamp */}
+                                              <span className="inline-block w-[90px] h-[5px]" />
                                             </span>
                                             {(() => {
                                               const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -1454,7 +1455,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                               }
                                               return null;
                                             })()}
-                                            <div className="h-3" />
+                                            <div className="h-4 w-full" /> {/* Extra spacing for the status ticks */}
                                           </>
                                         )}
                                       
