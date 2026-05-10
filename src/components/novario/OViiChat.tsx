@@ -408,10 +408,10 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { 
   );
 }
 
-// ─── OViiChat ─────────────────────────────────────────────────────────────────
 export function OViiChat({ onLock }: { onLock: () => void }) {
   const [uid, setUid] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadingText, setUploadingText] = useState("");
   const [inputHeight, setInputHeight] = useState(44);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem("ovii_dark_mode");
@@ -853,6 +853,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (!uid) return;
     if (file.size > 8 * 1024 * 1024) { setError("Image too large (max 8MB)"); return; }
     
+    setUploadingText("Sending photo...");
     setIsUploading(true); // Show loader immediately
     try {
       const url = await uploadToCloudinary(file);
@@ -912,10 +913,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         stream.getTracks().forEach((t) => t.stop());
         if (cancelRecRef.current) return;
         try {
+          setUploadingText("Sending voice note...");
+          setIsUploading(true);
           const blob = new Blob(chunksRef.current, { type: "video/webm" });
           const url = await uploadToCloudinary(blob);
           await send("voice", url);
         } catch (e: any) { setError("Voice upload failed: " + (e.message || "Unknown error")); }
+        finally { setIsUploading(false); }
       };
       recRef.current = rec;
       rec.start();
@@ -995,8 +999,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
   const rootStyle: React.CSSProperties = {
     ...(isMobileDevice() && mobileKeyboardOffset > 0 ? { paddingBottom: mobileKeyboardOffset } : {}),
-    backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='${isDarkMode ? "%23ffffff15" : "%2300000010"}'/%3E%3C/svg%3E")`,
-    backgroundSize: "20px 20px"
+    backgroundImage: `url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M10 10h10v10H10zm20 20h10v10H30zm20 0h10v10H50zm20 20h10v10H70zm20 0h10v10H90z' fill='${isDarkMode ? "%23ffffff05" : "%2300000005"}' fill-rule='evenodd'/%3E%3Cpath d='M5 45q5-5 10 0t10 0 10 0' stroke='${isDarkMode ? "%23ffffff05" : "%2300000005"}' fill='none'/%3E%3Ccircle cx='80' cy='20' r='5' stroke='${isDarkMode ? "%23ffffff05" : "%2300000005"}' fill='none'/%3E%3Crect x='40' y='80' width='15' height='10' rx='2' stroke='${isDarkMode ? "%23ffffff05" : "%2300000005"}' fill='none'/%3E%3Cpath d='M90 90l10 10M100 90l-10 10' stroke='${isDarkMode ? "%23ffffff05" : "%2300000005"}'/%3E%3C/svg%3E")`,
+    backgroundSize: "120px 120px"
   };
 
   return (
@@ -1600,7 +1604,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         className="bg-[#dcf8c6] dark:bg-[#005c4b] p-3 rounded-[20px] rounded-br-none shadow-sm flex items-center gap-3 min-w-[140px]"
                       >
                         <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-                        <span className="text-[12px] font-bold opacity-70">Sending photo...</span>
+                        <span className="text-[12px] font-bold opacity-70">{uploadingText}</span>
                       </motion.div>
                     </div>
                   )}
