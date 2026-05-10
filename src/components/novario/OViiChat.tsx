@@ -1103,6 +1103,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 </div>
               )}
               <button
+                onClick={() => window.location.reload()}
+                className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
+                title="Refresh Chat"
+              >
+                <RotateCw className="w-5 h-5" />
+              </button>
+              <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
                   }`}
