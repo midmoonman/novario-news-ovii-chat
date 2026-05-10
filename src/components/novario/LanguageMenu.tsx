@@ -33,20 +33,20 @@ export function LanguageMenu() {
     if (l) setCurrent(l.region ? `${l.native} · ${l.region}` : l.native);
   }, [lang]);
 
+  const updatePos = () => {
+    if (btnRef.current) {
+      const rect = btnRef.current.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const dropW = Math.min(320, vw - 16);
+      let left = rect.right - dropW;
+      left = Math.max(8, Math.min(left, vw - dropW - 8));
+      setDropdownPos({ top: rect.bottom + 8, left, width: dropW });
+    }
+  };
+
   useEffect(() => {
-    const updatePos = () => {
-      if (open && btnRef.current) {
-        const rect = btnRef.current.getBoundingClientRect();
-        const vw = window.innerWidth;
-        const dropW = Math.min(320, vw - 16);
-        let left = rect.right - dropW;
-        left = Math.max(8, Math.min(left, vw - dropW - 8));
-        setDropdownPos({ top: rect.bottom + 8, left, width: dropW });
-      }
-    };
-    
-    updatePos();
     if (open) {
+      updatePos(); // just in case
       window.addEventListener("scroll", updatePos, true);
       window.addEventListener("resize", updatePos);
     }
@@ -56,6 +56,12 @@ export function LanguageMenu() {
     };
   }, [open]);
 
+  const handleToggle = () => {
+    if (!open) {
+      updatePos();
+    }
+    setOpen((o) => !o);
+  };
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -83,7 +89,7 @@ export function LanguageMenu() {
     <>
       <button
         ref={btnRef}
-        onClick={() => setOpen((o) => !o)}
+        onClick={handleToggle}
         className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs hover:border-primary/50 transition-colors"
         aria-label="Choose language"
       >
