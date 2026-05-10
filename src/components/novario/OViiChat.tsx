@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
@@ -1325,23 +1325,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
 
               {/* App Notifications */}
-              <div className="absolute top-[60px] left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 pointer-events-none w-full max-w-[300px]">
+              <div className="absolute top-[75px] left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 pointer-events-none w-full max-w-[320px]">
                 <AnimatePresence mode="popLayout">
                   {appNotifications.map((n) => (
                     <motion.div
                       key={n.id}
-                      initial={{ opacity: 0, scale: 0.9, y: -20 }}
+                      initial={{ opacity: 0, scale: 0.8, y: -20 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.9, y: -20 }}
-                      className={`px-4 py-2 rounded-2xl backdrop-blur-xl shadow-2xl border flex items-center gap-2 pointer-events-auto text-xs font-bold ${
-                        n.type === "success" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" :
-                        n.type === "error" ? "bg-red-500/20 text-red-300 border-red-500/30" :
-                        "bg-primary/20 text-primary border-primary/30"
+                      exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                      className={`px-5 py-3 rounded-[24px] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] border flex items-center gap-3 pointer-events-auto text-[13px] font-black tracking-tight transition-all ${
+                        n.type === "success" ? "bg-[#00a884] text-white border-white/20 shadow-[#00a884]/20" :
+                        n.type === "error" ? "bg-[#ea4335] text-white border-white/20 shadow-red-500/20" :
+                        "bg-[#005c4b] text-white border-white/20 shadow-primary/20"
                       }`}
                     >
-                      {n.type === "success" && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
-                      {n.type === "error" && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
-                      {n.message}
+                      {n.type === "success" && <CheckCircle2 className="w-4 h-4 shrink-0" />}
+                      {n.type === "error" && <AlertCircle className="w-4 h-4 shrink-0" />}
+                      {n.type === "info" && <Info className="w-4 h-4 shrink-0" />}
+                      <span>{n.message}</span>
                     </motion.div>
                   ))}
                 </AnimatePresence>
