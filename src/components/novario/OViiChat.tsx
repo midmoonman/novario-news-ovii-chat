@@ -1137,7 +1137,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className={`absolute right-0 mt-2 w-64 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden border transition-all ${
+                      className={`absolute right-0 mt-2 w-64 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden border ${
                         isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
                         }`}
                     >
@@ -1658,7 +1658,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                           }
                         }}
-                        className={`flex-1 bg-transparent px-4 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words transition-[height] duration-150 ease-out ${isDarkMode ? "text-white" : "text-black"
+                        className={`flex-1 bg-transparent px-4 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
                           }`}
                         style={{ height: `${inputHeight}px` }}
                       />
