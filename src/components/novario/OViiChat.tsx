@@ -1382,13 +1382,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </div>
 
                             {!mine && (
-                              <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                              <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
                                 {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
                               </div>
                             )}
 
-                            <div className={`flex-1 min-w-0 ${mine ? "items-end" : "items-start"} flex flex-col gap-0.5`}>
-                              {!mine && !isConsecutive && m.name && <span className="text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
+                            <div className={`flex-1 min-w-0 ${mine ? "items-end" : "items-start"} flex flex-col gap-[2px] md:gap-0.5`}>
+                              {!mine && !isConsecutive && m.name && <span className="hidden md:inline-block text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
 
                               {m.replyTo && (
                                 <div className="bg-m3-surface-container-high/50 px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden">
@@ -1404,13 +1404,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-4 py-2 sm:px-5 sm:py-2.5 min-w-[80px] sm:min-w-[140px]"} text-[14px] sm:text-[15px] leading-relaxed break-words relative flex flex-col shadow-md transition-all w-fit max-w-full
+                                  className={`md:rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px]" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px]"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col shadow-sm md:shadow-md transition-all w-fit max-w-full
                                 ${mine
-                                      ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
-                                      : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
+                                      ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-sm md:rounded-br-none" : "")
+                                      : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-sm md:rounded-bl-none" : "")
                                     }`}
                                 >
                                   <div className="relative flex flex-col">
+                                    {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold text-[#eb5528] dark:text-[#f28b82] mb-0.5 leading-tight">{m.name}</span>}
                                     {m.type === "image" && (
                                       <div className="mb-0 overflow-hidden rounded-[18px] relative group/img cursor-pointer active:scale-[0.99] transition-transform" onClick={() => setSelectedImage(m.content)}>
                                         <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]" />
@@ -1480,7 +1481,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </div>
 
                             {mine && (
-                              <div className="flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                              <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
                                 {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
                               </div>
                             )}
