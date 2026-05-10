@@ -10,6 +10,90 @@ import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
+// ─── Link Preview ────────────────────────────────────────────────────────────
+const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
+  const [preview, setPreview] = useState<{ title?: string; description?: string; image?: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    const fetchMetadata = async () => {
+      try {
+        const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
+        const res = await fetch(proxy);
+        if (!res.ok) throw new Error("Fetch failed");
+        const html = await res.text();
+        
+        if (!alive) return;
+
+        const getMeta = (prop: string) => {
+           const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["'](?:og:|twitter:)?${prop}["'][^>]+content=["']([^"']+)["']`, 'i'))
+             || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:|twitter:)?${prop}["']`, 'i'));
+           return match?.[1] || "";
+        };
+
+        const title = (getMeta("title") || html.match(/<title>([^<]+)<\/title>/i)?.[1] || "").trim();
+        const description = (getMeta("description") || "").trim();
+        const image = getMeta("image");
+
+        if (title || description || image) {
+          setPreview({ title, description, image });
+        }
+      } catch (e) {
+        // Silently fail for previews
+      } finally {
+        if (alive) setLoading(false);
+      }
+    };
+    fetchMetadata();
+    return () => { alive = false; };
+  }, [url]);
+
+  if (loading) return (
+    <div className={`mt-2 rounded-xl p-2 border animate-pulse flex gap-3 ${isDarkMode ? "bg-black/20 border-white/5" : "bg-black/5 border-black/5"}`}>
+      <div className="w-12 h-12 rounded-lg bg-muted/40 shrink-0" />
+      <div className="flex-1 space-y-2">
+        <div className="h-3 w-3/4 bg-muted/40 rounded" />
+        <div className="h-2 w-full bg-muted/40 rounded" />
+      </div>
+    </div>
+  );
+  if (!preview) return null;
+
+  return (
+    <motion.a 
+      initial={{ opacity: 0, y: 5 }}
+      animate={{ opacity: 1, y: 0 }}
+      href={url} 
+      target="_blank" 
+      rel="noopener noreferrer" 
+      className={`block mt-2 rounded-xl overflow-hidden border transition-all hover:brightness-110 active:scale-[0.98] group/link ${
+        isDarkMode ? "bg-[#0b141a]/60 border-white/5" : "bg-black/5 border-black/10"
+      } no-underline`}
+    >
+       {preview.image && (
+         <div className="relative aspect-[1.91/1] overflow-hidden">
+           <img src={preview.image} alt="" className="w-full h-full object-cover transition-transform group-hover/link:scale-105" />
+           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/link:opacity-100 transition-opacity" />
+         </div>
+       )}
+       <div className="p-2.5">
+         <div className={`text-[12px] font-bold truncate leading-tight ${isDarkMode ? "text-[#e9edef]" : "text-[#111b21]"}`}>{preview.title || "Link"}</div>
+         {preview.description && <div className={`text-[10px] line-clamp-2 mt-1 opacity-70 leading-normal ${isDarkMode ? "text-white" : "text-black"}`}>{preview.description}</div>}
+         <div className="flex items-center gap-1 mt-2 opacity-40">
+           <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+           <span className="text-[9px] font-bold uppercase tracking-widest truncate">
+             {(() => {
+               try { return new URL(url).hostname; }
+               catch { return "Link"; }
+             })()}
+           </span>
+         </div>
+       </div>
+    </motion.a>
+  );
+};
+
 type Msg = {
   id: string;
   uid: string;
@@ -38,32 +122,71 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [speed, setSpeed] = useState<1 | 1.5 | 2>(1);
+  const [hasError, setHasError] = useState(false);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (!containerRef.current) return;
-    const ws = WaveSurfer.create({
-      container: containerRef.current,
-      waveColor: isDarkMode ? "#3b4a54" : "#d1d7db",
-      progressColor: isDarkMode ? "#34b7f1" : "#34b7f1",
-      cursorWidth: 0,
-      barWidth: 2,
-      barGap: 3,
-      barRadius: 4,
-      height: 32,
-      normalize: true,
+    
+    // WaveSurfer needs a bit of time to ensure container has dimensions
+    let ws: WaveSurfer | null = null;
+    
+    const init = () => {
+      try {
+        ws = WaveSurfer.create({
+          container: containerRef.current!,
+          waveColor: isDarkMode ? "#3b4a54" : "#d1d7db",
+          progressColor: isDarkMode ? "#34b7f1" : "#34b7f1",
+          cursorWidth: 0,
+          barWidth: 2,
+          barGap: 3,
+          barRadius: 4,
+          height: 32,
+          normalize: true,
+          interact: true,
+          hideScrollbar: true,
+        });
+
+        ws.on("ready", () => {
+          setDuration(ws!.getDuration());
+          setIsReady(true);
+          setHasError(false);
+        });
+        
+        ws.on("audioprocess", () => setCurrentTime(ws!.getCurrentTime()));
+        ws.on("finish", () => { setPlaying(false); setCurrentTime(ws!.getDuration()); });
+        ws.on("error", (err) => {
+          console.error("WaveSurfer error:", err);
+          setHasError(true);
+        });
+
+        ws.load(src);
+        waveRef.current = ws;
+      } catch (err) {
+        console.error("WaveSurfer init error:", err);
+        setHasError(true);
+      }
+    };
+
+    // Use ResizeObserver to handle container size changes which can cause blank canvas
+    const observer = new ResizeObserver(() => {
+      if (ws && isReady) {
+        // WaveSurfer 7 handles resize automatically but we can trigger redraw if needed
+      }
     });
-    ws.load(src);
-    waveRef.current = ws;
-    ws.on("ready", () => setDuration(ws.getDuration()));
-    ws.on("audioprocess", () => setCurrentTime(ws.getCurrentTime()));
-    ws.on("finish", () => { setPlaying(false); setCurrentTime(ws.getDuration()); });
+    observer.observe(containerRef.current);
+
+    init();
+
     const stopOthers = (e: any) => {
-      if (e.detail !== id && ws.isPlaying()) { ws.pause(); setPlaying(false); }
+      if (e.detail !== id && ws?.isPlaying()) { ws.pause(); setPlaying(false); }
     };
     window.addEventListener(STOP_AUDIO_EVENT, stopOthers);
+    
     return () => {
       window.removeEventListener(STOP_AUDIO_EVENT, stopOthers);
-      ws.destroy();
+      observer.disconnect();
+      if (ws) ws.destroy();
     };
   }, [src, id, isDarkMode]);
 
@@ -114,11 +237,27 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
       </div>
 
       <div className="flex-1 min-w-0 flex flex-col gap-1">
-        <div
-          className="w-full opacity-100"
-          style={{ height: 32, overflow: "hidden" }}
-          ref={containerRef}
-        />
+        <div className="relative w-full" style={{ height: 32 }}>
+          <div
+            className={`w-full transition-opacity duration-300 ${isReady ? "opacity-100" : "opacity-0"}`}
+            style={{ height: 32, overflow: "hidden" }}
+            ref={containerRef}
+          />
+          {!isReady && !hasError && (
+            <div className="absolute inset-0 flex items-center justify-start">
+               <div className="w-full flex items-center gap-1 h-full opacity-20">
+                 {[...Array(20)].map((_, i) => (
+                   <div key={i} className={`flex-1 bg-current rounded-full`} style={{ height: `${Math.random() * 60 + 20}%` }} />
+                 ))}
+               </div>
+            </div>
+          )}
+          {hasError && (
+            <div className="absolute inset-0 flex items-center justify-start text-[10px] opacity-40 italic">
+               Failed to load waveform
+            </div>
+          )}
+        </div>
         <div className="flex items-center justify-between px-0.5 mt-1.5 gap-2">
           <div className="flex items-center gap-2 min-w-0 opacity-60">
             <span className="text-[10px] font-normal tabular-nums whitespace-nowrap">
@@ -1282,11 +1421,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                     <div className="relative overflow-hidden min-w-[60px]">
                                       {m.type === "text" && (
-                                        <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
-                                          {m.content}
-                                          {/* Use a larger spacer to ensure ample room for the timestamp */}
-                                          <span className="inline-block w-[90px] h-[5px]" />
-                                        </span>
+                                        <>
+                                          <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
+                                            {m.content}
+                                            {/* Use a larger spacer to ensure ample room for the timestamp */}
+                                            <span className="inline-block w-[90px] h-[5px]" />
+                                          </span>
+                                          {(() => {
+                                            const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                            const match = m.content.match(urlRegex);
+                                            if (match) {
+                                              return <LinkPreview url={match[0]} isDarkMode={isDarkMode} />;
+                                            }
+                                            return null;
+                                          })()}
+                                        </>
                                       )}
                                       
                                       {/* Timestamp: absolute for image, relative for text */}
