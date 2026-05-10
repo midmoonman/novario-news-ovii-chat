@@ -1789,7 +1789,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </div>
                   </>
                 )}
-              </div>
+                </>
+              )}
+            </div>
             </div>
 
             {/* ── Desktop Sidebar (hidden on mobile via CSS/Tailwind) ── */}
