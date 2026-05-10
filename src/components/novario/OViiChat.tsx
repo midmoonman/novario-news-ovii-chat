@@ -422,6 +422,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [recDuration, setRecDuration] = useState(0);
   const recTimerRef = useRef<any>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [isFrozen, setIsFrozen] = useState(false);
+  const [isKicked, setIsKicked] = useState(false);
 
   useEffect(() => {
     localStorage.setItem("ovii_dark_mode", String(isDarkMode));
@@ -655,9 +657,31 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           }
         });
 
+        // ── Master Room Control Listeners ──────────────────────────────────────────
+        // 1. Watch for global freeze
+        const unsubSettings = onSnapshot(doc(db, "ovii", ROOM, "settings", "global"), (d) => {
+          if (d.exists()) {
+            setIsFrozen(!!d.data().frozen);
+          }
+        });
+
+        // 2. Watch for forced logout (kick) on our specific presence doc
+        const unsubKick = onSnapshot(doc(db, "ovii", ROOM, "presence", u.uid), (d) => {
+          if (d.exists() && d.data().forceLogout) {
+            setIsKicked(true);
+            // Delay logout slightly so user sees what happened
+            setTimeout(() => {
+              onLock();
+              window.location.href = "/news";
+            }, 3000);
+          }
+        });
+
         return () => {
           if (heartbeatId) clearInterval(heartbeatId);
           unsubPresence();
+          unsubSettings();
+          unsubKick();
           deleteDoc(doc(db, "ovii", ROOM, "presence", u.uid)).catch(() => { });
         };
       } catch (e: unknown) {
@@ -1053,6 +1077,25 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         </AnimatePresence>
 
 
+          {/* ── Kick Overlay ── */}
+          <AnimatePresence>
+            {isKicked && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="absolute inset-0 z-[300] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6 text-center"
+              >
+                <div className="max-w-xs">
+                  <div className="w-20 h-20 bg-destructive/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <ShieldOff className="w-10 h-10 text-destructive" />
+                  </div>
+                  <h2 className="text-2xl font-black text-white mb-2 uppercase tracking-tight">Session Terminated</h2>
+                  <p className="text-white/60 text-sm font-medium">Your session has been closed by the Master Room. You are being redirected...</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* ── Header ── */}
           <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 ${
             isDarkMode 
@@ -1102,13 +1145,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   <span>No Lock: {Math.ceil((noLockUntil - Date.now()) / 60000)}m left</span>
                 </div>
               )}
-              <button
-                onClick={() => window.location.replace(window.location.pathname)}
-                className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
-                title="Refresh Chat"
-              >
-                <RotateCw className="w-5 h-5" />
-              </button>
               <button
                 onClick={() => setIsDarkMode(!isDarkMode)}
                 className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
@@ -1594,7 +1630,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               {/* Input bar */}
               <div className={`px-2 py-2 sm:px-4 sm:py-3 pb-safe flex items-center gap-2 sm:gap-3 z-20 shrink-0 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
                 }`}>
-                <input
+                {isFrozen ? (
+                  <div className={`flex-1 flex items-center justify-center gap-3 rounded-[28px] px-4 h-[54px] overflow-hidden border ${
+                    isDarkMode ? "bg-[#2a3942] border-destructive/20" : "bg-white border-destructive/20"
+                  }`}>
+                    <Clock className="w-5 h-5 text-destructive animate-pulse" />
+                    <span className="text-xs font-bold text-destructive uppercase tracking-widest">
+                      Chat is temporarily frozen
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    <input
                   ref={fileRef}
                   type="file"
                   accept="image/*,.gif"

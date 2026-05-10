@@ -4,6 +4,7 @@ import { PasswordModal } from "@/components/novario/PasswordModal";
 
 // Lazy load chat to keep initial bundle small
 const OViiChat = lazy(() => import("@/components/novario/OViiChat").then(m => ({ default: m.OViiChat })));
+const MasterRoom = lazy(() => import("@/components/novario/MasterRoom").then(m => ({ default: m.MasterRoom })));
 
 export const Route = createFileRoute("/ovii")({
   head: () => ({
@@ -18,11 +19,14 @@ export const Route = createFileRoute("/ovii")({
 });
 
 function OViiPage() {
-  const [unlocked, setUnlocked] = useState(() => {
+  const [mode, setMode] = useState<"chat" | "master" | null>(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("ovii_unlocked") === "true";
+      const isChat = localStorage.getItem("ovii_unlocked") === "true";
+      const isMaster = localStorage.getItem("ovii_master_unlocked") === "true";
+      if (isMaster) return "master";
+      if (isChat) return "chat";
     }
-    return false;
+    return null;
   });
 
   useEffect(() => {
@@ -41,26 +45,37 @@ function OViiPage() {
     };
   }, []);
 
-  const handleUnlock = () => {
-    setUnlocked(true);
-    localStorage.setItem("ovii_unlocked", "true");
+  const handleUnlock = (newMode: "chat" | "master") => {
+    setMode(newMode);
+    if (newMode === "chat") localStorage.setItem("ovii_unlocked", "true");
+    if (newMode === "master") localStorage.setItem("ovii_master_unlocked", "true");
   };
 
   const handleLock = () => {
-    setUnlocked(false);
+    setMode(null);
     localStorage.removeItem("ovii_unlocked");
+    localStorage.removeItem("ovii_master_unlocked");
   };
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background" style={{ position: 'fixed', inset: 0 }}>
-      {!unlocked && <PasswordModal onUnlock={handleUnlock} />}
-      {unlocked && (
+      {!mode && <PasswordModal onUnlock={handleUnlock} />}
+      {mode === "chat" && (
         <Suspense fallback={
           <div className="flex items-center justify-center h-full w-full bg-[#0b141a]">
             <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           </div>
         }>
           <OViiChat onLock={handleLock} />
+        </Suspense>
+      )}
+      {mode === "master" && (
+        <Suspense fallback={
+          <div className="flex items-center justify-center h-full w-full bg-[#0b141a]">
+            <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+          </div>
+        }>
+          <MasterRoom onLock={handleLock} />
         </Suspense>
       )}
     </div>
