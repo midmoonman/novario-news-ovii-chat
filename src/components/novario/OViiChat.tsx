@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone } from "lucide-react";
 import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
@@ -623,6 +623,51 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           setRecordingUsers(r);
           setCount(currentOnline.length);
         });
+
+  const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
+
+  const renderMessageContent = (content: string) => {
+    if (!content) return null;
+    // Regex for URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    // Regex for phone numbers (5+ digits, optionally starting with +)
+    const phoneRegex = /(\+?\d{5,15})/g;
+
+    const parts = content.split(/((?:https?:\/\/[^\s]+)|(?:\+?\d{5,15}))/g);
+
+    return parts.map((part, i) => {
+      if (!part) return null;
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-primary hover:brightness-110 break-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      if (part.match(phoneRegex)) {
+        return (
+          <span
+            key={i}
+            className="underline font-bold cursor-pointer text-primary hover:brightness-110"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedPhone(part);
+            }}
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
 
         const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "asc"));
         unsubMsgs = onSnapshot(q, { includeMetadataChanges: true }, (s) => {
@@ -1444,7 +1489,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                         {m.type === "text" && (
                                           <>
                                             <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
-                                              {m.content}
+                                              {renderMessageContent(m.content)}
                                               {/* Spacer to reserve room for absolute timestamp on the same line */}
                                               <span className={`inline-block h-[1px] ${mine ? "w-[85px]" : "w-[65px]"}`} />
                                             </span>
@@ -1825,6 +1870,73 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* ── Phone Action Modal ── */}
+      <AnimatePresence>
+        {selectedPhone && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+              onClick={() => setSelectedPhone(null)}
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className={`relative w-full max-w-[280px] rounded-[32px] overflow-hidden shadow-2xl border ${
+                isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
+              }`}
+            >
+              <div className="p-6 text-center">
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+                  <Phone className="w-6 h-6 text-primary" />
+                </div>
+                <h3 className={`text-lg font-bold mb-1 ${isDarkMode ? "text-white" : "text-black"}`}>
+                  {selectedPhone}
+                </h3>
+                <p className="text-xs opacity-50 mb-6 font-medium">Phone Number</p>
+                
+                <div className="space-y-2">
+                  <a
+                    href={`tel:${selectedPhone}`}
+                    onClick={() => setSelectedPhone(null)}
+                    className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm transition-all active:scale-95 shadow-lg shadow-primary/20"
+                  >
+                    Dial the number
+                  </a>
+                  <button
+                    onClick={() => {
+                      const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:New Contact\nTEL;TYPE=CELL:${selectedPhone}\nEND:VCARD`;
+                      const blob = new Blob([vcard], { type: 'text/vcard' });
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `contact_${selectedPhone}.vcf`;
+                      a.click();
+                      setSelectedPhone(null);
+                      toast.success("Contact file created!");
+                    }}
+                    className={`w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 border ${
+                      isDarkMode ? "bg-white/5 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"
+                    }`}
+                  >
+                    Add to contact
+                  </button>
+                  <button
+                    onClick={() => setSelectedPhone(null)}
+                    className="w-full py-3 text-xs opacity-50 font-bold uppercase tracking-widest hover:opacity-100"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </AnimatePresence>
