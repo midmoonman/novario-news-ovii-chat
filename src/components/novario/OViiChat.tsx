@@ -1446,7 +1446,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                             <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                               {m.content}
                                               {/* Spacer to reserve room for absolute timestamp on the same line */}
-                                              <span className="inline-block w-[65px] h-[1px]" />
+                                              <span className={`inline-block h-[1px] ${mine ? "w-[85px]" : "w-[65px]"}`} />
                                             </span>
                                             {(() => {
                                               const urlRegex = /(https?:\/\/[^\s]+)/g;
