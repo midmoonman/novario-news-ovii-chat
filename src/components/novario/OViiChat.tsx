@@ -7,7 +7,6 @@ import {
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
 import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone } from "lucide-react";
-import { Toaster, toast } from "sonner";
 import WaveSurfer from "wavesurfer.js";
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
@@ -455,6 +454,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [inputName, setInputName] = useState(name);
 
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
+  const [appNotifications, setAppNotifications] = useState<{ id: string, message: string, type: "success" | "error" | "info" }[]>([]);
+
+  const addNotification = (message: string, type: "success" | "error" | "info" = "info") => {
+    const id = Math.random().toString(36).substring(2, 9);
+    setAppNotifications(prev => [...prev, { id, message, type }]);
+    setTimeout(() => {
+      setAppNotifications(prev => prev.filter(n => n.id !== id));
+    }, 3000);
+  };
 
   const renderMessageContent = (content: string) => {
     if (!content) return null;
@@ -863,10 +871,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       const snapshot = await getDocs(q);
       const batch = snapshot.docs.map(d => deleteDoc(doc(db, "ovii", ROOM, "messages", d.id)));
       await Promise.all(batch);
-      toast.success("Chat cleared");
+      addNotification("Chat cleared", "success");
       setShowMenu(false);
     } catch (e) {
-      toast.error("Failed to clear chat");
+      addNotification("Failed to clear chat", "error");
     }
   };
 
@@ -964,7 +972,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       a.download = `${type}-${id.slice(0, 8)}.${ext}`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
-      toast.success("Download started");
+      addNotification("Download started", "success");
     } catch { window.open(url, "_blank"); }
   };
 
@@ -1011,7 +1019,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
         >
-          <Toaster position="top-center" />
+          {/* No Toaster needed anymore */}
 
 
         {/* ── Avatar Picker Overlay ── */}
@@ -1058,7 +1066,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             localStorage.setItem("ovii-avatar-choice", av.url);
                             localStorage.setItem("ovii-name", inputName.trim());
                             setShowAvatarPicker(false);
-                            toast.success("Profile updated");
+                            addNotification("Profile updated", "success");
                           }}
                           className={`rounded-full overflow-hidden border-2 transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${
                             avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : "border-transparent hover:border-white/30"
@@ -1257,7 +1265,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   localStorage.setItem("ovii_no_lock_until", until.toString());
                                   setShowMenu(false);
                                   setShowNoLockSubmenu(false);
-                                  toast.success(`No Lock enabled for ${d.label}`);
+                                  addNotification(`No Lock enabled for ${d.label}`, "success");
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/80" : "hover:bg-black/5 text-black/70"
                                   }`}
@@ -1273,7 +1281,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   localStorage.removeItem("ovii_no_lock_until");
                                   setShowMenu(false);
                                   setShowNoLockSubmenu(false);
-                                  toast.info("No Lock disabled");
+                                  addNotification("No Lock disabled", "info");
                                 }}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-destructive hover:bg-destructive/5 transition-colors"
                               >
@@ -1315,6 +1323,29 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
             {/* ── Messages column ── */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+
+              {/* App Notifications */}
+              <div className="absolute top-[60px] left-1/2 -translate-x-1/2 z-[100] flex flex-col items-center gap-2 pointer-events-none w-full max-w-[300px]">
+                <AnimatePresence mode="popLayout">
+                  {appNotifications.map((n) => (
+                    <motion.div
+                      key={n.id}
+                      initial={{ opacity: 0, scale: 0.9, y: -20 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.9, y: -20 }}
+                      className={`px-4 py-2 rounded-2xl backdrop-blur-xl shadow-2xl border flex items-center gap-2 pointer-events-auto text-xs font-bold ${
+                        n.type === "success" ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" :
+                        n.type === "error" ? "bg-red-500/20 text-red-300 border-red-500/30" :
+                        "bg-primary/20 text-primary border-primary/30"
+                      }`}
+                    >
+                      {n.type === "success" && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />}
+                      {n.type === "error" && <div className="w-1.5 h-1.5 rounded-full bg-red-500" />}
+                      {n.message}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
 
               {/* Floating join/leave toasts */}
               <AnimatePresence>
@@ -1911,24 +1942,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   >
                     Dial the number
                   </a>
-                  <button
-                    onClick={() => {
-                      const vcard = `BEGIN:VCARD\nVERSION:3.0\nFN:New Contact\nTEL;TYPE=CELL:${selectedPhone}\nEND:VCARD`;
-                      const blob = new Blob([vcard], { type: 'text/vcard' });
-                      const url = window.URL.createObjectURL(blob);
-                      const a = document.createElement('a');
-                      a.href = url;
-                      a.download = `contact_${selectedPhone}.vcf`;
-                      a.click();
-                      setSelectedPhone(null);
-                      toast.success("Contact file created!");
-                    }}
-                    className={`w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 border ${
-                      isDarkMode ? "bg-white/5 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"
-                    }`}
-                  >
-                    Add to contact
-                  </button>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(selectedPhone || "");
+                        addNotification("Number copied!", "success");
+                        setSelectedPhone(null);
+                      }}
+                      className={`w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 border ${
+                        isDarkMode ? "bg-white/5 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"
+                      }`}
+                    >
+                      Copy number
+                    </button>
                   <button
                     onClick={() => setSelectedPhone(null)}
                     className="w-full py-3 text-xs opacity-50 font-bold uppercase tracking-widest hover:opacity-100"
