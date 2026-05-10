@@ -83,9 +83,9 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
       href={url} 
       target="_blank" 
       rel="noopener noreferrer" 
-      className={`block mt-2 mb-6 rounded-xl overflow-hidden border transition-all hover:brightness-110 active:scale-[0.98] group/link ${
+      className={`block mt-2 mb-1 rounded-xl overflow-hidden border transition-all hover:brightness-110 active:scale-[0.98] group/link ${
         isDarkMode ? "bg-[#0b141a]/60 border-white/5" : "bg-black/5 border-black/10"
-      } no-underline`}
+      } no-underline max-w-[280px] sm:max-w-[320px]`}
     >
        {preview.image && (
          <div className="relative aspect-[1.91/1] overflow-hidden">
@@ -1450,7 +1450,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
                               ) : (
                                 <div
-                                  className={`rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-4 py-2 sm:px-5 sm:py-2.5 min-w-[80px] sm:min-w-[140px]"} text-[14px] sm:text-[15px] leading-relaxed break-words relative flex flex-col shadow-md transition-all w-fit max-w-full
+                                  className={`rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden" : "px-3 py-1.5 sm:px-4 sm:py-2 min-w-[70px]"} text-[14px] sm:text-[15px] leading-relaxed break-words relative flex flex-col shadow-sm transition-all w-fit max-w-full
                                 ${mine
                                       ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-none" : "")
                                       : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-none" : "")
@@ -1485,25 +1485,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       </div>
                                     )}
 
-                                    <div className="relative overflow-hidden min-w-[60px]">
-                                      {m.type === "text" && (
-                                        <>
-                                          <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
-                                            {m.content}
-                                            {/* Use a larger spacer to ensure ample room for the timestamp */}
-                                            <span className="inline-block w-[90px] h-[5px]" />
-                                          </span>
-                                          {(() => {
-                                            const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                            const match = m.content.match(urlRegex);
-                                            if (match) {
-                                              return <LinkPreview url={match[0]} isDarkMode={isDarkMode} />;
-                                            }
-                                            return null;
-                                          })()}
-                                          <div className="h-4 w-full" /> {/* Extra spacing for the status ticks */}
-                                        </>
-                                      )}
+                                      <div className="relative min-w-[60px]">
+                                        {m.type === "text" && (
+                                          <>
+                                            <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
+                                              {m.content}
+                                              <span className="inline-block w-[60px] h-[1px]" />
+                                            </span>
+                                            {(() => {
+                                              const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                              const match = m.content.match(urlRegex);
+                                              if (match) {
+                                                return <LinkPreview url={match[0]} isDarkMode={isDarkMode} />;
+                                              }
+                                              return null;
+                                            })()}
+                                            <div className="h-3" />
+                                          </>
+                                        )}
                                       
                                       {/* Timestamp: absolute for image, relative for text */}
                                       <div className={`${m.type === "image" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
