@@ -18,7 +18,12 @@ export const Route = createFileRoute("/ovii")({
 });
 
 function OViiPage() {
-  const [unlocked, setUnlocked] = useState(false);
+  const [unlocked, setUnlocked] = useState(() => {
+    if (typeof window !== "undefined") {
+      return sessionStorage.getItem("ovii_unlocked") === "true";
+    }
+    return false;
+  });
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -36,16 +41,26 @@ function OViiPage() {
     };
   }, []);
 
+  const handleUnlock = () => {
+    setUnlocked(true);
+    sessionStorage.setItem("ovii_unlocked", "true");
+  };
+
+  const handleLock = () => {
+    setUnlocked(false);
+    sessionStorage.removeItem("ovii_unlocked");
+  };
+
   return (
     <div className="h-screen w-screen overflow-hidden bg-background" style={{ position: 'fixed', inset: 0 }}>
-      {!unlocked && <PasswordModal onUnlock={() => setUnlocked(true)} />}
+      {!unlocked && <PasswordModal onUnlock={handleUnlock} />}
       {unlocked && (
         <Suspense fallback={
           <div className="flex items-center justify-center h-full w-full bg-[#0b141a]">
             <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           </div>
         }>
-          <OViiChat onLock={() => setUnlocked(false)} />
+          <OViiChat onLock={handleLock} />
         </Suspense>
       )}
     </div>

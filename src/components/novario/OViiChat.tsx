@@ -1103,7 +1103,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 </div>
               )}
               <button
-                onClick={() => window.location.reload()}
+                onClick={() => window.location.replace(window.location.pathname)}
                 className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
                 title="Refresh Chat"
               >
