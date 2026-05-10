@@ -455,6 +455,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [appNotifications, setAppNotifications] = useState<{ id: string, message: string, type: "success" | "error" | "info" }[]>([]);
+  const [particles] = useState(() => Array.from({ length: 12 }).map((_, i) => ({
+    id: i,
+    left: Math.random() * 100,
+    top: Math.random() * 100,
+    size: Math.random() * 2 + 1,
+    duration: Math.random() * 20 + 15,
+    delay: Math.random() * 10
+  })));
 
   const addNotification = (message: string, type: "success" | "error" | "info" = "info") => {
     const id = Math.random().toString(36).substring(2, 9);
@@ -1013,6 +1021,32 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center bg-[#0b141a]/95 backdrop-blur-3xl transition-colors duration-300 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"}`}
         style={rootStyle}
       >
+        {/* Magical Atmosphere Layer */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
+          {particles.map(p => (
+            <motion.div
+              key={p.id}
+              className={`absolute rounded-full ${isDarkMode ? 'bg-white/20' : 'bg-primary/30'}`}
+              style={{
+                left: `${p.left}%`,
+                top: `${p.top}%`,
+                width: p.size,
+                height: p.size,
+              }}
+              animate={{
+                y: [0, -150, 0],
+                x: [0, 50, 0],
+                opacity: [0.1, 0.4, 0.1],
+              }}
+              transition={{
+                duration: p.duration,
+                repeat: Infinity,
+                delay: p.delay,
+                ease: "easeInOut"
+              }}
+            />
+          ))}
+        </div>
         <motion.div
           key="ovii-chat-frame"
           initial={{ opacity: 0, scale: 0.9, y: 30 }}
@@ -1123,7 +1157,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             }`}>
             <div className="flex items-center gap-3">
               <div 
-                className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all active:scale-95"
+                className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all active:scale-95 relative"
                 onClick={() => {
                   if (!otherAvatar) {
                     setShowAvatarPicker(true);
@@ -1136,6 +1170,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 ) : avatar ? (
                   <img src={avatar} alt="" className="w-full h-full object-cover" />
                 ) : null}
+                <motion.div 
+                  animate={{ scale: [1, 1.3, 1], opacity: [0, 0.2, 0] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                  className="absolute inset-0 bg-primary rounded-full pointer-events-none"
+                />
               </div>
               <div>
                 <div className="font-bold text-[14px] leading-tight">
@@ -1399,15 +1438,22 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </div>
                 )}
                 {!error && !isLoading && chatMsgs.length === 0 && (
-                  <div className="h-full flex items-center justify-center text-center text-muted-foreground text-sm my-auto">
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8 my-auto">
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="w-24 h-24 mb-6 relative"
                     >
-                      <div className="text-5xl mb-4 grayscale opacity-40">💬</div>
-                      <div className="font-bold text-lg mb-1">No messages yet</div>
-                      <div className="text-xs opacity-60">Send a message to start the conversation</div>
+                      <div className="absolute inset-0 bg-primary/10 rounded-full animate-ping" />
+                      <div className="absolute inset-4 bg-primary/20 rounded-full animate-pulse" />
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <Send className="w-10 h-10 text-primary/40 rotate-[-20deg]" />
+                      </div>
                     </motion.div>
+                    <h3 className="text-lg font-bold mb-2 opacity-80">Start a Magical Conversation</h3>
+                    <p className="text-[11px] opacity-50 max-w-[200px] leading-relaxed font-medium">
+                      Your messages are private and will disappear like stardust after a few days.
+                    </p>
                   </div>
                 )}
 
@@ -1424,7 +1470,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <motion.div
                           key={m.id}
                           layout
-                          initial={{ opacity: 0, y: 20, scale: 0.8, originX: mine ? 1 : 0 }}
+                          initial={{ opacity: 0, y: 20, scale: 0.7, originX: mine ? 1 : 0 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.5 }}
                           transition={{ 
