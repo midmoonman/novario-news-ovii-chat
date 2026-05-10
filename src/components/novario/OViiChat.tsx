@@ -454,6 +454,53 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [showAvatarPicker, setShowAvatarPicker] = useState(!isReturning);
   const [inputName, setInputName] = useState(name);
 
+  const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
+
+  const renderMessageContent = (content: string) => {
+    if (!content) return null;
+    // Regex for URLs
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    // Regex for phone numbers (5+ digits, optionally starting with +)
+    const phoneRegex = /(\+?\d{5,15})/g;
+
+    const parts = content.split(/((?:https?:\/\/[^\s]+)|(?:\+?\d{5,15}))/g);
+
+    return parts.map((part, i) => {
+      if (!part) return null;
+      if (part.match(urlRegex)) {
+        return (
+          <a
+            key={i}
+            href={part}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline text-[#25d366] hover:brightness-110 break-all"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {part}
+          </a>
+        );
+      }
+      if (part.match(phoneRegex)) {
+        return (
+          <span
+            key={i}
+            className="underline font-bold cursor-pointer text-[#25d366] hover:brightness-110"
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedPhone(part);
+            }}
+          >
+            {part}
+          </span>
+        );
+      }
+      return part;
+    });
+  };
+
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
@@ -623,51 +670,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           setRecordingUsers(r);
           setCount(currentOnline.length);
         });
-
-  const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
-
-  const renderMessageContent = (content: string) => {
-    if (!content) return null;
-    // Regex for URLs
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    // Regex for phone numbers (5+ digits, optionally starting with +)
-    const phoneRegex = /(\+?\d{5,15})/g;
-
-    const parts = content.split(/((?:https?:\/\/[^\s]+)|(?:\+?\d{5,15}))/g);
-
-    return parts.map((part, i) => {
-      if (!part) return null;
-      if (part.match(urlRegex)) {
-        return (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline text-primary hover:brightness-110 break-all"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {part}
-          </a>
-        );
-      }
-      if (part.match(phoneRegex)) {
-        return (
-          <span
-            key={i}
-            className="underline font-bold cursor-pointer text-primary hover:brightness-110"
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedPhone(part);
-            }}
-          >
-            {part}
-          </span>
-        );
-      }
-      return part;
-    });
-  };
 
         const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "asc"));
         unsubMsgs = onSnapshot(q, { includeMetadataChanges: true }, (s) => {
