@@ -454,7 +454,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [inputName, setInputName] = useState(name);
 
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
-  const [isFrozen, setIsFrozen] = useState(false);
   const [appNotifications, setAppNotifications] = useState<{ id: string, message: string, type: "success" | "error" | "info" }[]>([]);
   const [particles] = useState(() => Array.from({ length: 12 }).map((_, i) => ({
     id: i,
@@ -728,30 +727,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         setError(e instanceof Error ? e.message : "Connection failed");
       }
     })();
-  }, [avatar]);
-
-  // ── Master Room Controls Listener ──
-  useEffect(() => {
-    if (!uid) return;
-    
-    // Listen for Freeze
-    const unsubSettings = onSnapshot(doc(db, "ovii", "settings"), (s) => {
-      if (s.exists()) setIsFrozen(!!s.data().frozen);
-    });
-
-    // Listen for Kill Signal (Force Logout)
-    const unsubKill = onSnapshot(doc(db, "ovii", ROOM, "kill", uid), (s) => {
-      if (s.exists()) {
-        deleteDoc(doc(db, "ovii", ROOM, "kill", uid)).catch(() => {});
-        onLock();
-      }
-    });
 
     return () => {
-      unsubSettings();
-      unsubKill();
+      alive = false;
+      unsubMsgs();
+      unsubPresence();
+      if (heartbeatId) clearInterval(heartbeatId);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+      cleanupPresence();
     };
-  }, [uid, onLock]);
+  }, [avatar]);
 
   // ── Inactivity lock ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -818,7 +804,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   };
 
   const send = async (type: Msg["type"], content: string) => {
-    if (!uid || isFrozen || !content) return;
+    if (!uid || !content) return;
     lastActivity.current = Date.now();
     const msgData: any = { uid, avatar, name, type, content, status: "sent", createdAt: Timestamp.now() };
     if (replyingTo) {
@@ -834,7 +820,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   };
 
   const sendImage = async (url: string, caption?: string) => {
-    if (!uid || isFrozen || !url) return;
+    if (!uid || !url) return;
     lastActivity.current = Date.now();
     const msgData: any = { uid, avatar, name, type: "image", content: url, caption, status: "sent", createdAt: Timestamp.now() };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
@@ -843,7 +829,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const onText = async (e?: React.FormEvent | React.KeyboardEvent) => {
     if (e) e.preventDefault();
     const v = text.trim();
-    if (!v || isFrozen) return;
+    if (!v) return;
     setText("");
 
     // Reset textarea height
@@ -872,7 +858,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   };
 
   const onImage = async (file: File) => {
-    if (!uid || isFrozen) return;
+    if (!uid) return;
     if (file.size > 8 * 1024 * 1024) { setError("Image too large (max 8MB)"); return; }
     
     setUploadingText("Sending photo...");
@@ -926,7 +912,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   };
 
   const startRec = async () => {
-    if (isFrozen) return;
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const rec = new MediaRecorder(stream);
@@ -1689,14 +1674,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </AnimatePresence>
 
               {/* Input bar */}
-              <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 bg-transparent relative ${isFrozen ? "opacity-60 pointer-events-none" : ""}`}>
-                {isFrozen && (
-                  <div className="absolute inset-0 z-[100] flex items-center justify-center bg-background/20 backdrop-blur-[1px]">
-                    <div className="bg-destructive/10 border border-destructive/20 text-destructive text-[10px] font-black uppercase tracking-[0.2em] px-4 py-1.5 rounded-full shadow-lg">
-                      Chat Frozen by Admin
-                    </div>
-                  </div>
-                )}
+              <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 bg-transparent`}>
                 <input
                   ref={fileRef}
                   type="file"
