@@ -1545,7 +1545,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </AnimatePresence>
 
               {/* Input bar */}
-              <div className={`px-2 py-2 sm:px-4 sm:py-3 pb-safe flex items-center gap-2 sm:gap-3 z-20 shrink-0 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
+              <div className={`px-2 py-2 sm:px-4 sm:py-3 pb-safe flex items-end gap-2 sm:gap-3 z-20 shrink-0 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
                 }`}>
                 <input
                   ref={fileRef}
@@ -1658,7 +1658,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                           }
                         }}
-                        className={`flex-1 bg-transparent px-4 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
+                        className={`w-full bg-transparent px-4 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
                           }`}
                         style={{ height: `${inputHeight}px` }}
                       />
