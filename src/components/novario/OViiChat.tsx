@@ -1444,14 +1444,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       animate={{ opacity: 1, y: 0 }}
                       className="w-24 h-24 mb-6 relative"
                     >
-                      <div className="absolute inset-0 bg-primary/10 rounded-full animate-ping" />
-                      <div className="absolute inset-4 bg-primary/20 rounded-full animate-pulse" />
+                      <div className={`absolute inset-0 rounded-full animate-ping ${isDarkMode ? "bg-primary/10" : "bg-primary/5"}`} />
+                      <div className={`absolute inset-4 rounded-full animate-pulse ${isDarkMode ? "bg-primary/20" : "bg-primary/10"}`} />
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <Send className="w-10 h-10 text-primary/40 rotate-[-20deg]" />
+                        <Send className={`w-10 h-10 rotate-[-20deg] ${isDarkMode ? "text-primary/40" : "text-primary/60"}`} />
                       </div>
                     </motion.div>
-                    <h3 className="text-lg font-bold mb-2 opacity-80">Start a Magical Conversation</h3>
-                    <p className="text-[11px] opacity-50 max-w-[200px] leading-relaxed font-medium">
+                    <h3 className={`text-lg font-bold mb-2 ${isDarkMode ? "text-white opacity-80" : "text-black opacity-70"}`}>Start a Magical Conversation</h3>
+                    <p className={`text-[11px] max-w-[200px] leading-relaxed font-medium ${isDarkMode ? "text-white opacity-50" : "text-black opacity-40"}`}>
                       Your messages are private and will disappear like stardust after a few days.
                     </p>
                   </div>
