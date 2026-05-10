@@ -20,7 +20,7 @@ export const Route = createFileRoute("/ovii")({
 function OViiPage() {
   const [unlocked, setUnlocked] = useState(() => {
     if (typeof window !== "undefined") {
-      return sessionStorage.getItem("ovii_unlocked") === "true";
+      return localStorage.getItem("ovii_unlocked") === "true";
     }
     return false;
   });
@@ -43,12 +43,12 @@ function OViiPage() {
 
   const handleUnlock = () => {
     setUnlocked(true);
-    sessionStorage.setItem("ovii_unlocked", "true");
+    localStorage.setItem("ovii_unlocked", "true");
   };
 
   const handleLock = () => {
     setUnlocked(false);
-    sessionStorage.removeItem("ovii_unlocked");
+    localStorage.removeItem("ovii_unlocked");
   };
 
   return (
