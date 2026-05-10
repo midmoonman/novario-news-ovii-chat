@@ -1545,7 +1545,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </AnimatePresence>
 
               {/* Input bar */}
-              <div className={`px-2 py-2 sm:px-4 sm:py-3 pb-safe flex items-end gap-2 sm:gap-3 z-20 shrink-0 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
+              <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"
                 }`}>
                 <input
                   ref={fileRef}
