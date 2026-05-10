@@ -1256,53 +1256,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   )}
                 </AnimatePresence>
 
-                {/* Custom Clear Chat Confirmation Modal */}
-                <AnimatePresence>
-                  {showClearConfirm && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-                    >
-                      <motion.div
-                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                        animate={{ scale: 1, opacity: 1, y: 0 }}
-                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                        className={`w-full max-w-sm rounded-[32px] overflow-hidden border shadow-2xl p-8 relative ${
-                          isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/10 text-black"
-                        }`}
-                      >
-                        <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
-                        <div className="flex flex-col items-center text-center">
-                          <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
-                            <Trash2 className="w-8 h-8 text-destructive" />
-                          </div>
-                          <h3 className="text-xl font-black mb-3 tracking-tight">Clear all messages?</h3>
-                          <p className="text-sm opacity-60 font-medium mb-8">
-                            This will permanently delete all messages in this room for everyone. This action cannot be undone.
-                          </p>
-                          <div className="flex flex-col w-full gap-3">
-                            <button
-                              onClick={clearChat}
-                              className="w-full py-4 rounded-2xl bg-destructive text-white font-bold text-sm transition-all hover:bg-destructive/90 active:scale-[0.98] shadow-lg shadow-destructive/20"
-                            >
-                              Yes, Clear Everything
-                            </button>
-                            <button
-                              onClick={() => setShowClearConfirm(false)}
-                              className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${
-                                isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
-                              }`}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      </motion.div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+
               </div>
             </div>
           </header>
@@ -1490,7 +1444,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                           <>
                                             <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                               {m.content}
-                                              <span className="inline-block w-[60px] h-[1px]" />
+                                              <span className="inline-block w-[65px] h-[10px]" />
                                             </span>
                                             {(() => {
                                               const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -1811,6 +1765,57 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 alt="" 
                 className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl"
               />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ── Custom Clear Chat Confirmation Modal ── */}
+      <AnimatePresence>
+        {showClearConfirm && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className={`w-full max-w-sm rounded-[32px] overflow-hidden border shadow-2xl p-8 relative ${
+                isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/10 text-black"
+              }`}
+            >
+              <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
+                  <Trash2 className="w-8 h-8 text-destructive" />
+                </div>
+                <h3 className="text-xl font-black mb-3 tracking-tight">Clear all messages?</h3>
+                <p className="text-sm opacity-60 font-medium mb-8">
+                  This will permanently delete all messages in this room for everyone. This action cannot be undone.
+                </p>
+                <div className="flex flex-col w-full gap-3">
+                  <button
+                    onClick={() => {
+                      clearChat();
+                      setShowClearConfirm(false);
+                    }}
+                    className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-destructive/30 bg-[linear-gradient(45deg,#4a0000,#ff1a1a,#4a0000)] animate-gradient"
+                  >
+                    Yes, Clear Everything
+                  </button>
+                  <button
+                    onClick={() => setShowClearConfirm(false)}
+                    className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${
+                      isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
+                    }`}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
             </motion.div>
           </motion.div>
         )}
