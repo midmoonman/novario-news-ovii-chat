@@ -1440,23 +1440,27 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       </div>
                                     )}
 
-                                      <div className="relative overflow-hidden min-w-[60px]">
+                                      <div className="relative min-w-[60px]">
                                         {m.type === "text" && (
                                           <>
                                             <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
                                               {m.content}
-                                              {/* Use a larger spacer to ensure ample room for the timestamp */}
-                                              <span className="inline-block w-[90px] h-[5px]" />
+                                              {/* Spacer to reserve room for absolute timestamp on the same line */}
+                                              <span className="inline-block w-[65px] h-[1px]" />
                                             </span>
                                             {(() => {
                                               const urlRegex = /(https?:\/\/[^\s]+)/g;
                                               const match = m.content.match(urlRegex);
                                               if (match) {
-                                                return <LinkPreview url={match[0]} isDarkMode={isDarkMode} />;
+                                                return (
+                                                  <>
+                                                    <div className="mt-1"><LinkPreview url={match[0]} isDarkMode={isDarkMode} /></div>
+                                                    <div className="h-5 w-full" /> {/* Space for timestamp below preview */}
+                                                  </>
+                                                );
                                               }
                                               return null;
                                             })()}
-                                            <div className="h-4 w-full" /> {/* Extra spacing for the status ticks */}
                                           </>
                                         )}
                                       
