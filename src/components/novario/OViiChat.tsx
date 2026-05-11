@@ -2423,10 +2423,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                            logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.2)]" :
                            historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/20 shadow-[0_0_25px_rgba(249,115,22,0.2)]" :
                            historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.2)]" :
-                           logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/20" :
-                           historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/20" :
-                           historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/20" :
-                           "bg-purple-500/10 border-purple-500/20"
+                           "bg-purple-500/10 border-purple-500/20 shadow-[0_0_25px_rgba(168,85,247,0.2)]"
                          }`}>
                             <History className={`w-10 h-10 sm:w-12 sm:h-12 transition-colors duration-700 ${
                               logTab === "updates" ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") :
