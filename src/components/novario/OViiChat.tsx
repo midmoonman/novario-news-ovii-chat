@@ -405,7 +405,7 @@ const LiveAudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
       {[...Array(15)].map((_, i) => (
         <div
           key={i}
-          ref={(el) => (barsRef.current[i] = el)}
+          ref={(el) => { barsRef.current[i] = el; }}
           className="w-1 bg-red-500 rounded-full transition-all duration-75 ease-out"
           style={{ height: '4px' }}
         />
