@@ -933,7 +933,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   const onImage = async (file: File) => {
     if (!uid) return;
-    if (file.size > 8 * 1024 * 1024) { setError("Image too large (max 8MB)"); return; }
+    if (file.size > 200 * 1024 * 1024) { setError("File too large (max 200MB)"); return; }
 
     setUploadingText("Sending photo...");
     setIsUploading(true); // Show loader immediately
@@ -1182,10 +1182,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             setShowAvatarPicker(false);
                             addNotification("Profile updated", "success");
                           }}
-                          className={`rounded-full overflow-hidden border-2 transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : `border-transparent ${isDarkMode ? "hover:border-white/30" : "hover:border-black/20"}`
+                          className={`rounded-full overflow-hidden border-2 aspect-square transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : `border-transparent ${isDarkMode ? "hover:border-white/30" : "hover:border-black/20"}`
                             }`}
                         >
-                          <img src={av.url} alt={av.name} className="w-full h-auto" />
+                          <img src={av.url} alt={av.name} className="w-full h-full object-cover scale-[1.25]" />
                         </button>
                       ))}
                     </div>
@@ -1437,6 +1437,31 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </div>
           </header>
+          
+          {/* ── Error Toast (Up Front) ── */}
+          <AnimatePresence>
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                className="fixed top-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-md"
+              >
+                <div className="bg-destructive/10 backdrop-blur-md border border-destructive/20 rounded-2xl p-4 shadow-xl flex items-center gap-3">
+                  <div className="bg-destructive text-white p-1.5 rounded-full">
+                    <X className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[10px] font-bold text-destructive uppercase tracking-widest mb-0.5">Error</div>
+                    <div className={`text-xs font-medium ${isDarkMode ? "text-white" : "text-black"}`}>{error}</div>
+                  </div>
+                  <button onClick={() => setError(null)} className="p-1 opacity-40 hover:opacity-100">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* ── Body: messages col + optional desktop sidebar ── */}
           <div className="flex-1 flex min-h-0 overflow-hidden">
@@ -1504,7 +1529,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               >
                 <div className="flex-1" />
 
-                {error && <div className="text-xs text-destructive bg-destructive/10 border border-destructive/30 rounded-md p-3 mb-3">{error}</div>}
                 {!error && isLoading && (
                   <div className="h-full flex items-center justify-center text-center my-auto">
                     <div className="flex flex-col items-center gap-4">
