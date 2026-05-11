@@ -1203,14 +1203,23 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   <span>No Lock: {Math.ceil((noLockUntil - Date.now()) / 60000)}m left</span>
                 </div>
               )}
-              <button
-                onClick={() => setIsDarkMode(!isDarkMode)}
-                className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
-                  }`}
-                title={isDarkMode ? "Light Mode" : "Dark Mode"}
-              >
-                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-              </button>
+              <label className="switch" title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+                <input 
+                  type="checkbox" 
+                  checked={!isDarkMode} 
+                  onChange={() => setIsDarkMode(!isDarkMode)} 
+                />
+                <span className="slider">
+                  <span className="star star_1"></span>
+                  <span className="star star_2"></span>
+                  <span className="star star_3"></span>
+                  <span className="cloud">
+                    <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" fill="white">
+                      <path d="M410.8,247c-2.3-25.6-23.7-45.6-49.8-45.6c-5.8,0-11.4,1-16.5,2.8c-12.8-31.9-43.9-54.6-80.4-54.6 c-32.2,0-60.1,17.7-74.8,44.1c-9.1-5.1-19.6-8-30.8-8c-33.8,0-61.1,27.3-61.1,61.1c0,1,0.1,2,0.2,3c-23.9,8.6-41,31.4-41,58.2 c0,33.9,27.5,61.4,61.4,61.4h276.7c33.9,0,61.4-27.5,61.4-61.4C451.8,278.4,434.7,255.6,410.8,247z" />
+                    </svg>
+                  </span>
+                </span>
+              </label>
               <button
                 onClick={() => { onLock(); window.location.href = "/news"; }}
                 className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
