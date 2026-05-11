@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyData from "../../lib/history.json";
@@ -2067,7 +2067,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       onDragEnd={(e, info) => {
                         if (info.offset.x < -60) {
                           cancelRec();
-                          toast.error("Recording cancelled");
+                          addNotification("Recording cancelled", "error");
                         }
                       }}
                       className="flex items-center gap-2 sm:gap-4 cursor-grab active:cursor-grabbing shrink-0"
