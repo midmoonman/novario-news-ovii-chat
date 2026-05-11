@@ -560,6 +560,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [otherOnline, setOtherOnline] = useState(false);
   const [otherAvatar, setOtherAvatar] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  // -- Back gesture handling for image preview --
+  useEffect(() => {
+    if (selectedImage) {
+      window.history.pushState({ modal: "image" }, "");
+      const handlePop = () => setSelectedImage(null);
+      window.addEventListener("popstate", handlePop);
+      return () => window.removeEventListener("popstate", handlePop);
+    }
+  }, [selectedImage]);
   const [showMenu, setShowMenu] = useState(false);
   const [contextMsg, setContextMsg] = useState<Msg | null>(null);
   const [isEditing, setIsEditing] = useState<string | null>(null);
@@ -2129,8 +2139,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   <motion.button
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    onClick={() => setSelectedImage(null)}
-                    className="absolute top-5 right-5 p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
+                    onClick={() => { if (selectedImage) window.history.back(); else setSelectedImage(null); }}
+                    className="absolute top-5 right-5 p-2.5 bg-black/30 hover:bg-black/50 border border-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
                   >
                     <X className="w-6 h-6" />
                   </motion.button>
@@ -2139,7 +2149,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     initial={{ scale: 0.5, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     onClick={() => downloadFile(selectedImage, "preview", "image")}
-                    className="absolute top-[75px] right-5 p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
+                    className="absolute top-[75px] right-5 p-2.5 bg-black/30 hover:bg-black/50 border border-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
                   >
                     <Download className="w-6 h-6" />
                   </motion.button>
