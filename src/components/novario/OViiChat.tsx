@@ -594,6 +594,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showLogs, setShowLogs] = useState(false);
 
+  // -- Stable layout handling (anti-jitter) --
+  useEffect(() => {
+    if (showLogs || showAvatarPicker || showFolder || selectedImage) {
+      document.body.style.overflow = "hidden";
+      document.body.style.paddingRight = "0px"; // Adjust if scrollbar width is known
+    } else {
+      document.body.style.overflow = "unset";
+      document.body.style.paddingRight = "0px";
+    }
+  }, [showLogs, showAvatarPicker, showFolder, selectedImage]);
+
   // -- Back gesture handling for image preview --
   useEffect(() => {
     if (selectedImage) {
@@ -2318,160 +2329,144 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               )}
             </AnimatePresence>
 
-            {/* ── Elegant Changelog / Logs Modal ── */}
+            {/* ── Immersive 'Reading Book' Protocol Section ── */}
             <AnimatePresence>
               {showLogs && (
                 <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+                  initial={{ x: "100%", opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  exit={{ x: "100%", opacity: 0 }}
+                  transition={{ type: "spring", damping: 30, stiffness: 300 }}
+                  className={`fixed inset-0 z-[400] flex flex-col ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
                 >
-                  <motion.div
-                    initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                    animate={{ scale: 1, opacity: 1, y: 0 }}
-                    exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                    className={`w-full max-w-2xl h-[85vh] rounded-[48px] overflow-hidden border shadow-[0_0_100px_rgba(37,211,102,0.15)] flex flex-col relative ${isDarkMode ? "bg-[#0b141a]/90 border-emerald-500/20" : "bg-white/95 border-emerald-500/30"
-                      }`}
-                  >
-                    {/* Magical Glow Backgrounds */}
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                      <div className="absolute -top-[20%] -left-[20%] w-[60%] h-[60%] bg-emerald-500/10 blur-[120px] rounded-full animate-pulse" />
-                      <div className="absolute -bottom-[20%] -right-[20%] w-[60%] h-[60%] bg-orange-500/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
-                      
-                      {/* Animated Orange Particles */}
-                      {[...Array(12)].map((_, i) => (
+                  {/* Background Atmosphere */}
+                  <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-0 left-0 w-full h-full opacity-30">
+                      <div className="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] bg-emerald-500/20 blur-[150px] rounded-full animate-pulse" />
+                      <div className="absolute -bottom-[10%] -right-[10%] w-[50%] h-[50%] bg-orange-500/10 blur-[150px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+                    </div>
+                    
+                    {/* High-Entropy Random Particles */}
+                    {[...Array(20)].map((_, i) => {
+                      const startX = Math.random() * 100;
+                      const startY = Math.random() * 100;
+                      const duration = 15 + Math.random() * 25;
+                      const delay = Math.random() * -20;
+                      return (
                         <motion.div
                           key={i}
+                          initial={{ x: `${startX}%`, y: `${startY}%`, opacity: 0, scale: 0 }}
                           animate={{ 
-                            y: [0, -100, 0],
-                            x: [0, Math.random() * 40 - 20, 0],
-                            opacity: [0, 0.4, 0],
-                            scale: [0.5, 1, 0.5]
+                            y: [`${startY}%`, `${startY - 40}%`, `${startY - 80}%`],
+                            x: [`${startX}%`, `${startX + (Math.random() * 20 - 10)}%`, `${startX}%`],
+                            opacity: [0, 0.6, 0.3, 0],
+                            scale: [0.3, 1, 0.7, 0]
                           }}
                           transition={{ 
-                            duration: Math.random() * 10 + 10,
+                            duration: duration,
                             repeat: Infinity,
-                            delay: Math.random() * 10,
-                            ease: "easeInOut"
+                            delay: delay,
+                            ease: "linear"
                           }}
-                          className="absolute w-1 h-1 bg-orange-400 rounded-full"
-                          style={{ 
-                            left: `${Math.random() * 100}%`,
-                            top: `${Math.random() * 100}%`
-                          }}
+                          className="absolute w-1 h-1 bg-orange-500 rounded-full shadow-[0_0_8px_rgba(249,115,22,0.8)]"
                         />
-                      ))}
-                    </div>
+                      );
+                    })}
+                  </div>
 
-                    <div className={`p-8 border-b relative z-10 flex items-center justify-between shrink-0 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-                      <div className="flex items-center gap-5">
-                        <div className="relative">
-                          <div className="absolute inset-0 bg-emerald-500 blur-lg opacity-40 animate-pulse" />
-                          <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-black shadow-[0_8px_20px_rgba(16,185,129,0.4)] relative">
-                            <History className="w-7 h-7 stroke-[2.5]" />
-                          </div>
-                        </div>
-                        <div>
-                          <h3 className={`text-2xl font-black tracking-tighter ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>System Architecture Logs</h3>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
-                            <p className="text-[10px] opacity-60 font-black uppercase tracking-[0.2em]">Build Protocol v2.4.1</p>
-                          </div>
+                  {/* Header / Protocol Identity */}
+                  <div className={`px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-2xl ${isDarkMode ? "bg-[#202c33]/80 border-white/5" : "bg-white/80 border-black/5"}`}>
+                    <div className="flex items-center gap-5">
+                      <button onClick={() => setShowLogs(false)} className={`p-2 rounded-full transition-all active:scale-90 ${isDarkMode ? "hover:bg-white/10 text-white" : "hover:bg-black/10 text-black"}`}>
+                        <ChevronLeft className="w-6 h-6" />
+                      </button>
+                      <div>
+                        <h2 className={`text-xl font-black tracking-tight ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>System Build Book</h2>
+                        <div className="flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-50">Authorized Reading Protocol</span>
                         </div>
                       </div>
-                      <button 
-                        onClick={() => setShowLogs(false)} 
-                        className={`p-3.5 rounded-full transition-all active:scale-90 relative group ${isDarkMode ? "hover:bg-emerald-500/10 text-emerald-500/60" : "hover:bg-emerald-500/5 text-emerald-600/60"}`}
-                      >
-                        <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
-                      </button>
                     </div>
+                    <div className="hidden sm:flex items-center gap-3">
+                       <div className={`px-3 py-1 rounded-full border text-[9px] font-bold uppercase tracking-widest ${isDarkMode ? "border-emerald-500/30 text-emerald-500/60" : "border-emerald-500/30 text-emerald-600/60"}`}>
+                         Archive 2026.05
+                       </div>
+                    </div>
+                  </div>
 
-                    <div className="flex-1 overflow-y-auto p-10 space-y-16 scrollbar-hide relative z-10">
+                  {/* Content / Book Body */}
+                  <div className="flex-1 overflow-y-auto relative z-10 scroll-smooth">
+                    <div className="max-w-3xl mx-auto px-8 py-16 space-y-20">
+                      
+                      {/* Genesis Header */}
+                      <div className="text-center mb-32">
+                         <div className="inline-block p-4 rounded-3xl bg-emerald-500/5 border border-emerald-500/10 mb-6">
+                            <History className="w-10 h-10 text-emerald-500" />
+                         </div>
+                         <h1 className={`text-5xl font-black tracking-tighter mb-4 ${isDarkMode ? "text-white" : "text-black"}`}>Evolution Theory</h1>
+                         <p className={`text-sm max-w-md mx-auto leading-relaxed font-medium opacity-50 ${isDarkMode ? "text-white" : "text-black"}`}>
+                           A comprehensive technical record of the Novario Ecosystem's architectural development and strategic deployment milestones.
+                         </p>
+                      </div>
+
                       {changelogData.map((day, idx) => (
-                        <div key={day.date} className="relative pl-12">
-                          {/* Modern Vertical Timeline */}
-                          <div className={`absolute left-[5px] top-0 bottom-0 w-[2px] ${isDarkMode ? "bg-gradient-to-b from-emerald-500/40 via-emerald-500/20 to-transparent" : "bg-gradient-to-b from-emerald-500/30 via-emerald-500/10 to-transparent"}`} />
+                        <div key={day.date} className="relative pl-12 sm:pl-20">
+                          {/* Timeline Line */}
+                          <div className={`absolute left-4 sm:left-10 top-0 bottom-0 w-px ${isDarkMode ? "bg-emerald-500/10" : "bg-emerald-500/20"}`} />
                           
-                          <motion.div 
-                            initial={{ opacity: 0, x: -10 }}
-                            whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            className="absolute -left-[6px] top-0 w-[24px] h-[24px] rounded-full flex items-center justify-center bg-[#0b141a] border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.6)]"
-                          >
-                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                          </motion.div>
-
-                          <div className="mb-10">
-                            <h4 className={`text-[11px] font-black uppercase tracking-[0.3em] mb-1 ${isDarkMode ? "text-emerald-400/50" : "text-emerald-600/50"}`}>
-                              {day.date === new Date().toISOString().split('T')[0] ? "Operational Update" : "Historical Record"}
-                            </h4>
-                            <div className={`text-4xl font-black tracking-tighter ${isDarkMode ? "text-white" : "text-black"}`}>
-                              {day.date === new Date().toISOString().split('T')[0] ? "Today" : new Date(day.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
-                            </div>
+                          <div className="absolute left-0 sm:left-6 top-0 w-8 h-8 rounded-full flex items-center justify-center bg-[#0b141a] border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.3)]">
+                             <div className="w-2 h-2 rounded-full bg-emerald-500" />
                           </div>
 
-                          <div className="space-y-12">
+                          <div className="mb-12">
+                            <div className={`text-[10px] font-black uppercase tracking-[0.4em] mb-2 ${isDarkMode ? "text-emerald-500/40" : "text-emerald-600/40"}`}>
+                              {day.date === new Date().toISOString().split('T')[0] ? "Current Sector" : "Historical Protocol"}
+                            </div>
+                            <h3 className={`text-3xl font-black tracking-tighter ${isDarkMode ? "text-white" : "text-black"}`}>
+                              {day.date === new Date().toISOString().split('T')[0] ? "Today's Deployment" : new Date(day.date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                            </h3>
+                          </div>
+
+                          <div className="space-y-16">
                             {day.updates.map((update, uIdx) => (
                               <motion.div 
                                 key={uIdx}
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 30 }}
                                 whileInView={{ opacity: 1, y: 0 }}
-                                viewport={{ once: true }}
-                                transition={{ delay: uIdx * 0.1 }}
-                                className="group relative"
+                                viewport={{ once: true, margin: "-50px" }}
+                                className="group"
                               >
-                                <div className="flex items-start gap-5">
-                                  <div className={`mt-2 w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] shrink-0 group-hover:scale-150 transition-transform`} />
-                                  <div className="flex-1">
-                                    <h5 className={`text-lg font-black mb-3 tracking-tight ${isDarkMode ? "text-emerald-100 group-hover:text-emerald-400" : "text-black group-hover:text-emerald-600"} transition-colors`}>
-                                      {update.title}
-                                    </h5>
-                                    <p className={`text-sm leading-relaxed font-medium mb-6 ${isDarkMode ? "text-white/50" : "text-black/60"}`}>
-                                      {update.description}
+                                <h4 className={`text-xl font-black mb-4 tracking-tight group-hover:text-emerald-500 transition-colors ${isDarkMode ? "text-emerald-100" : "text-black"}`}>
+                                  {update.title}
+                                </h4>
+                                <p className={`text-base leading-relaxed font-medium mb-8 ${isDarkMode ? "text-white/50" : "text-black/60"}`}>
+                                  {update.description}
+                                </p>
+                                {update.rationale && (
+                                  <div className={`p-6 rounded-[32px] border relative overflow-hidden ${isDarkMode ? "bg-emerald-500/5 border-emerald-500/10" : "bg-emerald-500/5 border-emerald-500/10"}`}>
+                                    <div className="absolute top-0 left-0 bottom-0 w-1 bg-orange-500/40" />
+                                    <span className={`block text-[9px] font-black uppercase tracking-[0.2em] mb-3 ${isDarkMode ? "text-orange-500/60" : "text-orange-600/60"}`}>
+                                      Architectural Theory
+                                    </span>
+                                    <p className={`text-sm italic leading-relaxed ${isDarkMode ? "text-white/40" : "text-black/50"}`}>
+                                      {update.rationale}
                                     </p>
-                                    {update.rationale && (
-                                      <div className={`p-5 rounded-[28px] border overflow-hidden relative ${isDarkMode ? "bg-emerald-500/5 border-emerald-500/10" : "bg-emerald-500/5 border-emerald-500/10"}`}>
-                                        <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
-                                        <span className={`block text-[9px] font-black uppercase tracking-widest mb-2 ${isDarkMode ? "text-emerald-500" : "text-emerald-600"}`}>
-                                          Strategic Rationale
-                                        </span>
-                                        <p className={`text-xs italic leading-snug ${isDarkMode ? "text-white/40" : "text-black/50"}`}>
-                                          {update.rationale}
-                                        </p>
-                                      </div>
-                                    )}
                                   </div>
-                                </div>
+                                )}
                               </motion.div>
                             ))}
                           </div>
                         </div>
                       ))}
-                      
-                      <div className="pt-20 pb-10 text-center relative">
-                        <div className="absolute top-1/2 left-0 right-0 h-px bg-emerald-500/10" />
-                        <span className={`relative z-10 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.4em] ${isDarkMode ? "bg-[#0b141a] text-emerald-500/40" : "bg-white text-emerald-600/40"}`}>
-                          Genesis Reached
-                        </span>
-                      </div>
-                    </div>
 
-                    <div className={`p-8 border-t relative z-10 text-center ${isDarkMode ? "bg-black/40 border-white/5" : "bg-black/5 border-black/5"}`}>
-                      <div className="flex items-center justify-center gap-6 opacity-40">
-                         <div className="flex items-center gap-2">
-                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                           <span className="text-[10px] font-black uppercase tracking-widest">Encrypted</span>
-                         </div>
-                         <div className="flex items-center gap-2">
-                           <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
-                           <span className="text-[10px] font-black uppercase tracking-widest">Verified</span>
-                         </div>
+                      {/* Book Footer */}
+                      <div className="pt-32 pb-20 text-center">
+                         <div className="w-16 h-px bg-emerald-500/20 mx-auto mb-8" />
+                         <p className="text-[10px] font-black uppercase tracking-[0.5em] opacity-30">End of Records</p>
                       </div>
                     </div>
-                  </motion.div>
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
