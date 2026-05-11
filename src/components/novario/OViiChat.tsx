@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
@@ -672,23 +672,30 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           s.forEach((d) => {
             const data = d.data();
             const lastSeen = (data.lastSeen as Timestamp | undefined)?.toMillis() ?? 0;
-            if (lastSeen > 0 && now - lastSeen > 30_000 && d.id !== u.uid) {
+            const isOnline = lastSeen > 0 && (now - lastSeen < 45_000); // 45s margin for heartbeat
+
+            if (lastSeen > 0 && now - lastSeen > 60_000 && d.id !== u.uid) {
               deleteDoc(d.ref).catch(() => { });
               return;
             }
+
             currentOnline.push({ uid: d.id, name: data.name || "Unknown", avatar: data.avatar });
             currentOnlineIds.add(d.id);
+
             if (d.id !== u.uid) {
               if (data.typing) t.push(data.avatar);
               if (data.recording) r.push(data.avatar);
               setOtherName(data.name || "User");
               setOtherAvatar(data.avatar || null);
               setOtherLastSeen(lastSeen);
-              setOtherOnline(true);
+              setOtherOnline(isOnline);
             }
           });
 
-          if (![...currentOnlineIds].some(id => id !== u.uid)) setOtherOnline(false);
+          const othersOnline = [...currentOnlineIds].filter(id => id !== u.uid);
+          if (othersOnline.length === 0) {
+            setOtherOnline(false);
+          }
 
           currentOnline.forEach(user => {
             if (user.uid !== u.uid && !prevOnlineRef.current.has(user.uid)) {
@@ -1251,7 +1258,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   ) : typingUsers.length > 0 ? (
                     <span className="text-emerald-500 animate-pulse">Typing...</span>
                   ) : (
-                    <span className={otherOnline ? "text-emerald-500" : ""}>{formatLastSeen(otherLastSeen)}</span>
+                    <span className={otherOnline ? "text-emerald-500" : ""}>
+                      {otherOnline ? "Online" : formatLastSeen(otherLastSeen)}
+                    </span>
                   )}
                 </div>
               </div>
@@ -1539,7 +1548,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       const dateStr = showDateHeader ? formatMessageDate(m.createdAt?.toDate() || new Date()) : null;
 
                       return (
-                        <div key={m.id} className="w-full flex flex-col">
+                        <Fragment key={m.id}>
                           {showDateHeader && (
                             <div className="w-full flex justify-center my-4 sticky top-2 z-10 pointer-events-none">
                               <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md shadow-sm border pointer-events-auto ${isDarkMode ? "bg-[#182229]/80 text-white/50 border-white/5" : "bg-white/80 text-black/40 border-black/5"
@@ -1647,7 +1656,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                       {m.type === "image" && !m.isDeleted && (
                                         <div className="mb-0 overflow-hidden rounded-[18px] relative group/img cursor-pointer active:scale-[0.99] transition-transform" onClick={() => setSelectedImage(m.content)}>
-                                          <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]" />
+                                          <img 
+                                            src={m.content} 
+                                            alt="" 
+                                            onContextMenu={(e) => e.preventDefault()}
+                                            style={{ WebkitTouchCallout: 'none' }}
+                                            className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]" 
+                                          />
 
                                           {/* Photo overlay actions */}
                                           <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
@@ -1731,7 +1746,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               )}
                             </motion.div>
                           </motion.div>
-                        </div>
+                        </Fragment>
                       );
                     })}
                   </AnimatePresence>
@@ -2007,7 +2022,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           }}
                           className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                         >
-                          <Download className="w-4 h-4 opacity-60" /> Copy
+                          <CheckCircle2 className="w-4 h-4 opacity-60" /> Copy
                         </button>
                       )}
                     </div>
@@ -2082,6 +2097,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     <img
                       src={selectedImage}
                       alt=""
+                      onContextMenu={(e) => e.preventDefault()}
+                      style={{ WebkitTouchCallout: 'none' }}
                       className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl"
                     />
                   </motion.div>
