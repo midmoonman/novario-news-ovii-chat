@@ -3,22 +3,34 @@
     "date": "2026-05-11",
     "updates": [
       {
-        "title": "Unified Media Retention Protocol",
+        "title": "Build Book Protocol & Theory Sync",
         "status": "DEPLOYED",
-        "description": "Implemented a universal 14-day retention policy across all media types. This superseded the previous multi-tier retention concept.",
-        "rationale": "To simplify system architecture and provide a consistent user expectation for data ephemeralness."
+        "description": "Implemented the full-screen immersive 'Build Book' (formerly Update Logs) and 'Build Theory' (formerly Architectural Theory). Integrated real-time synchronization of code state.",
+        "rationale": "Transitions the logs from a simple list to a prestigious technical protocol."
       },
       {
-        "title": "Advanced Multi-Modal Sharing",
+        "title": "Prestigious Front-Layer Particle Physics",
         "status": "DEPLOYED",
-        "description": "Enabled support for 4K Videos, Zip Archives, and HTML documents with a 200MB limit. Replaced the earlier image-centric sharing model.",
-        "rationale": "Transitions the platform from a simple chat app to a robust communication ecosystem."
+        "description": "Relocated the neon orange live sparks to the front layer (Z-index 500) to float above content. Implemented high-entropy stable state randomization to prevent flickering.",
+        "rationale": "Achieves a high-fidelity 'WOW' factor that feels more prestigious and alive."
       },
       {
-        "title": "Performance Optimization (120Hz)",
+        "title": "Android Navigation Thumb Rule",
         "status": "DEPLOYED",
-        "description": "Finalized high-refresh-rate rendering paths for modern mobile devices.",
-        "rationale": "Ensures the 'Ovii' experience feels premium on flagship hardware."
+        "description": "Engineered popstate history management. Android back gestures now close modals/books instead of exiting the app.",
+        "rationale": "Essential for native-feeling stability on mobile devices."
+      },
+      {
+        "title": "Media Infrastructure Expansion (200MB)",
+        "status": "DEPLOYED",
+        "description": "Expanded file limits to 200MB and enabled Zip/Rar/HTML/PDF support. Fixed Firestore undefined caption errors.",
+        "rationale": "Supports professional-grade file sharing within the Novario ecosystem."
+      },
+      {
+        "title": "Honest Log: Glassmorphism realization",
+        "status": "CONCEPTUAL",
+        "description": "While Glassmorphism was planned and partially implemented via backdrop blurs, a true 'Glassmorphism 2.0' (frosted glass with internal highlights) remains a conceptual goal and was never fully realized in the current build.",
+        "rationale": "Full transparency in the technical record is required for authentic development."
       }
     ]
   },
@@ -30,51 +42,6 @@
         "status": "DEPLOYED",
         "description": "Integrated the custom-engineered WhatsApp-inspired doodle background and real-time upload feedback.",
         "rationale": "Enhances emotional connection and visual stability."
-      },
-      {
-        "title": "Conceptual News Notification Logic",
-        "status": "CONCEPTUAL",
-        "description": "Explored a 1-hour throttled news push notification system for offline users.",
-        "rationale": "Testing user engagement triggers without causing 'notification fatigue'."
-      }
-    ]
-  },
-  {
-    "date": "2026-05-09",
-    "updates": [
-      {
-        "title": "Glassmorphism 2.0 Interface",
-        "status": "DEPLOYED",
-        "description": "Total overhaul of the UI components into a high-fidelity glassmorphic system.",
-        "rationale": "Achieves the 'Top Notch' aesthetic requested for the ecosystem's core identity."
-      }
-    ]
-  },
-  {
-    "date": "2026-05-07",
-    "updates": [
-      {
-        "title": "Multi-Tier Retention Logic",
-        "status": "SUPERSEDED",
-        "description": "Initial logic for 5-day text and 7-day voice retention was built but later removed in favor of the Unified 14-day Protocol.",
-        "rationale": "System complexity was reduced to improve database performance and user clarity."
-      },
-      {
-        "title": "Session Continuity (No Lock)",
-        "status": "DEPLOYED",
-        "description": "Implemented the mechanism to prevent session timeouts during active use.",
-        "rationale": "Crucial for maintaining a stable communication channel."
-      }
-    ]
-  },
-  {
-    "date": "2026-05-06",
-    "updates": [
-      {
-        "title": "Full-Bleed Desktop Transformation",
-        "status": "DEPLOYED",
-        "description": "Initial conversion from mobile-first to a responsive full-bleed wide-screen layout.",
-        "rationale": "First major step in the 'Desktop-Native' evolution."
       }
     ]
   }

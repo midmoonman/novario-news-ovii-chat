@@ -994,7 +994,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (!uid || !url) return;
     lastActivity.current = Date.now();
     const msgData: any = { 
-      uid, avatar, name, type, content: url, fileName, fileSize, mimeType, caption, 
+      uid, avatar, name, type, content: url, fileName, fileSize, mimeType, 
+      caption: caption ?? "", 
       status: "sent", createdAt: Timestamp.now() 
     };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
@@ -2382,32 +2383,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <div className="absolute -bottom-[15%] -right-[15%] w-[70%] h-[70%] bg-emerald-500/20 blur-[100px] rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }} />
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] bg-emerald-400/10 blur-[120px] rounded-full" />
                     </div>
-                    
-                    {/* High-Performance Neon Orange Particles (Live & Persistent) */}
-                    {bookParticles.map((p) => (
-                      <motion.div
-                        key={p.id}
-                        initial={{ x: `${p.x}%`, y: `${p.y}%`, opacity: 0 }}
-                        animate={{ 
-                          y: [`${p.y}%`, `${p.y + p.driftY}%`],
-                          x: [`${p.x}%`, `${p.x + p.driftX}%`, `${p.x}%`],
-                          opacity: [0, 0.9, 0.4, 0],
-                          scale: [0.6, 1.3, 0.8]
-                        }}
-                        transition={{ 
-                          duration: p.duration,
-                          repeat: Infinity,
-                          delay: p.delay,
-                          ease: "linear"
-                        }}
-                        className="absolute bg-orange-500 rounded-full shadow-[0_0_18px_rgba(249,115,22,1)] will-change-transform"
-                        style={{ 
-                          width: p.size, 
-                          height: p.size,
-                          filter: `blur(${p.size < 1.5 ? '0px' : '0.5px'})` 
-                        }}
-                      />
-                    ))}
                   </div>
 
                   {/* Header / Protocol Identity */}
@@ -2515,6 +2490,34 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                          <p className="text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] opacity-30 relative z-10">End of Technical Protocol</p>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Prestigious Front-Layer Particles */}
+                  <div className="absolute inset-0 pointer-events-none z-[500] overflow-hidden">
+                    {bookParticles.map((p) => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ x: `${p.x}%`, y: `${p.y}%`, opacity: 0 }}
+                        animate={{ 
+                          y: [`${p.y}%`, `${p.y + p.driftY}%`],
+                          x: [`${p.x}%`, `${p.x + p.driftX}%`, `${p.x}%`],
+                          opacity: [0, 0.9, 0.4, 0],
+                          scale: [0.6, 1.3, 0.8]
+                        }}
+                        transition={{ 
+                          duration: p.duration,
+                          repeat: Infinity,
+                          delay: p.delay,
+                          ease: "linear"
+                        }}
+                        className="absolute bg-orange-500 rounded-full shadow-[0_0_20px_rgba(249,115,22,1)] will-change-transform"
+                        style={{ 
+                          width: p.size, 
+                          height: p.size,
+                          filter: `blur(${p.size < 1.5 ? '0px' : '0.5px'})` 
+                        }}
+                      />
+                    ))}
                   </div>
                 </motion.div>
               )}
