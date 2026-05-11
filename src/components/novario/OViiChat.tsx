@@ -1776,9 +1776,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             )}
                           </motion.div>
                         </motion.div>
-                      );
-                    })}
-                  </AnimatePresence>
+                      </div>
+                    );
+                  })}
+                </AnimatePresence>
 
                   {typingUsers.length > 0 && (
                     <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
