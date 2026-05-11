@@ -140,7 +140,7 @@ const formatMessageDate = (date: Date) => {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
-const formatLastSeen = (timestamp?: number | null) => {
+const formatLastSeen = (timestamp: number | null | undefined) => {
   if (!timestamp) return "";
   const now = Date.now();
 
@@ -1271,7 +1271,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     <span className="text-emerald-500 animate-pulse">Typing...</span>
                   ) : (
                     <span className={otherOnline ? "text-emerald-500" : ""}>
-                      {otherOnline ? "Online" : formatLastSeen(otherLastSeen)}
+                      {otherOnline ? "Online" : formatLastSeen(otherLastSeen ?? undefined)}
                     </span>
                   )}
                 </div>
