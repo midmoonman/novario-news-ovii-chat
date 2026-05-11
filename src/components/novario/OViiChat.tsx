@@ -2371,28 +2371,28 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: "100%", opacity: 0 }}
                   transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                  className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
+                  className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden backdrop-blur-[40px] transition-colors duration-500 ${isDarkMode ? "bg-[#0b141a]/60" : "bg-[#f0f2f5]/50"}`}
                 >
-                  {/* Intense Optimized Neon Glow Background */}
+                  {/* Intense Optimized Neon Glow Background for Glassmorphism */}
                   <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                     <div className="absolute top-0 left-0 w-full h-full will-change-transform">
-                      <div className="absolute -top-[15%] -left-[15%] w-[70%] h-[70%] bg-emerald-500/25 blur-[100px] rounded-full animate-pulse-slow" />
-                      <div className="absolute -bottom-[15%] -right-[15%] w-[70%] h-[70%] bg-emerald-500/20 blur-[100px] rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }} />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] bg-emerald-400/10 blur-[120px] rounded-full" />
+                      <div className="absolute -top-[15%] -left-[15%] w-[70%] h-[70%] bg-emerald-500/30 blur-[120px] rounded-full animate-pulse-slow" />
+                      <div className="absolute -bottom-[15%] -right-[15%] w-[70%] h-[70%] bg-blue-500/20 blur-[120px] rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }} />
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] bg-purple-500/20 blur-[140px] rounded-full" />
                     </div>
                   </div>
 
                   {/* Header / Protocol Identity */}
-                  <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-3xl ${isDarkMode ? "bg-[#202c33]/90 border-emerald-500/20" : "bg-white/90 border-emerald-500/20"}`}>
+                  <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-3xl shadow-sm ${isDarkMode ? "bg-black/20 border-white/10" : "bg-white/30 border-black/10"}`}>
                     <div className="flex items-center gap-4 sm:gap-6">
-                      <button onClick={() => setShowLogs(false)} className={`p-2 rounded-full transition-all active:scale-90 shadow-md ${isDarkMode ? "bg-white/10 hover:bg-emerald-500/20 text-emerald-400" : "bg-black/5 hover:bg-emerald-500/10 text-emerald-600"}`}>
+                      <button onClick={() => setShowLogs(false)} className={`p-2 rounded-full transition-all active:scale-90 shadow-sm backdrop-blur-md border ${isDarkMode ? "bg-white/10 hover:bg-white/20 border-white/10 text-emerald-400" : "bg-white/60 hover:bg-white border-black/5 text-emerald-600"}`}>
                         <ChevronLeft className="w-6 h-6" />
                       </button>
                       <div className="min-w-0">
                         <h2 className={`text-lg sm:text-2xl font-black tracking-tighter truncate ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>Build Book</h2>
                         <div className="flex items-center gap-2 mt-0.5">
                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse" />
-                          <span className="text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] opacity-50 truncate">Protocol Synchronization</span>
+                          <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] truncate ${isDarkMode ? "text-white/50" : "text-black/50"}`}>Protocol Synchronization</span>
                         </div>
                       </div>
                     </div>
@@ -2409,12 +2409,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       
                       {/* Genesis Header with Optimized Glow */}
                       <div className="text-center mb-24 sm:mb-40 relative px-4">
-                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 bg-emerald-500/15 blur-3xl rounded-full" />
-                         <div className="relative inline-block p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] bg-emerald-500/10 border-2 border-emerald-500/20 mb-6 sm:mb-8 shadow-[0_0_25px_rgba(16,185,129,0.2)]">
-                            <History className="w-10 h-10 sm:w-12 sm:h-12 text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 bg-emerald-500/20 blur-[80px] rounded-full pointer-events-none" />
+                         <div className={`relative inline-block p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] border backdrop-blur-xl mb-6 sm:mb-8 shadow-[0_8px_32px_rgba(16,185,129,0.15)] ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
+                            <History className={`w-10 h-10 sm:w-12 sm:h-12 ${isDarkMode ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" : "text-emerald-600"}`} />
                          </div>
                          <h1 className={`text-4xl sm:text-6xl font-black tracking-tighter mb-4 sm:mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>Build Theory</h1>
-                         <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed font-semibold opacity-60 ${isDarkMode ? "text-emerald-100" : "text-emerald-900"}`}>
+                         <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed font-semibold ${isDarkMode ? "text-emerald-100/60" : "text-emerald-900/60"}`}>
                            Real-time synchronization of code architecture and strategic evolution protocols.
                          </p>
                       </div>
@@ -2424,8 +2424,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           {/* Intense Neon Timeline Line */}
                           <div className={`absolute left-4 sm:left-14 top-0 bottom-0 w-0.5 ${isDarkMode ? "bg-gradient-to-b from-emerald-500/60 via-emerald-500/20 to-transparent" : "bg-gradient-to-b from-emerald-500/40 via-emerald-500/10 to-transparent"}`} />
                           
-                          <div className="absolute left-0 sm:left-9 top-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center bg-[#0b141a] border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)] z-20">
-                             <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,1)]" />
+                          <div className={`absolute left-0 sm:left-9 top-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center border shadow-[0_8px_20px_rgba(16,185,129,0.2)] z-20 backdrop-blur-xl ${isDarkMode ? "bg-black/50 border-emerald-500/50" : "bg-white/80 border-emerald-500/40"}`}>
+                             <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
                           </div>
 
                           <div className="mb-10 sm:mb-16">
@@ -2447,10 +2447,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 className="group relative"
                               >
                                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                                  <span className={`px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black tracking-widest border ${
-                                    update.status === "DEPLOYED" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.2)]" :
-                                    update.status === "CONCEPTUAL" ? "bg-orange-500/10 border-orange-500/30 text-orange-400" :
-                                    "bg-white/5 border-white/10 text-white/40"
+                                  <span className={`px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black tracking-widest border backdrop-blur-sm ${
+                                    update.status === "DEPLOYED" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.2)]" :
+                                    update.status === "CONCEPTUAL" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
+                                    isDarkMode ? "bg-white/5 border-white/10 text-white/50" : "bg-black/5 border-black/10 text-black/50"
                                   }`}>
                                     {update.status}
                                   </span>
@@ -2464,8 +2464,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   {update.description}
                                 </p>
                                 {update.rationale && (
-                                  <div className={`p-5 sm:p-8 rounded-[24px] sm:rounded-[40px] border relative overflow-hidden transition-all group-hover:border-emerald-500/30 ${isDarkMode ? "bg-black/40 border-emerald-500/10" : "bg-white border-emerald-500/10"}`}>
-                                    <div className="absolute top-0 left-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-emerald-500 to-orange-500" />
+                                  <div className={`p-5 sm:p-8 rounded-[24px] sm:rounded-[40px] border relative overflow-hidden transition-all group-hover:border-emerald-500/30 backdrop-blur-2xl shadow-lg ${isDarkMode ? "bg-black/20 border-white/10" : "bg-white/40 border-black/5"}`}>
+                                    <div className="absolute top-0 left-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-emerald-500 to-blue-500" />
                                     <span className={`block text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-2 sm:mb-4 ${isDarkMode ? "text-emerald-500" : "text-emerald-600"}`}>
                                       Build Rationale
                                     </span>
@@ -2482,9 +2482,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                       {/* Book Footer */}
                       <div className="pt-24 sm:pt-40 pb-16 sm:pb-24 text-center relative">
-                         <div className="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full" />
+                         <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none" />
                          <div className="w-16 sm:w-24 h-0.5 bg-emerald-500/30 mx-auto mb-8 sm:mb-10 relative z-10" />
-                         <p className="text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] opacity-30 relative z-10">End of Technical Protocol</p>
+                         <p className={`text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] relative z-10 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>End of Technical Protocol</p>
                       </div>
                     </div>
                   </div>
