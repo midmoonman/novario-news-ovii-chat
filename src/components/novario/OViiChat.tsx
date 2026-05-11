@@ -1826,19 +1826,42 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 {recording ? (
                   /* ── Recording state ── */
                   <div className={`flex-1 flex items-center gap-3 rounded-[28px] px-4 h-[54px] overflow-hidden shadow-inner ${isDarkMode ? "bg-[#2a3942]" : "bg-white"}`}>
-                    {/* Recording UI content... */}
+                    <RecordingVisualizer recording={recording} isDarkMode={isDarkMode} />
+                    <div className="flex-1 overflow-hidden">
+                      <motion.span 
+                        animate={{ opacity: [0.4, 1, 0.4] }} 
+                        transition={{ duration: 1.5, repeat: Infinity }}
+                        className={`text-[13px] font-medium truncate ${isDarkMode ? "text-white" : "text-black"}`}
+                      >
+                        Recording...
+                      </motion.span>
+                    </div>
+                    <button 
+                      onPointerDown={() => { cancelRecRef.current = true; stopRec(); }}
+                      className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
                 ) : (
                   <>
+                    <button
+                      type="button"
+                      onClick={() => fileRef.current?.click()}
+                      className={`shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white" : "text-black/40 hover:text-black"
+                        }`}
+                    >
+                      <ImageIcon className="w-6 h-6 md:w-7 md:h-7" />
+                    </button>
+
                     <div className={`flex-1 flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
                       }`}>
-
                       <textarea
                         ref={inputRef}
                         rows={1}
                         autoComplete="off"
                         value={text}
-                        placeholder={isEditing ? "Edit message" : "Type a message"}
+                        placeholder={isEditing ? "Edit message" : "Write a message"}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && !e.shiftKey && !isMobileDevice()) {
                             e.preventDefault();
@@ -1853,14 +1876,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         onChange={(e) => {
                           const val = e.target.value;
                           setText(val);
-
-                          // WhatsApp style smooth autogrow
                           const prevH = e.target.style.height;
                           e.target.style.height = '1px';
                           const nextH = Math.max(44, Math.min(e.target.scrollHeight, 138));
                           e.target.style.height = prevH;
                           setInputHeight(nextH);
-
                           if (uid && !isEditing) {
                             const typingNow = val.length > 0;
                             if (typingNow !== isTyping) { setIsTyping(typingNow); setPres({ typing: typingNow }); }
@@ -1868,22 +1888,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                           }
                         }}
-                        className={`w-full bg-transparent border-none focus:ring-0 focus:outline-none py-3.5 px-0 text-[15px] resize-none max-h-[150px] scrollbar-hide ${isDarkMode ? "text-[#e9edef] placeholder-[#8696a0]" : "text-[#111b21] placeholder-[#667781]"
+                        className={`w-full bg-transparent border-none focus:ring-0 focus:outline-none py-3.5 px-4 text-[15px] resize-none max-h-[150px] scrollbar-hide ${isDarkMode ? "text-[#e9edef] placeholder-[#8696a0]" : "text-[#111b21] placeholder-[#667781]"
                           }`}
                         style={{ height: `${inputHeight}px` }}
                       />
-
-                      <button
-                        type="button"
-                        onClick={() => fileRef.current?.click()}
-                        className={`shrink-0 w-10 h-12 flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white" : "text-black/40 hover:text-black"
-                          }`}
-                      >
-                        <Folder className="w-5 h-5" />
-                      </button>
                     </div>
 
-                    <div className="shrink-0 w-12 h-12 flex items-center justify-center relative">
+                    <div className="shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center relative">
                       <AnimatePresence mode="popLayout">
                         {text.trim() || isEditing ? (
                           <motion.button
@@ -1905,11 +1916,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             exit={{ scale: 0.5, opacity: 0 }}
                             type="button"
                             onPointerDown={(e) => { e.preventDefault(); startRec(); }}
-                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
+                            className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
                               }`}
                             aria-label="Tap to record"
                           >
-                            <Mic className="w-7 h-7" />
+                            <Mic className="w-6 h-6 md:w-7 md:h-7" />
                           </motion.button>
                         )}
                       </AnimatePresence>
