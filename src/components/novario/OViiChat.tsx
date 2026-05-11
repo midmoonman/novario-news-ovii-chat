@@ -2510,15 +2510,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         </div>
                       </div>
 
-                      <AnimatePresence mode="wait">
-                      {logTab === "updates" ? (
-                        <motion.div 
-                          key="updates"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
-                        >
+                      <div className="relative w-full">
+                        <div className={logTab === "updates" ? "block animate-in fade-in duration-300" : "hidden"}>
                         <div className="flex justify-end mb-8 relative z-50 px-4">
                            <button
                              onClick={() => {
@@ -2554,12 +2547,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                           <div className="space-y-12 sm:space-y-20">
                             {day.updates.map((update, uIdx) => (
-                              <motion.div 
+                              <div 
                                 key={uIdx}
-                                initial={{ opacity: 0, x: 10 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                viewport={{ once: true, margin: "-50px" }}
-                                className="group relative"
+                                className="group relative animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both"
+                                style={{ animationDelay: `${uIdx * 100}ms` }}
                               >
                                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                                   <span className={`px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black tracking-widest border ${
@@ -2589,21 +2580,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     </p>
                                   </div>
                                 )}
-                              </motion.div>
+                              </div>
                             ))}
                           </div>
                         </div>
                       ))}
-                        </motion.div>
-                      ) : (
-                        <motion.div 
-                          key="history"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -10 }}
-                          transition={{ duration: 0.2 }}
-                          className="space-y-8 relative"
-                        >
+                        </div>
+                        <div className={logTab === "history" ? "block animate-in fade-in duration-300 space-y-8 relative" : "hidden"}>
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 relative z-20">
                             <div className="flex items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
                               {(["easy", "medium", "hard"] as const).map((level) => (
@@ -2707,9 +2690,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                </p>
                             </div>
                           </div>
-                        </motion.div>
-                      )}
-                      </AnimatePresence>
+                        </div>
+                      </div>
 
                       {/* Book Footer */}
                       <div className="pt-24 sm:pt-40 pb-16 sm:pb-24 text-center relative">
