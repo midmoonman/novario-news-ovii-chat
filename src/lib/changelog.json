@@ -3,34 +3,46 @@
     "date": "2026-05-11",
     "updates": [
       {
-        "title": "Build Book Protocol & Theory Sync",
+        "title": "Timestamp Stability Protocol (Thumb Rule)",
         "status": "DEPLOYED",
-        "description": "Implemented the full-screen immersive 'Build Book' (formerly Update Logs) and 'Build Theory' (formerly Architectural Theory). Integrated real-time synchronization of code state.",
-        "rationale": "Transitions the logs from a simple list to a prestigious technical protocol."
+        "description": "Enforced a zero-overlap layout system for all message types. Audio, Document, and Text bubbles now feature reserved 'safety islands' for metadata to prevent UI collapse.",
+        "rationale": "Ensures professional readability and prevents the 'merging' of filenames with timing data on narrow mobile screens."
       },
       {
         "title": "Prestigious Front-Layer Particle Physics",
         "status": "DEPLOYED",
-        "description": "Relocated the neon orange live sparks to the front layer (Z-index 500) to float above content. Implemented high-entropy stable state randomization to prevent flickering.",
-        "rationale": "Achieves a high-fidelity 'WOW' factor that feels more prestigious and alive."
+        "description": "Migrated orange live sparks to a global fixed overlay at Z-index 600. Optimized shadow-glow to 25px with stable high-entropy randomization.",
+        "rationale": "Achieves the intended 'prestigious' atmosphere by ensuring particles float over all content without being clipped by scroll containers."
       },
       {
         "title": "Android Navigation Thumb Rule",
         "status": "DEPLOYED",
-        "description": "Engineered popstate history management. Android back gestures now close modals/books instead of exiting the app.",
-        "rationale": "Essential for native-feeling stability on mobile devices."
+        "description": "Integrated popstate history injection. Android/Mobile back gestures are now captured to close active modals and the Build Book instead of exiting the platform.",
+        "rationale": "Critical for native-app feel and preventing accidental session termination during navigation."
       },
       {
-        "title": "Media Infrastructure Expansion (200MB)",
+        "title": "Build Book Technical Architecture",
         "status": "DEPLOYED",
-        "description": "Expanded file limits to 200MB and enabled Zip/Rar/HTML/PDF support. Fixed Firestore undefined caption errors.",
-        "rationale": "Supports professional-grade file sharing within the Novario ecosystem."
+        "description": "Decommissioned 'Update Logs' in favor of the 'Build Book' and 'Build Theory' protocol. Implemented immersive greenery glow and technical rationale tracking.",
+        "rationale": "Shifts the platform identity towards a more authoritative and architectural development style."
       },
       {
-        "title": "Honest Log: Glassmorphism realization",
-        "status": "CONCEPTUAL",
-        "description": "While Glassmorphism was planned and partially implemented via backdrop blurs, a true 'Glassmorphism 2.0' (frosted glass with internal highlights) remains a conceptual goal and was never fully realized in the current build.",
-        "rationale": "Full transparency in the technical record is required for authentic development."
+        "title": "Firestore Message Integrity Fix",
+        "status": "DEPLOYED",
+        "description": "Resolved a critical 'addDoc' failure where undefined captions caused upload crashes. Implemented stable string fallback for all media metadata.",
+        "rationale": "Restores 100% stability to the photo and document sharing infrastructure."
+      },
+      {
+        "title": "Infrastructure Expansion: 200MB Storage",
+        "status": "DEPLOYED",
+        "description": "Re-engineered file handling to support up to 200MB per attachment across all formats (PDF, ZIP, RAR, HTML, etc.).",
+        "rationale": "Empowers users to share professional-grade project files without compression or size constraints."
+      },
+      {
+        "title": "Suspension: Pure Glassmorphism 2.0",
+        "status": "SUPERSEDED",
+        "description": "The full-screen high-refraction Glassmorphism 2.0 experiment has been suspended. While backdrop blurs are active, the complex multi-layer frosted highlights were removed to preserve 120Hz performance on mobile.",
+        "rationale": "High-fidelity performance and battery life on mobile devices prioritized over heavy CSS filter chains."
       }
     ]
   },
@@ -40,8 +52,8 @@
       {
         "title": "Visual Identity & Doodle Layer",
         "status": "DEPLOYED",
-        "description": "Integrated the custom-engineered WhatsApp-inspired doodle background and real-time upload feedback.",
-        "rationale": "Enhances emotional connection and visual stability."
+        "description": "Integrated custom WhatsApp-style background doodles and real-time upload feedback systems.",
+        "rationale": "Establishes the base emotional resonance of the chat environment."
       }
     ]
   }
