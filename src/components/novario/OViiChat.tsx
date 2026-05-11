@@ -120,6 +120,10 @@ type Msg = {
   createdAt?: Timestamp;
   status?: "sending" | "sent" | "delivered" | "read";
   replyTo?: { id: string, content: string, avatar: string, name?: string };
+  isEdited?: boolean;
+  isDeleted?: boolean;
+  isForwarded?: boolean;
+  reactions?: Record<string, string[]>;
 };
 
 const ROOM = "ovii-room";
@@ -128,6 +132,27 @@ const STOP_AUDIO_EVENT = "ovii_stop_audio";
 // ─── Detect if we're on a touch/mobile device ───────────────────────────────
 const isMobileDevice = () =>
   typeof window !== "undefined" && window.innerWidth < 768;
+
+const formatMessageDate = (date: Date) => {
+  const now = new Date();
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return date.toLocaleDateString(undefined, { weekday: 'long' });
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+};
+
+const formatLastSeen = (timestamp?: number) => {
+  if (!timestamp) return "offline";
+  const now = Date.now();
+  const diff = now - timestamp;
+  if (diff < 30000) return "online"; // within 30s
+  if (diff < 3600000) return `last seen ${Math.floor(diff / 60000)}m ago`;
+  const date = new Date(timestamp);
+  const isToday = date.toDateString() === new Date().toDateString();
+  if (isToday) return `last seen today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  return `last seen on ${date.toLocaleDateString([], { day: 'numeric', month: 'short' })}`;
+};
 
 // ─── AudioPlayer ─────────────────────────────────────────────────────────────
 const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any, isDarkMode: boolean }) => {
@@ -536,7 +561,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [otherAvatar, setOtherAvatar] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
+  const [contextMsg, setContextMsg] = useState<Msg | null>(null);
+  const [isEditing, setIsEditing] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Close menu on click outside
   useEffect(() => {
@@ -803,10 +831,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (uid) setDoc(doc(db, "ovii", ROOM, "presence", uid), data, { merge: true }).catch(() => { });
   };
 
-  const send = async (type: Msg["type"], content: string) => {
+  const send = async (type: Msg["type"], content: string, extra: Partial<Msg> = {}) => {
     if (!uid || !content) return;
     lastActivity.current = Date.now();
-    const msgData: any = { uid, avatar, name, type, content, status: "sent", createdAt: Timestamp.now() };
+    const msgData: any = { uid, avatar, name, type, content, status: "sent", createdAt: Timestamp.now(), ...extra };
     if (replyingTo) {
       msgData.replyTo = {
         id: replyingTo.id,
@@ -817,6 +845,59 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       setReplyingTo(null);
     }
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
+  };
+
+  const deleteMessage = async (msgId: string) => {
+    try {
+      await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
+        isDeleted: true,
+        content: "This message was deleted",
+        type: "text"
+      }, { merge: true });
+      addNotification("Message deleted", "info");
+    } catch (e) {
+      addNotification("Failed to delete message", "error");
+    }
+  };
+
+  const editMessage = async (msgId: string, newContent: string) => {
+    try {
+      await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
+        content: newContent,
+        isEdited: true
+      }, { merge: true });
+      addNotification("Message edited", "success");
+      setIsEditing(null);
+    } catch (e) {
+      addNotification("Failed to edit message", "error");
+    }
+  };
+
+  const reactToMessage = async (msgId: string, emoji: string) => {
+    try {
+      const msg = msgs.find(m => m.id === msgId);
+      if (!msg || !uid) return;
+      
+      const reactions = { ...(msg.reactions || {}) };
+      const current = reactions[emoji] || [];
+      
+      if (current.includes(uid)) {
+        reactions[emoji] = current.filter(id => id !== uid);
+        if (reactions[emoji].length === 0) delete reactions[emoji];
+      } else {
+        // Remove uid from any other emoji first (WhatsApp style: one reaction per user)
+        Object.keys(reactions).forEach(k => {
+          reactions[k] = (reactions[k] || []).filter(id => id !== uid);
+          if (reactions[k].length === 0) delete reactions[k];
+        });
+        reactions[emoji] = [...(reactions[emoji] || []), uid];
+      }
+      
+      await setDoc(doc(db, "ovii", ROOM, "messages", msgId), { reactions }, { merge: true });
+      if (window.navigator.vibrate) window.navigator.vibrate(10);
+    } catch (e) {
+      addNotification("Failed to react", "error");
+    }
   };
 
   const sendImage = async (url: string, caption?: string) => {
@@ -830,8 +911,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (e) e.preventDefault();
     const v = text.trim();
     if (!v) return;
-    setText("");
+    
+    if (isEditing) {
+      await editMessage(isEditing, v);
+      setText("");
+      setIsEditing(null);
+      return;
+    }
 
+    setText("");
     // Reset textarea height
     if (inputRef.current) {
       inputRef.current.style.height = "auto";
@@ -1185,12 +1273,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     <span className="text-emerald-500 animate-pulse">Recording...</span>
                   ) : typingUsers.length > 0 ? (
                     <span className="text-emerald-500 animate-pulse">Typing...</span>
-                  ) : otherOnline ? (
-                    <span className="text-emerald-500">online</span>
-                  ) : otherName ? (
-                    "offline"
                   ) : (
-                    "no one else here"
+                    <span className={otherOnline ? "text-emerald-500" : ""}>{formatLastSeen(otherLastSeen)}</span>
                   )}
                 </div>
               </div>
@@ -1475,45 +1559,81 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       const nextMsg = chatMsgs[i + 1];
                       const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
 
-                      return (
-                        <motion.div
-                          key={m.id}
-                          layout
-                          initial={{ opacity: 0, y: 20, scale: 0.7, originX: mine ? 1 : 0 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
-                          exit={{ opacity: 0, scale: 0.5 }}
-                          transition={{ 
-                            type: "spring", 
-                            damping: 25, 
-                            stiffness: 400,
-                            layout: { duration: 0.2 }
-                          }}
-                          className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
-                        >
-                          <motion.div
-                            initial={{ opacity: 0, y: 12, scale: 0.9 }}
-                            animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                            drag="x"
-                            dragConstraints={{ left: 0, right: 0 }}
-                            dragElastic={0.2}
-                            onDrag={(e, info) => {
-                              const threshold = 70;
-                              const isSwipeRight = info.offset.x > threshold;
-                              const isSwipeLeft = info.offset.x < -threshold;
+                      // Date grouping logic
+                      const showDateHeader = !prevMsg || 
+                        m.createdAt?.toDate().toDateString() !== prevMsg.createdAt?.toDate().toDateString();
+                      
+                      const dateStr = showDateHeader ? formatMessageDate(m.createdAt?.toDate() || new Date()) : null;
 
-                              // Received messages: swipe right to reply
-                              // Sent messages: swipe left to reply
-                              if ((!mine && isSwipeRight) || (mine && isSwipeLeft)) {
-                                if (replyingTo?.id !== m.id) {
-                                  setReplyingTo(m);
-                                  if (window.navigator.vibrate) window.navigator.vibrate(10);
-                                }
-                              }
+                      return (
+                        <div key={m.id} className="w-full flex flex-col">
+                          {showDateHeader && (
+                            <div className="w-full flex justify-center my-4 sticky top-2 z-10 pointer-events-none">
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md shadow-sm border pointer-events-auto ${
+                                isDarkMode ? "bg-[#182229]/80 text-white/50 border-white/5" : "bg-white/80 text-black/40 border-black/5"
+                              }`}>
+                                {dateStr}
+                              </span>
+                            </div>
+                          )}
+
+                          <motion.div
+                            layout
+                            initial={{ opacity: 0, y: 20, scale: 0.7, originX: mine ? 1 : 0 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            transition={{ 
+                              type: "spring", 
+                              damping: 25, 
+                              stiffness: 400,
+                              layout: { duration: 0.2 }
                             }}
-                             className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[550px] lg:max-w-[600px] ${mine ? "ml-auto" : "mr-auto"}`}
-                           >
+                            className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
+                          >
+                            <motion.div
+                              initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                              animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
+                              exit={{ opacity: 0, scale: 0.8 }}
+                              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                              drag="x"
+                              dragConstraints={{ left: 0, right: 0 }}
+                              dragElastic={0.2}
+                              onDragStart={() => {
+                                if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                              }}
+                              onPointerDown={() => {
+                                if (isMobileDevice()) {
+                                  longPressTimer.current = setTimeout(() => {
+                                    setContextMsg(m);
+                                    if (window.navigator.vibrate) window.navigator.vibrate([20]);
+                                  }, 500);
+                                }
+                              }}
+                              onPointerUp={() => {
+                                if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                              }}
+                              onContextMenu={(e) => {
+                                if (!isMobileDevice()) {
+                                  e.preventDefault();
+                                  setContextMsg(m);
+                                }
+                              }}
+                              onDrag={(e, info) => {
+                                const threshold = 70;
+                                const isSwipeRight = info.offset.x > threshold;
+                                const isSwipeLeft = info.offset.x < -threshold;
+
+                                // Received messages: swipe right to reply
+                                // Sent messages: swipe left to reply
+                                if ((!mine && isSwipeRight) || (mine && isSwipeLeft)) {
+                                  if (replyingTo?.id !== m.id) {
+                                    setReplyingTo(m);
+                                    if (window.navigator.vibrate) window.navigator.vibrate(10);
+                                  }
+                                }
+                              }}
+                               className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[550px] lg:max-w-[600px] ${mine ? "ml-auto" : "mr-auto"}`}
+                             >
                             <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                               }`}>
                               <Reply className="w-5 h-5 text-primary/40" />
@@ -1545,14 +1665,22 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               ) : (
                                 <div
                                   className={`md:rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px]" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px]"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col shadow-sm md:shadow-md transition-all w-fit max-w-full
-                                ${mine
-                                      ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-sm md:rounded-br-none" : "")
-                                      : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-sm md:rounded-bl-none" : "")
-                                    }`}
+                                  ${mine
+                                        ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-sm md:rounded-br-none" : "")
+                                        : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-sm md:rounded-bl-none" : "")
+                                      } ${m.isDeleted ? "opacity-60 italic" : ""}`}
                                 >
                                   <div className="relative flex flex-col">
                                     {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold text-[#eb5528] dark:text-[#f28b82] mb-0.5 leading-tight">{m.name}</span>}
-                                    {m.type === "image" && (
+                                    
+                                    {m.isForwarded && !m.isDeleted && (
+                                      <div className="flex items-center gap-1 opacity-40 mb-1">
+                                        <ArrowLeftRight className="w-2.5 h-2.5 rotate-180" />
+                                        <span className="text-[9px] italic font-bold">Forwarded</span>
+                                      </div>
+                                    )}
+
+                                    {m.type === "image" && !m.isDeleted && (
                                       <div className="mb-0 overflow-hidden rounded-[18px] relative group/img cursor-pointer active:scale-[0.99] transition-transform" onClick={() => setSelectedImage(m.content)}>
                                         <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]" />
                                         
@@ -1583,15 +1711,19 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       <div className="relative min-w-[60px]">
                                         {m.type === "text" && (
                                           <>
-                                            <span className="block break-words whitespace-pre-wrap leading-relaxed text-[14px]">
-                                              {renderMessageContent(m.content)}
+                                            <span className={`block break-words whitespace-pre-wrap leading-relaxed text-[14px] ${m.isDeleted ? "text-[12px]" : ""}`}>
+                                              {m.isDeleted ? (
+                                                <span className="flex items-center gap-1.5">
+                                                  <ShieldOff className="w-3.5 h-3.5" /> This message was deleted
+                                                </span>
+                                              ) : renderMessageContent(m.content)}
                                               {/* Spacer to reserve room for absolute timestamp on the same line */}
-                                              <span className={`inline-block h-[1px] ${mine ? "w-[85px]" : "w-[65px]"}`} />
+                                              <span className={`inline-block h-[1px] ${mine ? "w-[85px]" : "w-[65px]"} ${m.isEdited ? "ml-8" : ""}`} />
                                             </span>
                                             {(() => {
                                               const urlRegex = /(https?:\/\/[^\s]+)/g;
                                               const match = m.content.match(urlRegex);
-                                              if (match) {
+                                              if (match && !m.isDeleted) {
                                                 return (
                                                   <>
                                                     <div className="mt-1"><LinkPreview url={match[0]} isDarkMode={isDarkMode} /></div>
@@ -1606,12 +1738,25 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       
                                       {/* Timestamp: absolute for image, relative for text */}
                                       <div className={`${m.type === "image" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
+                                        {m.isEdited && !m.isDeleted && <span className="text-[9px] opacity-40 font-bold uppercase mr-1">Edited</span>}
                                         <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" ? "text-white" : ""}`}>
                                           {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                         </span>
                                         {mine && <div className={`shrink-0 scale-95 ${m.type === "image" ? "text-[#53bdeb]" : ""}`}><MsgTick status={m.status} /></div>}
                                       </div>
                                     </div>
+
+                                    {/* Reactions Display */}
+                                    {m.reactions && Object.keys(m.reactions).length > 0 && (
+                                      <div className={`absolute -bottom-3 ${mine ? "right-1" : "left-1"} flex items-center gap-0.5 bg-card border border-border/40 rounded-full px-1.5 py-0.5 shadow-sm scale-90 z-20`}>
+                                        {Object.entries(m.reactions).map(([emoji, uids]) => (
+                                          <div key={emoji} className="flex items-center gap-0.5">
+                                            <span className="text-[10px]">{emoji}</span>
+                                            {uids.length > 1 && <span className="text-[8px] font-bold opacity-60">{uids.length}</span>}
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
                                   </div>
 
                                   {/* Desktop hover reply button */}
@@ -1776,10 +1921,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         rows={1}
                         autoComplete="off"
                         value={text}
+                        placeholder={isEditing ? "Edit message..." : "Type a message..."}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && !e.shiftKey && !isMobileDevice()) {
                             e.preventDefault();
                             onText();
+                          }
+                          if (e.key === "Escape" && isEditing) {
+                            setIsEditing(null);
+                            setText("");
                           }
                         }}
                         onPaste={handlePaste}
@@ -1794,7 +1944,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           e.target.style.height = prevH;
                           setInputHeight(nextH);
 
-                          if (uid) {
+                          if (uid && !isEditing) {
                             const typingNow = val.length > 0;
                             if (typingNow !== isTyping) { setIsTyping(typingNow); setPres({ typing: typingNow }); }
                             if (typingTimer.current) clearTimeout(typingTimer.current);
@@ -1809,7 +1959,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                     <div className="shrink-0 w-12 h-12 flex items-center justify-center relative">
                       <AnimatePresence mode="popLayout">
-                        {text.trim() ? (
+                        {text.trim() || isEditing ? (
                           <motion.button
                             key="send"
                             initial={{ scale: 0.5, opacity: 0 }}
@@ -1817,9 +1967,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             exit={{ scale: 0.5, opacity: 0 }}
                             type="button"
                             onClick={() => onText()}
-                             className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-[#00a884] text-white flex items-center justify-center shadow-md md:shadow-lg active:scale-90 transition-all shrink-0"
+                             className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${isEditing ? "bg-orange-500" : "bg-[#00a884]"} text-white flex items-center justify-center shadow-md md:shadow-lg active:scale-90 transition-all shrink-0`}
                           >
-                            <Send className="w-5 h-5 md:w-6 md:h-6 fill-white stroke-[1.5] md:stroke-2" />
+                            {isEditing ? <CheckCircle2 className="w-5 h-5" /> : <Send className="w-5 h-5 md:w-6 md:h-6 fill-white stroke-[1.5] md:stroke-2" />}
                           </motion.button>
                         ) : (
                           <motion.button
@@ -1842,6 +1992,110 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 )}
               </div>
             </div>
+
+            {/* ── Message Context Menu (Reactions, Edit, Delete) ── */}
+            <AnimatePresence>
+              {contextMsg && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/20 backdrop-blur-sm"
+                  onPointerDown={() => setContextMsg(null)}
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    className={`w-full max-w-[280px] rounded-[32px] overflow-hidden shadow-2xl border ${
+                      isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
+                    }`}
+                    onPointerDown={(e) => e.stopPropagation()}
+                  >
+                    {/* Reactions Bar */}
+                    {!contextMsg.isDeleted && (
+                      <div className="flex items-center justify-between p-4 border-b border-white/5">
+                        {["❤️", "😂", "😮", "😢", "🙏", "👍"].map(emoji => (
+                          <button
+                            key={emoji}
+                            onClick={() => {
+                              reactToMessage(contextMsg.id, emoji);
+                              setContextMsg(null);
+                            }}
+                            className="text-2xl hover:scale-125 transition-transform active:scale-90"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+
+                    <div className="py-2">
+                      <button
+                        onClick={() => {
+                          setReplyingTo(contextMsg);
+                          setContextMsg(null);
+                        }}
+                        className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                      >
+                        <Reply className="w-4 h-4 opacity-60" /> Reply
+                      </button>
+
+                      {!contextMsg.isDeleted && (
+                        <button
+                          onClick={() => {
+                            send(contextMsg.type, contextMsg.content, { isForwarded: true });
+                            setContextMsg(null);
+                            addNotification("Message forwarded", "success");
+                          }}
+                          className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                        >
+                          <ArrowLeftRight className="w-4 h-4 opacity-60 rotate-180" /> Forward
+                        </button>
+                      )}
+
+                      {contextMsg.uid === uid && !contextMsg.isDeleted && (
+                        <>
+                          {contextMsg.type === "text" && (
+                            <button
+                              onClick={() => {
+                                setIsEditing(contextMsg.id);
+                                setText(contextMsg.content);
+                                setContextMsg(null);
+                                setTimeout(() => inputRef.current?.focus(), 100);
+                              }}
+                              className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                            >
+                              <ImageIcon className="w-4 h-4 opacity-60" /> Edit
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              deleteMessage(contextMsg.id);
+                              setContextMsg(null);
+                            }}
+                            className="w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium text-destructive hover:bg-destructive/5"
+                          >
+                            <Trash2 className="w-4 h-4 opacity-60" /> Delete for Everyone
+                          </button>
+                        </>
+                      )}
+                      
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(contextMsg.content);
+                          addNotification("Copied to clipboard", "success");
+                          setContextMsg(null);
+                        }}
+                        className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                      >
+                        <Download className="w-4 h-4 opacity-60" /> Copy
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* ── Desktop Sidebar (hidden on mobile via CSS/Tailwind) ── */}
             <AnimatePresence>
