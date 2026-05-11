@@ -1826,7 +1826,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 {recording ? (
                   /* ── Recording state ── */
                   <div className={`flex-1 flex items-center gap-3 rounded-[28px] px-4 h-[54px] overflow-hidden shadow-inner ${isDarkMode ? "bg-[#2a3942]" : "bg-white"}`}>
-                    <RecordingVisualizer recording={recording} isDarkMode={isDarkMode} />
+                    <RecordingVisualizer />
                     <div className="flex-1 overflow-hidden">
                       <motion.span 
                         animate={{ opacity: [0.4, 1, 0.4] }} 
@@ -1837,7 +1837,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       </motion.span>
                     </div>
                     <button 
-                      onPointerDown={() => { cancelRecRef.current = true; stopRec(); }}
+                      onPointerDown={(e) => { e.preventDefault(); cancelRec(); }}
                       className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors"
                     >
                       <Trash2 className="w-5 h-5" />
@@ -1916,6 +1916,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             exit={{ scale: 0.5, opacity: 0 }}
                             type="button"
                             onPointerDown={(e) => { e.preventDefault(); startRec(); }}
+                            onPointerUp={() => stopAndSendRec()}
+                            onPointerLeave={() => { if (recording) stopAndSendRec(); }}
                             className={`w-10 h-10 md:w-12 md:h-12 rounded-full flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
                               }`}
                             aria-label="Tap to record"
