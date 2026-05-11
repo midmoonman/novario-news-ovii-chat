@@ -2519,9 +2519,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       </div>
                     </div>
                   </div>
-
-                    </div>
-                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
