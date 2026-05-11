@@ -2549,7 +2549,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </button>
                           </div>
 
-                          <div className={`p-6 sm:p-10 rounded-[32px] border relative overflow-hidden backdrop-blur-xl shadow-xl ${isDarkMode ? "bg-black/40 border-white/10" : "bg-white/60 border-black/5"}`}>
+                          <div className={`p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden shadow-2xl ${isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"}`}>
                             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-green-400 to-green-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : "from-purple-400 to-purple-600"}`} />
                             
                             <h2 className={`text-2xl sm:text-4xl font-black tracking-tighter mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>
