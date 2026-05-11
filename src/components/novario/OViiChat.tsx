@@ -2600,8 +2600,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             {day.updates.map((update, uIdx) => (
                               <div 
                                 key={uIdx}
-                                className="group relative animate-in fade-in slide-in-from-left-4 duration-500 fill-mode-both"
-                                style={{ animationDelay: `${uIdx * 100}ms` }}
+                                className="group relative"
                               >
                                 <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                                   <span className={`px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black tracking-widest border ${
