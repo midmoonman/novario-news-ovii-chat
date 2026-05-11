@@ -6,9 +6,10 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
+import historyData from "../../lib/history.json";
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
@@ -593,6 +594,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [otherAvatar, setOtherAvatar] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showLogs, setShowLogs] = useState(false);
+  const [logTab, setLogTab] = useState<"updates" | "history">("updates");
+  const [historyLevel, setHistoryLevel] = useState<"easy" | "medium" | "hard">("medium");
 
   const [showMenu, setShowMenu] = useState(false);
   const [contextMsg, setContextMsg] = useState<Msg | null>(null);
@@ -2419,6 +2422,34 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                          </p>
                       </div>
 
+                      {/* Tabs */}
+                      <div className="flex justify-center mb-10">
+                        <div className={`flex items-center gap-1 p-1 rounded-full border shadow-inner ${isDarkMode ? "bg-black/30 border-white/5" : "bg-black/5 border-black/5"}`}>
+                          <button
+                            onClick={() => setLogTab("updates")}
+                            className={`px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all ${
+                              logTab === "updates"
+                                ? isDarkMode ? "bg-emerald-500/20 text-emerald-400 shadow-sm" : "bg-white text-emerald-600 shadow-sm"
+                                : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
+                            }`}
+                          >
+                            Updates
+                          </button>
+                          <button
+                            onClick={() => setLogTab("history")}
+                            className={`px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all ${
+                              logTab === "history"
+                                ? isDarkMode ? "bg-emerald-500/20 text-emerald-400 shadow-sm" : "bg-white text-emerald-600 shadow-sm"
+                                : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
+                            }`}
+                          >
+                            History
+                          </button>
+                        </div>
+                      </div>
+
+                      {logTab === "updates" ? (
+                        <>
                       {changelogData.map((day, idx) => (
                         <div key={day.date} className="relative pl-10 sm:pl-28">
                           {/* Intense Neon Timeline Line */}
@@ -2479,6 +2510,76 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           </div>
                         </div>
                       ))}
+                      </>
+                      ) : (
+                        <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 space-y-8 relative">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8 relative z-20">
+                            <div className="flex items-center gap-2">
+                              {(["easy", "medium", "hard"] as const).map((level) => (
+                                <button
+                                  key={level}
+                                  onClick={() => setHistoryLevel(level)}
+                                  className={`px-4 py-2 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all border ${
+                                    historyLevel === level
+                                      ? level === "easy" ? "bg-green-500/20 text-green-500 border-green-500/30" : level === "medium" ? "bg-blue-500/20 text-blue-500 border-blue-500/30" : "bg-purple-500/20 text-purple-500 border-purple-500/30"
+                                      : isDarkMode ? "bg-black/20 text-white/40 border-white/5 hover:bg-white/5" : "bg-white/50 text-black/40 border-black/5 hover:bg-black/5"
+                                  }`}
+                                >
+                                  {level}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              onClick={() => {
+                                const d = historyData[historyLevel];
+                                const text = [
+                                  d.title,
+                                  d.intro,
+                                  "",
+                                  ...d.sections.map(s => `## ${s.heading}\n${s.content}\n`),
+                                  d.summary
+                                ].join("\n");
+                                navigator.clipboard.writeText(text);
+                                addNotification("History Copied!", "success");
+                              }}
+                              className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all active:scale-95 border ${isDarkMode ? "bg-white/5 text-white hover:bg-white/10 border-white/10" : "bg-black/5 text-black hover:bg-black/10 border-black/10"}`}
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              Copy
+                            </button>
+                          </div>
+
+                          <div className={`p-6 sm:p-10 rounded-[32px] border relative overflow-hidden backdrop-blur-xl shadow-xl ${isDarkMode ? "bg-black/40 border-white/10" : "bg-white/60 border-black/5"}`}>
+                            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-green-400 to-green-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : "from-purple-400 to-purple-600"}`} />
+                            
+                            <h2 className={`text-2xl sm:text-4xl font-black tracking-tighter mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>
+                              {historyData[historyLevel].title}
+                            </h2>
+                            <p className={`text-sm sm:text-lg leading-relaxed font-medium mb-10 ${isDarkMode ? "text-white/70" : "text-black/70"}`}>
+                              {historyData[historyLevel].intro}
+                            </p>
+
+                            <div className="space-y-8 sm:space-y-12">
+                              {historyData[historyLevel].sections.map((section, idx) => (
+                                <div key={idx} className="relative">
+                                  <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
+                                    {section.heading}
+                                  </h3>
+                                  <p className={`text-sm sm:text-base leading-relaxed ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+                                    {section.content}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
+                               <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
+                                 {historyData[historyLevel].summary}
+                               </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* Book Footer */}
                       <div className="pt-24 sm:pt-40 pb-16 sm:pb-24 text-center relative">
