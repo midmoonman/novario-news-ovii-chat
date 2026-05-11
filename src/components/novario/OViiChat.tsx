@@ -363,19 +363,56 @@ const MsgTick = ({ status }: { status?: string }) => {
   return null;
 };
 
-// ─── RecordingVisualizer ──────────────────────────────────────────────────────
-const RecordingVisualizer = () => (
-  <div className="flex items-center gap-0.5 h-4">
-    {[...Array(8)].map((_, i) => (
-      <motion.div
-        key={i}
-        animate={{ height: [4, 12, 4] }}
-        transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.05, ease: "easeInOut" }}
-        className="w-1 bg-primary rounded-full"
-      />
-    ))}
-  </div>
-);
+// ─── LiveAudioVisualizer ──────────────────────────────────────────────────────
+const LiveAudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
+  const barsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  useEffect(() => {
+    if (!stream) return;
+    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 64;
+    const source = audioCtx.createMediaStreamSource(stream);
+    source.connect(analyser);
+
+    const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    let rafId: number;
+
+    const update = () => {
+      analyser.getByteFrequencyData(dataArray);
+      const step = Math.floor((analyser.frequencyBinCount * 0.5) / 15) || 1;
+      
+      for (let i = 0; i < 15; i++) {
+        if (barsRef.current[i]) {
+          const val = dataArray[i * step] || 0;
+          const h = Math.max(4, (val / 255) * 24);
+          barsRef.current[i]!.style.height = `${h}px`;
+        }
+      }
+      rafId = requestAnimationFrame(update);
+    };
+    update();
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      source.disconnect();
+      if (audioCtx.state !== 'closed') audioCtx.close().catch(() => {});
+    };
+  }, [stream]);
+
+  return (
+    <div className="flex items-center justify-center gap-[2px] sm:gap-1 h-8 flex-1 px-2 overflow-hidden w-full max-w-[150px]">
+      {[...Array(15)].map((_, i) => (
+        <div
+          key={i}
+          ref={(el) => (barsRef.current[i] = el)}
+          className="w-1 bg-red-500 rounded-full transition-all duration-75 ease-out"
+          style={{ height: '4px' }}
+        />
+      ))}
+    </div>
+  );
+};
 
 // ─── MediaList (formerly FilesList) ───────────────────────────────────────────
 function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void }) {
@@ -597,6 +634,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [logTab, setLogTab] = useState<"updates" | "history">("updates");
   const [historyLevel, setHistoryLevel] = useState<"easy" | "medium" | "hard">("easy");
   const [showHistoryInfo, setShowHistoryInfo] = useState(false);
+  const recStreamRef = useRef<MediaStream | null>(null);
 
   const [showMenu, setShowMenu] = useState(false);
   const [contextMsg, setContextMsg] = useState<Msg | null>(null);
@@ -1109,6 +1147,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const startRec = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      recStreamRef.current = stream;
       const rec = new MediaRecorder(stream);
       chunksRef.current = [];
       rec.ondataavailable = (e) => chunksRef.current.push(e.data);
@@ -2052,12 +2091,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 {recording ? (
                   /* ── Recording state ── */
                   <div className={`flex-1 flex items-center justify-between rounded-[28px] px-2 sm:px-4 h-[54px] overflow-hidden shadow-inner ${isDarkMode ? "bg-[#2a3942]" : "bg-white"}`}>
-                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-1">
                       <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-red-500 rounded-full shadow-[0_0_10px_red] animate-pulse" />
-                      <div className="hidden sm:block">
-                        <RecordingVisualizer />
-                      </div>
                       <span className="text-red-500 font-black text-[10px] sm:text-xs uppercase tracking-widest ml-1">{formatDuration(recDuration)}</span>
+                      <div className="flex flex-1 mx-1 sm:mx-2 min-w-[40px]">
+                        <LiveAudioVisualizer stream={recStreamRef.current} />
+                      </div>
                     </div>
                     
                     <motion.div 
