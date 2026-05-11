@@ -2440,32 +2440,67 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                       {/* Tabs */}
                       <div className="flex justify-center mb-10">
-                        <div className={`flex items-center gap-1 p-1 rounded-full border shadow-inner ${isDarkMode ? "bg-black/30 border-white/5" : "bg-black/5 border-black/5"}`}>
+                        <div className={`relative flex p-1 rounded-full border shadow-inner ${isDarkMode ? "bg-black/30 border-white/5" : "bg-black/5 border-black/5"}`}>
                           <button
                             onClick={() => setLogTab("updates")}
-                            className={`px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all ${
+                            className={`relative px-8 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${
                               logTab === "updates"
-                                ? isDarkMode ? "bg-emerald-500/20 text-emerald-400 shadow-sm" : "bg-white text-emerald-600 shadow-sm"
+                                ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
                                 : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
                             }`}
                           >
-                            Updates
+                            {logTab === "updates" && (
+                              <motion.div 
+                                layoutId="tab-pill" 
+                                className="absolute inset-0 rounded-full bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)] border border-emerald-500/30" 
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} 
+                              />
+                            )}
+                            <span className="relative z-10">Updates</span>
                           </button>
                           <button
                             onClick={() => setLogTab("history")}
-                            className={`px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold tracking-wide transition-all ${
+                            className={`relative px-8 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${
                               logTab === "history"
-                                ? isDarkMode ? "bg-emerald-500/20 text-emerald-400 shadow-sm" : "bg-white text-emerald-600 shadow-sm"
+                                ? historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
+                                  historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
+                                  (isDarkMode ? "text-purple-400" : "text-purple-600")
                                 : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
                             }`}
                           >
-                            History
+                            {logTab === "history" && (
+                              <motion.div 
+                                layoutId="tab-pill" 
+                                className={`absolute inset-0 rounded-full border ${
+                                  historyLevel === "easy" ? "bg-orange-500/20 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.3)]" :
+                                  historyLevel === "medium" ? "bg-blue-500/20 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.3)]" :
+                                  "bg-purple-500/20 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                                }`} 
+                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }} 
+                              />
+                            )}
+                            <span className="relative z-10">History</span>
                           </button>
                         </div>
                       </div>
 
                       {logTab === "updates" ? (
                         <>
+                        <div className="flex justify-end mb-8 relative z-50 px-4">
+                           <button
+                             onClick={() => {
+                               const text = changelogData.map((day: any) => 
+                                 `Date: ${day.date}\n` + day.updates.map((u: any) => `[${u.status}] ${u.title}\n${u.description}\n${u.rationale ? `Rationale: ${u.rationale}` : ''}`).join('\n\n')
+                               ).join('\n\n---\n\n');
+                               navigator.clipboard.writeText(text);
+                               addNotification("Updates Copied!", "success");
+                             }}
+                             className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all active:scale-95 border ${isDarkMode ? "bg-white/5 text-white hover:bg-white/10 border-white/10" : "bg-black/5 text-black hover:bg-black/10 border-black/10"}`}
+                           >
+                             <Copy className="w-3.5 h-3.5" />
+                             Copy Updates
+                           </button>
+                        </div>
                       {changelogData.map((day, idx) => (
                         <div key={day.date} className="relative pl-10 sm:pl-28">
                           {/* Intense Neon Timeline Line */}

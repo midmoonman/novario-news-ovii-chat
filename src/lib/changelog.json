@@ -3,6 +3,12 @@
     "date": "2026-05-11",
     "updates": [
       {
+        "title": "Build Book Modal & Transition Physics",
+        "status": "DEPLOYED",
+        "description": "Refactored the Build Book info tooltip into a perfectly centered, fixed overlay modal for pristine mobile responsiveness. Replaced rigid tab selections with a fluid, physics-based 'pill' sliding animation using Framer Motion. Engineered a global 'Copy Updates' pipeline, stripped out pixelated gradient backgrounds for high-quality solid dark modes, and completely synchronized the 'Easy' level logic to use the Orange neon theme.",
+        "rationale": "Ensures the highest tier of visual fluidity and eliminates all layout shifting caused by responsive constraints. Complies strictly with the automated documentation Thumb Rule."
+      },
+      {
         "title": "History Dynamic Theming & Info Architecture",
         "status": "DEPLOYED",
         "description": "Implemented dynamic global UI themes that correspond to the active History difficulty level (Green for Easy, Blue for Medium, Purple for Hard). Added a live file architecture tree to the Hard mode, fixed text wrapping for long file paths, and added an Info tooltip explaining difficulty tiers.",
