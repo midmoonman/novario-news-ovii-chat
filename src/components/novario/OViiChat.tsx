@@ -890,6 +890,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     lastActivity.current = Date.now();
     const msgData: any = { uid, avatar, name, type: "image", content: url, caption, status: "sent", createdAt: Timestamp.now() };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
+    setTimeout(() => scrollToBottom(false), 300); // Wait for image to start loading and scroll down
   };
 
   const onText = async (e?: React.FormEvent | React.KeyboardEvent) => {
@@ -1549,7 +1550,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                       return (
                         <Fragment key={m.id}>
-                          {showDateHeader && (
+                          {showDateHeader && dateStr !== "Today" && (
                             <div className="w-full flex justify-center my-4 sticky top-2 z-10 pointer-events-none">
                               <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md shadow-sm border pointer-events-auto ${isDarkMode ? "bg-[#182229]/80 text-white/50 border-white/5" : "bg-white/80 text-black/40 border-black/5"
                                 }`}>
@@ -1815,7 +1816,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <ChevronDown className="w-4 h-4 rotate-180" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-black text-orange-500 uppercase tracking-tighter">Editing message</div>
+                      <div className="text-[10px] font-bold text-orange-500 uppercase tracking-tighter">Editing message</div>
                       <div className={`text-xs truncate ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
                         {msgs.find(m => m.id === isEditing)?.content || "..."}
                       </div>
@@ -1841,7 +1842,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <Reply className="w-4 h-4" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-black text-primary uppercase tracking-tighter">Replying to {replyingTo.name || "User"}</div>
+                      <div className="text-[10px] font-bold text-primary uppercase tracking-tighter">Replying to {replyingTo.name || "User"}</div>
                       <div className={`text-xs truncate ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
                         {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
                       </div>
