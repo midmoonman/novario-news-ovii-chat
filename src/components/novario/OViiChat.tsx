@@ -39,13 +39,13 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
         const res = await fetch(proxy);
         if (!res.ok) throw new Error("Fetch failed");
         const html = await res.text();
-        
+
         if (!alive) return;
 
         const getMeta = (prop: string) => {
-           const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["'](?:og:|twitter:)?${prop}["'][^>]+content=["']([^"']+)["']`, 'i'))
-             || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:|twitter:)?${prop}["']`, 'i'));
-           return match?.[1] || "";
+          const match = html.match(new RegExp(`<meta[^>]+(?:property|name)=["'](?:og:|twitter:)?${prop}["'][^>]+content=["']([^"']+)["']`, 'i'))
+            || html.match(new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:|twitter:)?${prop}["']`, 'i'));
+          return match?.[1] || "";
         };
 
         const title = (getMeta("title") || html.match(/<title>([^<]+)<\/title>/i)?.[1] || "").trim();
@@ -77,35 +77,34 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
   if (!preview) return null;
 
   return (
-    <motion.a 
+    <motion.a
       initial={{ opacity: 0, y: 5 }}
       animate={{ opacity: 1, y: 0 }}
-      href={url} 
-      target="_blank" 
-      rel="noopener noreferrer" 
-      className={`block mt-2 mb-1 rounded-xl overflow-hidden border transition-all hover:brightness-110 active:scale-[0.98] group/link ${
-        isDarkMode ? "bg-[#0b141a]/60 border-white/5" : "bg-black/5 border-black/10"
-      } no-underline max-w-[280px] sm:max-w-[320px]`}
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`block mt-2 mb-1 rounded-xl overflow-hidden border transition-all hover:brightness-110 active:scale-[0.98] group/link ${isDarkMode ? "bg-[#0b141a]/60 border-white/5" : "bg-black/5 border-black/10"
+        } no-underline max-w-[280px] sm:max-w-[320px]`}
     >
-       {preview.image && (
-         <div className="relative aspect-[1.91/1] overflow-hidden">
-           <img src={preview.image} alt="" className="w-full h-full object-cover transition-transform group-hover/link:scale-105" />
-           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/link:opacity-100 transition-opacity" />
-         </div>
-       )}
-       <div className="p-2.5">
-         <div className={`text-[12px] font-bold truncate leading-tight ${isDarkMode ? "text-[#e9edef]" : "text-[#111b21]"}`}>{preview.title || "Link"}</div>
-         {preview.description && <div className={`text-[10px] line-clamp-2 mt-1 opacity-70 leading-normal ${isDarkMode ? "text-white" : "text-black"}`}>{preview.description}</div>}
-         <div className="flex items-center gap-1 mt-2 opacity-40">
-           <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-           <span className="text-[9px] font-bold uppercase tracking-widest truncate">
-             {(() => {
-               try { return new URL(url).hostname; }
-               catch { return "Link"; }
-             })()}
-           </span>
-         </div>
-       </div>
+      {preview.image && (
+        <div className="relative aspect-[1.91/1] overflow-hidden">
+          <img src={preview.image} alt="" className="w-full h-full object-cover transition-transform group-hover/link:scale-105" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/link:opacity-100 transition-opacity" />
+        </div>
+      )}
+      <div className="p-2.5">
+        <div className={`text-[12px] font-bold truncate leading-tight ${isDarkMode ? "text-[#e9edef]" : "text-[#111b21]"}`}>{preview.title || "Link"}</div>
+        {preview.description && <div className={`text-[10px] line-clamp-2 mt-1 opacity-70 leading-normal ${isDarkMode ? "text-white" : "text-black"}`}>{preview.description}</div>}
+        <div className="flex items-center gap-1 mt-2 opacity-40">
+          <svg className="w-2.5 h-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+          <span className="text-[9px] font-bold uppercase tracking-widest truncate">
+            {(() => {
+              try { return new URL(url).hostname; }
+              catch { return "Link"; }
+            })()}
+          </span>
+        </div>
+      </div>
     </motion.a>
   );
 };
@@ -123,7 +122,6 @@ type Msg = {
   replyTo?: { id: string, content: string, avatar: string, name?: string };
   isEdited?: boolean;
   isDeleted?: boolean;
-  isForwarded?: boolean;
   reactions?: Record<string, string[]>;
   deletedFor?: string[];
 };
@@ -145,15 +143,20 @@ const formatMessageDate = (date: Date) => {
 };
 
 const formatLastSeen = (timestamp?: number | null) => {
-  if (!timestamp) return "offline";
+  if (!timestamp) return "";
   const now = Date.now();
   const diff = now - timestamp;
-  if (diff < 30000) return "online"; // within 30s
-  if (diff < 3600000) return `last seen ${Math.floor(diff / 60000)}m ago`;
+  if (diff < 60000) return "Online";
+
   const date = new Date(timestamp);
+  const timeStr = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const isToday = date.toDateString() === new Date().toDateString();
-  if (isToday) return `last seen today at ${date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
-  return `last seen on ${date.toLocaleDateString([], { day: 'numeric', month: 'short' })}`;
+  const isYesterday = date.toDateString() === new Date(Date.now() - 86400000).toDateString();
+  
+  const dayStr = isToday ? "today" : isYesterday ? "yesterday" : 
+                 date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+
+  return `last seen ${dayStr} at ${timeStr}`;
 };
 
 // ─── AudioPlayer ─────────────────────────────────────────────────────────────
@@ -169,10 +172,10 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
 
   useEffect(() => {
     if (!containerRef.current) return;
-    
+
     // WaveSurfer needs a bit of time to ensure container has dimensions
     let ws: WaveSurfer | null = null;
-    
+
     const init = () => {
       try {
         ws = WaveSurfer.create({
@@ -194,7 +197,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           setIsReady(true);
           setHasError(false);
         });
-        
+
         ws.on("audioprocess", () => setCurrentTime(ws!.getCurrentTime()));
         ws.on("finish", () => { setPlaying(false); setCurrentTime(ws!.getDuration()); });
         ws.on("error", (err) => {
@@ -224,7 +227,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
       if (e.detail !== id && ws?.isPlaying()) { ws.pause(); setPlaying(false); }
     };
     window.addEventListener(STOP_AUDIO_EVENT, stopOthers);
-    
+
     return () => {
       window.removeEventListener(STOP_AUDIO_EVENT, stopOthers);
       observer.disconnect();
@@ -257,8 +260,8 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
 
   return (
     <div className={`flex items-center gap-3 w-full p-3.5 rounded-[22px] overflow-hidden transition-all min-w-[280px] ${mine
-        ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black")
-        : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black")
+      ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black")
+      : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black")
       }`}>
       <div className="relative shrink-0">
         <button
@@ -287,16 +290,16 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
           />
           {!isReady && !hasError && (
             <div className="absolute inset-0 flex items-center justify-start">
-               <div className="w-full flex items-center gap-1 h-full opacity-20">
-                 {[...Array(20)].map((_, i) => (
-                   <div key={i} className={`flex-1 bg-current rounded-full`} style={{ height: `${Math.random() * 60 + 20}%` }} />
-                 ))}
-               </div>
+              <div className="w-full flex items-center gap-1 h-full opacity-20">
+                {[...Array(20)].map((_, i) => (
+                  <div key={i} className={`flex-1 bg-current rounded-full`} style={{ height: `${Math.random() * 60 + 20}%` }} />
+                ))}
+              </div>
             </div>
           )}
           {hasError && (
             <div className="absolute inset-0 flex items-center justify-start text-[10px] opacity-40 italic">
-               Failed to load waveform
+              Failed to load waveform
             </div>
           )}
         </div>
@@ -318,8 +321,8 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
             <button
               onClick={toggleSpeed}
               className={`text-[9px] font-normal h-5 px-2 rounded-full border transition-all active:scale-90 flex items-center justify-center shrink-0 ${isDarkMode
-                  ? "bg-white/10 border-white/5 text-white/80 hover:bg-white/20"
-                  : "bg-black/5 border-black/5 text-black/70 hover:bg-black/10"
+                ? "bg-white/10 border-white/5 text-white/80 hover:bg-white/20"
+                : "bg-black/5 border-black/5 text-black/70 hover:bg-black/10"
                 }`}
             >
               {speed}x
@@ -391,11 +394,10 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { 
         <div key={date} className="space-y-3">
           <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
           {items.map(m => (
-            <div key={m.id} className={`p-2.5 rounded-2xl flex items-center gap-4 lg:gap-6 shadow-sm transition-all group border ${
-              isDarkMode 
-                ? "bg-card/30 border-white/5 hover:bg-card/50" 
+            <div key={m.id} className={`p-2.5 rounded-2xl flex items-center gap-4 lg:gap-6 shadow-sm transition-all group border ${isDarkMode
+                ? "bg-card/30 border-white/5 hover:bg-card/50"
                 : "bg-white border-black/5 hover:bg-black/5 shadow-md"
-            }`}>
+              }`}>
               <div className="flex-1 min-w-0">
                 {m.type === "voice" ? (
                   <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
@@ -740,8 +742,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             // Retention logic:
             // Text: 5 days
             // Voice/Photo: 14 days
-            const limit = m.type === "text" 
-              ? 5 * 24 * 60 * 60 * 1000 
+            const limit = m.type === "text"
+              ? 5 * 24 * 60 * 60 * 1000
               : 14 * 24 * 60 * 60 * 1000;
 
             if (tnow - ts > limit) {
@@ -814,13 +816,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   }, []);
 
   // ── Scroll to bottom on load and new messages ──────────────────────────
-  useEffect(() => { 
-    const timer = setTimeout(() => scrollToBottom(true), 250); 
+  useEffect(() => {
+    const timer = setTimeout(() => scrollToBottom(true), 250);
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => { 
-    const timer = setTimeout(() => scrollToBottom(false), 100); 
+  useEffect(() => {
+    const timer = setTimeout(() => scrollToBottom(false), 100);
     return () => clearTimeout(timer);
   }, [msgs.length, isTyping]);
 
@@ -886,10 +888,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     try {
       const msg = msgs.find(m => m.id === msgId);
       if (!msg || !uid) return;
-      
+
       const reactions = { ...(msg.reactions || {}) };
       const current = reactions[emoji] || [];
-      
+
       if (current.includes(uid)) {
         reactions[emoji] = current.filter(id => id !== uid);
         if (reactions[emoji].length === 0) delete reactions[emoji];
@@ -901,7 +903,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         });
         reactions[emoji] = [...(reactions[emoji] || []), uid];
       }
-      
+
       await setDoc(doc(db, "ovii", ROOM, "messages", msgId), { reactions }, { merge: true });
       if (window.navigator.vibrate) window.navigator.vibrate(10);
     } catch (e) {
@@ -920,7 +922,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (e) e.preventDefault();
     const v = text.trim();
     if (!v) return;
-    
+
     if (isEditing) {
       await editMessage(isEditing, v);
       setText("");
@@ -957,14 +959,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const onImage = async (file: File) => {
     if (!uid) return;
     if (file.size > 8 * 1024 * 1024) { setError("Image too large (max 8MB)"); return; }
-    
+
     setUploadingText("Sending photo...");
     setIsUploading(true); // Show loader immediately
     try {
       const url = await uploadToCloudinary(file);
       await sendImage(url, ""); // Send immediately with empty caption
-    } catch (e: any) { 
-      setError("Image upload failed: " + (e.message || "Unknown error")); 
+    } catch (e: any) {
+      setError("Image upload failed: " + (e.message || "Unknown error"));
     } finally {
       setIsUploading(false);
     }
@@ -1037,11 +1039,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       setPres({ recording: true });
       cancelRecRef.current = false;
       setTimeout(() => {
-        if (rec.state === "recording") { 
+        if (rec.state === "recording") {
           if (recTimerRef.current) clearInterval(recTimerRef.current);
-          rec.stop(); 
-          setRecording(false); 
-          setPres({ recording: false }); 
+          rec.stop();
+          setRecording(false);
+          setPres({ recording: false });
         }
       }, 10 * 60 * 1000);
     } catch (e: any) { setError("Microphone permission denied"); }
@@ -1157,14 +1159,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           {/* No Toaster needed anymore */}
 
 
-        {/* ── Avatar Picker Overlay ── */}
-        {showAvatarPicker && (
-          <div className="absolute inset-0 z-50 bg-background/95 flex items-center justify-center p-4">
+          {/* ── Avatar Picker Overlay ── */}
+          {showAvatarPicker && (
+            <div className="absolute inset-0 z-50 bg-background/95 flex items-center justify-center p-4">
               <div className="w-full max-w-sm rounded-[32px] border border-white/20 bg-card p-8 shadow-2xl text-center relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
-                
+
                 {/* Close button */}
-                <button 
+                <button
                   onClick={() => setShowAvatarPicker(false)}
                   className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 transition-all active:scale-90"
                   title="Close"
@@ -1174,7 +1176,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                 <h2 className="text-2xl font-black mb-1 text-white tracking-tight">Profile</h2>
                 <p className="text-xs text-white/50 mb-8 font-medium">Customize your presence in the room</p>
-                
+
                 <div className="space-y-6 relative z-10">
                   <div className="text-left">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1 mb-1.5 block">Display Name</label>
@@ -1203,9 +1205,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             setShowAvatarPicker(false);
                             addNotification("Profile updated", "success");
                           }}
-                          className={`rounded-full overflow-hidden border-2 transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${
-                            avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : "border-transparent hover:border-white/30"
-                          }`}
+                          className={`rounded-full overflow-hidden border-2 transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : "border-transparent hover:border-white/30"
+                            }`}
                         >
                           <img src={av.url} alt={av.name} className="w-full h-auto" />
                         </button>
@@ -1214,46 +1215,44 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </div>
                 </div>
               </div>
-          </div>
-        )}
-
-        {/* ── Mobile Folder Overlay ── */}
-        <AnimatePresence>
-          {showFolder && (
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className={`fixed inset-0 z-[150] flex flex-col ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
-            >
-              <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${
-                isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
-              }`}>
-                <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
-                  <Folder className="w-5 h-5 text-destructive" /> FILES
-                </h2>
-                <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-              <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} />
-              </div>
-            </motion.div>
+            </div>
           )}
-        </AnimatePresence>
+
+          {/* ── Mobile Folder Overlay ── */}
+          <AnimatePresence>
+            {showFolder && (
+              <motion.div
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className={`fixed inset-0 z-[150] flex flex-col ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
+              >
+                <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
+                  }`}>
+                  <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
+                    <Folder className="w-5 h-5 text-destructive" /> FILES
+                  </h2>
+                  <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                  <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
 
 
           {/* ── Header ── */}
-          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 ${
-            isDarkMode 
-              ? "bg-[#202c33]/70 border-white/5 text-white shadow-[0_4px_30px_rgba(0,0,0,0.1)]" 
+          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 ${isDarkMode
+              ? "bg-[#202c33]/70 border-white/5 text-white shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
               : "bg-white/70 border-black/5 text-black shadow-[0_4px_30px_rgba(0,0,0,0.05)]"
             }`}>
             <div className="flex items-center gap-3">
-              <div 
+              <div
                 className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all active:scale-95 relative"
                 onClick={() => {
                   if (!otherAvatar) {
@@ -1267,7 +1266,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 ) : avatar ? (
                   <img src={avatar} alt="" className="w-full h-full object-cover" />
                 ) : null}
-                <motion.div 
+                <motion.div
                   animate={{ scale: [1, 1.3, 1], opacity: [0, 0.2, 0] }}
                   transition={{ duration: 4, repeat: Infinity }}
                   className="absolute inset-0 bg-primary rounded-full pointer-events-none"
@@ -1297,10 +1296,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 </div>
               )}
               <label className="switch" title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-                <input 
-                  type="checkbox" 
-                  checked={!isDarkMode} 
-                  onChange={() => setIsDarkMode(!isDarkMode)} 
+                <input
+                  type="checkbox"
+                  checked={!isDarkMode}
+                  onChange={() => setIsDarkMode(!isDarkMode)}
                 />
                 <span className="slider">
                   <span className="star star_1"></span>
@@ -1339,16 +1338,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       initial={{ opacity: 0, scale: 0.95, y: -10 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className={`absolute right-0 mt-2 w-64 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden border ${
-                        isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
+                      className={`absolute right-0 mt-2 w-64 rounded-[28px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] z-50 overflow-hidden border ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
                         }`}
                     >
                       <div className="py-2">
                         {/* Profile Item */}
-                         <button
+                        <button
                           onClick={() => { setShowAvatarPicker(true); setShowMenu(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${
-                            isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
                             }`}
                         >
                           <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 shrink-0 shadow-sm">
@@ -1368,8 +1365,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                         <button
                           onClick={() => { setShowFolder(true); setShowMenu(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${
-                            isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
                             }`}
                         >
                           <Folder className="w-4 h-4 text-destructive" />
@@ -1478,11 +1474,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       initial={{ opacity: 0, scale: 0.8, y: -20 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                      className={`px-5 py-3 rounded-[24px] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] border flex items-center gap-3 pointer-events-auto text-[13px] font-black tracking-tight transition-all ${
-                        n.type === "success" ? "bg-[#00a884] text-white border-white/20 shadow-[#00a884]/20" :
-                        n.type === "error" ? "bg-[#ea4335] text-white border-white/20 shadow-red-500/20" :
-                        "bg-[#005c4b] text-white border-white/20 shadow-primary/20"
-                      }`}
+                      className={`px-5 py-3 rounded-[24px] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] border flex items-center gap-3 pointer-events-auto text-[13px] font-black tracking-tight transition-all ${n.type === "success" ? "bg-[#00a884] text-white border-white/20 shadow-[#00a884]/20" :
+                          n.type === "error" ? "bg-[#ea4335] text-white border-white/20 shadow-red-500/20" :
+                            "bg-[#005c4b] text-white border-white/20 shadow-primary/20"
+                        }`}
                     >
                       {n.type === "success" && <CheckCircle2 className="w-4 h-4 shrink-0" />}
                       {n.type === "error" && <AlertCircle className="w-4 h-4 shrink-0" />}
@@ -1505,8 +1500,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   >
                     {systemMsgs.slice(-1).map(sm => (
                       <div key={sm.id} className={`text-[11px] font-bold px-4 py-1.5 rounded-full backdrop-blur-xl shadow-elegant border ${sm.type === "join"
-                          ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
-                          : "bg-muted/60 text-muted-foreground border-border/30"
+                        ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
+                        : "bg-muted/60 text-muted-foreground border-border/30"
                         }`}>
                         {sm.type === "join" ? "🟢" : "⚫"} {sm.text}
                       </div>
@@ -1559,7 +1554,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </div>
                 )}
 
-                 <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-3.5 sm:px-6">
+                <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-3.5 sm:px-6">
                   <AnimatePresence mode="popLayout" initial={false}>
                     {chatMsgs.filter(m => !m.deletedFor?.includes(uid || "")).map((m, i) => {
                       const mine = m.uid === uid;
@@ -1569,18 +1564,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
 
                       // Date grouping logic
-                      const showDateHeader = !prevMsg || 
+                      const showDateHeader = !prevMsg ||
                         m.createdAt?.toDate().toDateString() !== prevMsg.createdAt?.toDate().toDateString();
-                      
+
                       const dateStr = showDateHeader ? formatMessageDate(m.createdAt?.toDate() || new Date()) : null;
 
                       return (
                         <div key={m.id} className="w-full flex flex-col">
                           {showDateHeader && (
                             <div className="w-full flex justify-center my-4 sticky top-2 z-10 pointer-events-none">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md shadow-sm border pointer-events-auto ${
-                                isDarkMode ? "bg-[#182229]/80 text-white/50 border-white/5" : "bg-white/80 text-black/40 border-black/5"
-                              }`}>
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md shadow-sm border pointer-events-auto ${isDarkMode ? "bg-[#182229]/80 text-white/50 border-white/5" : "bg-white/80 text-black/40 border-black/5"
+                                }`}>
                                 {dateStr}
                               </span>
                             </div>
@@ -1591,9 +1585,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             initial={{ opacity: 0, y: 20, scale: 0.7, originX: mine ? 1 : 0 }}
                             animate={{ opacity: 1, y: 0, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{ 
-                              type: "spring", 
-                              damping: 25, 
+                            transition={{
+                              type: "spring",
+                              damping: 25,
                               stiffness: 400,
                               layout: { duration: 0.2 }
                             }}
@@ -1641,81 +1635,74 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   }
                                 }
                               }}
-                               className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[550px] lg:max-w-[600px] ${mine ? "ml-auto" : "mr-auto"}`}
-                             >
-                            <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
-                              }`}>
-                              <Reply className="w-5 h-5 text-primary/40" />
-                            </div>
-
-                            {!mine && (
-                              <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
-                                {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
-                              </div>
-                            )}
-
-                            <div className={`flex-1 min-w-0 ${mine ? "items-end" : "items-start"} flex flex-col gap-[2px] md:gap-0.5`}>
-                              {!mine && !isConsecutive && m.name && <span className="hidden md:inline-block text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
-
-                              {m.replyTo && (
-                                <div className={`px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden ${
-                                  isDarkMode ? "bg-m3-surface-container-high/50 text-[#e9edef]/80" : "bg-black/5 text-[#111b21]/70"
+                              className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[550px] lg:max-w-[600px] ${mine ? "ml-auto" : "mr-auto"}`}
+                            >
+                              <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                                 }`}>
-                                  <img src={m.replyTo.avatar} className="w-4 h-4 rounded-full border border-border/20 shrink-0" alt="" />
-                                  <div className="flex flex-col min-w-0">
-                                    {m.replyTo.name && <span className="text-[8px] font-black text-primary uppercase tracking-tighter truncate">{m.replyTo.name}</span>}
-                                    <span className="truncate italic text-[10px] leading-tight">{m.replyTo.content}</span>
-                                  </div>
+                                <Reply className="w-5 h-5 text-primary/40" />
+                              </div>
+
+                              {!mine && (
+                                <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                                  {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
                                 </div>
                               )}
 
-                              {m.type === "voice" ? (
-                                <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
-                              ) : (
-                                <div
-                                  className={`md:rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px]" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px]"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col shadow-sm md:shadow-md transition-all w-fit max-w-full
+                              <div className={`flex-1 min-w-0 ${mine ? "items-end" : "items-start"} flex flex-col gap-[2px] md:gap-0.5`}>
+                                {!mine && !isConsecutive && m.name && <span className="hidden md:inline-block text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
+
+                                {m.replyTo && (
+                                  <div className={`px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden ${isDarkMode ? "bg-m3-surface-container-high/50 text-[#e9edef]/80" : "bg-black/5 text-[#111b21]/70"
+                                    }`}>
+                                    <img src={m.replyTo.avatar} className="w-4 h-4 rounded-full border border-border/20 shrink-0" alt="" />
+                                    <div className="flex flex-col min-w-0">
+                                      {m.replyTo.name && <span className="text-[8px] font-black text-primary uppercase tracking-tighter truncate">{m.replyTo.name}</span>}
+                                      <span className="truncate italic text-[10px] leading-tight">{m.replyTo.content}</span>
+                                    </div>
+                                  </div>
+                                )}
+
+                                {m.type === "voice" ? (
+                                  <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                                ) : (
+                                  <div
+                                    className={`md:rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px]" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px]"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col shadow-sm md:shadow-md transition-all w-fit max-w-full
                                   ${mine
                                         ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-sm md:rounded-br-none" : "")
                                         : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-sm md:rounded-bl-none" : "")
                                       } ${m.isDeleted ? "opacity-60 italic" : ""}`}
-                                >
-                                  <div className="relative flex flex-col">
-                                    {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold text-[#eb5528] dark:text-[#f28b82] mb-0.5 leading-tight">{m.name}</span>}
-                                    
-                                    {m.isForwarded && !m.isDeleted && (
-                                      <div className="flex items-center gap-1 opacity-40 mb-1">
-                                        <ArrowLeftRight className="w-2.5 h-2.5 rotate-180" />
-                                        <span className="text-[9px] italic font-bold">Forwarded</span>
-                                      </div>
-                                    )}
+                                  >
+                                    <div className="relative flex flex-col">
+                                      {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold text-[#eb5528] dark:text-[#f28b82] mb-0.5 leading-tight">{m.name}</span>}
 
-                                    {m.type === "image" && !m.isDeleted && (
-                                      <div className="mb-0 overflow-hidden rounded-[18px] relative group/img cursor-pointer active:scale-[0.99] transition-transform" onClick={() => setSelectedImage(m.content)}>
-                                        <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]" />
-                                        
-                                        {/* Photo overlay actions */}
-                                        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                          <button 
-                                            onClick={(e) => { e.stopPropagation(); setSelectedImage(m.content); }}
-                                            className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
-                                          >
-                                            <ImageIcon className="w-4 h-4" />
-                                          </button>
-                                          <button 
-                                            onClick={(e) => { e.stopPropagation(); downloadFile(m.content, m.id, "image"); }}
-                                            className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
-                                          >
-                                            <Download className="w-4 h-4" />
-                                          </button>
-                                        </div>
 
-                                        {m.caption && (
-                                          <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
-                                            {m.caption}
+                                      {m.type === "image" && !m.isDeleted && (
+                                        <div className="mb-0 overflow-hidden rounded-[18px] relative group/img cursor-pointer active:scale-[0.99] transition-transform" onClick={() => setSelectedImage(m.content)}>
+                                          <img src={m.content} alt="" className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]" />
+
+                                          {/* Photo overlay actions */}
+                                          <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); setSelectedImage(m.content); }}
+                                              className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
+                                            >
+                                              <ImageIcon className="w-4 h-4" />
+                                            </button>
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); downloadFile(m.content, m.id, "image"); }}
+                                              className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
+                                            >
+                                              <Download className="w-4 h-4" />
+                                            </button>
                                           </div>
-                                        )}
-                                      </div>
-                                    )}
+
+                                          {m.caption && (
+                                            <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
+                                              {m.caption}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
 
                                       <div className="relative min-w-[60px]">
                                         {m.type === "text" && (
@@ -1744,51 +1731,51 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                             })()}
                                           </>
                                         )}
-                                      
-                                      {/* Timestamp: absolute for image, relative for text */}
-                                      <div className={`${m.type === "image" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
-                                        {m.isEdited && !m.isDeleted && <span className="text-[9px] opacity-40 font-bold uppercase mr-1">Edited</span>}
-                                        <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" ? "text-white" : ""}`}>
-                                          {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
-                                        </span>
-                                        {mine && <div className={`shrink-0 scale-95 ${m.type === "image" ? "text-[#53bdeb]" : ""}`}><MsgTick status={m.status} /></div>}
+
+                                        {/* Timestamp: absolute for image, relative for text */}
+                                        <div className={`${m.type === "image" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
+                                          {m.isEdited && !m.isDeleted && <span className="text-[9px] opacity-40 font-bold uppercase mr-1">Edited</span>}
+                                          <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" ? "text-white" : ""}`}>
+                                            {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
+                                          </span>
+                                          {mine && <div className={`shrink-0 scale-95 ${m.type === "image" ? "text-[#53bdeb]" : ""}`}><MsgTick status={m.status} /></div>}
+                                        </div>
                                       </div>
+
+                                      {/* Reactions Display */}
+                                      {m.reactions && Object.keys(m.reactions).length > 0 && (
+                                        <div className={`absolute -bottom-3 ${mine ? "right-1" : "left-1"} flex items-center gap-0.5 bg-card border border-border/40 rounded-full px-1.5 py-0.5 shadow-sm scale-90 z-20`}>
+                                          {Object.entries(m.reactions).map(([emoji, uids]) => (
+                                            <div key={emoji} className="flex items-center gap-0.5">
+                                              <span className="text-[10px]">{emoji}</span>
+                                              {uids.length > 1 && <span className="text-[8px] font-bold opacity-60">{uids.length}</span>}
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
                                     </div>
 
-                                    {/* Reactions Display */}
-                                    {m.reactions && Object.keys(m.reactions).length > 0 && (
-                                      <div className={`absolute -bottom-3 ${mine ? "right-1" : "left-1"} flex items-center gap-0.5 bg-card border border-border/40 rounded-full px-1.5 py-0.5 shadow-sm scale-90 z-20`}>
-                                        {Object.entries(m.reactions).map(([emoji, uids]) => (
-                                          <div key={emoji} className="flex items-center gap-0.5">
-                                            <span className="text-[10px]">{emoji}</span>
-                                            {uids.length > 1 && <span className="text-[8px] font-bold opacity-60">{uids.length}</span>}
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
+                                    {/* Desktop hover reply button */}
+                                    <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                      <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
+                                        <Reply className="w-4 h-4" />
+                                      </button>
+                                    </div>
                                   </div>
+                                )}
+                              </div>
 
-                                  {/* Desktop hover reply button */}
-                                  <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
-                                    <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
-                                      <Reply className="w-4 h-4" />
-                                    </button>
-                                  </div>
+                              {mine && (
+                                <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                                  {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
                                 </div>
                               )}
-                            </div>
-
-                            {mine && (
-                              <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
-                                {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
-                              </div>
-                            )}
+                            </motion.div>
                           </motion.div>
-                        </motion.div>
-                      </div>
-                    );
-                  })}
-                </AnimatePresence>
+                        </div>
+                      );
+                    })}
+                  </AnimatePresence>
 
                   {typingUsers.length > 0 && (
                     <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
@@ -1810,7 +1797,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   )}
                   {isUploading && (
                     <div className="w-full flex justify-end mt-2 px-4 sm:px-6">
-                      <motion.div 
+                      <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className="bg-[#dcf8c6] dark:bg-[#005c4b] p-3 rounded-[20px] rounded-br-none shadow-sm flex items-center gap-3 min-w-[140px]"
@@ -1847,9 +1834,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: 10 }}
-                    className={`mx-4 mb-2 p-3 rounded-2xl flex items-center gap-3 border-l-4 border-orange-500 shadow-lg ${
-                      isDarkMode ? "bg-[#1f2c33]" : "bg-white"
-                    }`}
+                    className={`mx-4 mb-2 p-3 rounded-2xl flex items-center gap-3 border-l-4 border-orange-500 shadow-lg ${isDarkMode ? "bg-[#1f2c33]" : "bg-white"
+                      }`}
                   >
                     <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500">
                       <ChevronDown className="w-4 h-4 rotate-180" />
@@ -1877,22 +1863,22 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     className="absolute bottom-[90px] left-4 z-[400] shadow-2xl"
                   >
                     <div className="relative">
-                       {/* Import would be at top, but for the tool call we assume it's there */}
-                       <EmojiPicker 
-                          theme={isDarkMode ? Theme.DARK : Theme.LIGHT}
-                          onEmojiClick={(emojiData) => {
-                            if (emojiPickerTarget === "text") {
-                              setText(prev => prev + emojiData.emoji);
-                            } else if (contextMsg) {
-                              reactToMessage(contextMsg.id, emojiData.emoji);
-                              setContextMsg(null);
-                            }
-                            setShowEmojiPicker(false);
-                          }}
-                       />
-                       <button onClick={() => setShowEmojiPicker(false)} className="absolute -top-3 -right-3 p-2 bg-background border border-border rounded-full shadow-lg z-[401]">
-                          <X className="w-4 h-4" />
-                       </button>
+                      {/* Import would be at top, but for the tool call we assume it's there */}
+                      <EmojiPicker
+                        theme={isDarkMode ? Theme.DARK : Theme.LIGHT}
+                        onEmojiClick={(emojiData) => {
+                          if (emojiPickerTarget === "text") {
+                            setText(prev => prev + emojiData.emoji);
+                          } else if (contextMsg) {
+                            reactToMessage(contextMsg.id, emojiData.emoji);
+                            setContextMsg(null);
+                          }
+                          setShowEmojiPicker(false);
+                        }}
+                      />
+                      <button onClick={() => setShowEmojiPicker(false)} className="absolute -top-3 -right-3 p-2 bg-background border border-border rounded-full shadow-lg z-[401]">
+                        <X className="w-4 h-4" />
+                      </button>
                     </div>
                   </motion.div>
                 )}
@@ -1931,7 +1917,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         rows={1}
                         autoComplete="off"
                         value={text}
-                        placeholder={isEditing ? "Edit message..." : "Type a message..."}
+                        placeholder={isEditing ? "Edit message" : "Type a message"}
                         onKeyDown={(e) => {
                           if (e.key === "Enter" && !e.shiftKey && !isMobileDevice()) {
                             e.preventDefault();
@@ -1946,7 +1932,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         onChange={(e) => {
                           const val = e.target.value;
                           setText(val);
-                          
+
                           // WhatsApp style smooth autogrow
                           const prevH = e.target.style.height;
                           e.target.style.height = '1px';
@@ -1961,7 +1947,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
                           }
                         }}
-                        className={`w-full bg-transparent px-2 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
+                        className={`w-full bg-transparent border-none focus:ring-0 focus:outline-none py-3.5 px-0 text-[15px] resize-none max-h-[150px] scrollbar-hide ${isDarkMode ? "text-[#e9edef] placeholder-[#8696a0]" : "text-[#111b21] placeholder-[#667781]"
                           }`}
                         style={{ height: `${inputHeight}px` }}
                       />
@@ -1986,7 +1972,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             exit={{ scale: 0.5, opacity: 0 }}
                             type="button"
                             onClick={() => onText()}
-                             className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${isEditing ? "bg-orange-500" : "bg-[#00a884]"} text-white flex items-center justify-center shadow-md md:shadow-lg active:scale-90 transition-all shrink-0`}
+                            className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${isEditing ? "bg-orange-500" : "bg-[#00a884]"} text-white flex items-center justify-center shadow-md md:shadow-lg active:scale-90 transition-all shrink-0`}
                           >
                             {isEditing ? <CheckCircle2 className="w-5 h-5" /> : <Send className="w-5 h-5 md:w-6 md:h-6 fill-white stroke-[1.5] md:stroke-2" />}
                           </motion.button>
@@ -2026,9 +2012,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     initial={{ scale: 0.9, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                    className={`w-full max-w-[280px] rounded-[32px] overflow-hidden shadow-2xl border ${
-                      isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
-                    }`}
+                    className={`w-full max-w-[280px] rounded-[32px] overflow-hidden shadow-2xl border ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
+                      }`}
                     onPointerDown={(e) => e.stopPropagation()}
                   >
                     {/* Reactions Bar */}
@@ -2069,43 +2054,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <Reply className="w-4 h-4 opacity-60" /> Reply
                       </button>
 
-                      {!contextMsg.isDeleted && (
+                      {!contextMsg.isDeleted && contextMsg.uid === uid && contextMsg.type === "text" && (
                         <button
                           onClick={() => {
-                            send(contextMsg.type, contextMsg.content, { isForwarded: true });
+                            setIsEditing(contextMsg.id);
+                            setText(contextMsg.content);
                             setContextMsg(null);
+                            setTimeout(() => inputRef.current?.focus(), 100);
                           }}
                           className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                         >
-                          <ArrowLeftRight className="w-4 h-4 opacity-60 rotate-180" /> Forward
+                          <Pencil className="w-4 h-4 opacity-60" /> Edit Message
                         </button>
-                      )}
-
-                      {contextMsg.uid === uid && !contextMsg.isDeleted && (
-                        <>
-                          {contextMsg.type === "text" && (
-                            <button
-                              onClick={() => {
-                                setIsEditing(contextMsg.id);
-                                setText(contextMsg.content);
-                                setContextMsg(null);
-                                setTimeout(() => inputRef.current?.focus(), 100);
-                              }}
-                              className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
-                            >
-                              <Pencil className="w-4 h-4 opacity-60" /> Edit Message
-                            </button>
-                          )}
-                          <button
-                            onClick={() => {
-                              deleteMessage(contextMsg.id, "everyone");
-                              setContextMsg(null);
-                            }}
-                            className="w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium text-destructive hover:bg-destructive/5"
-                          >
-                            <Trash2 className="w-4 h-4 opacity-60" /> Delete for Everyone
-                          </button>
-                        </>
                       )}
 
                       <button
@@ -2117,17 +2077,31 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       >
                         <Trash2 className="w-4 h-4 opacity-60" /> Delete for Me
                       </button>
-                      
-                      <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(contextMsg.content);
-                          addNotification("Copied", "success");
-                          setContextMsg(null);
-                        }}
-                        className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
-                      >
-                        <Download className="w-4 h-4 opacity-60" /> Copy
-                      </button>
+
+                      {!contextMsg.isDeleted && contextMsg.uid === uid && (
+                        <button
+                          onClick={() => {
+                            deleteMessage(contextMsg.id, "everyone");
+                            setContextMsg(null);
+                          }}
+                          className="w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium text-destructive hover:bg-destructive/5"
+                        >
+                          <Users2 className="w-4 h-4 opacity-60" /> Delete for Everyone
+                        </button>
+                      )}
+
+                      {!contextMsg.isDeleted && (
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(contextMsg.content);
+                            addNotification("Copied", "success");
+                            setContextMsg(null);
+                          }}
+                          className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                        >
+                          <Download className="w-4 h-4 opacity-60" /> Copy
+                        </button>
+                      )}
                     </div>
                   </motion.div>
                 </motion.div>
@@ -2142,13 +2116,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   animate={{ width: 380, opacity: 1 }}
                   exit={{ width: 0, opacity: 0 }}
                   transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                  className={`hidden lg:flex flex-col border-l relative overflow-hidden shrink-0 ${
-                    isDarkMode ? "bg-[#202c33]/20 border-white/5" : "bg-white/40 border-black/5"
-                  }`}
+                  className={`hidden lg:flex flex-col border-l relative overflow-hidden shrink-0 ${isDarkMode ? "bg-[#202c33]/20 border-white/5" : "bg-white/40 border-black/5"
+                    }`}
                 >
-                  <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${
-                    isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
-                  }`}>
+                  <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
+                    }`}>
                     <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2.5">
                       <Folder className="w-4 h-4 text-destructive" /> FILES
                     </h2>
@@ -2164,162 +2136,158 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             </AnimatePresence>
 
 
-      {/* ── Full Image Preview Overlay ── */}
-      <AnimatePresence>
-        {selectedImage && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-10"
-            onClick={() => setSelectedImage(null)}
-          >
-            <motion.button
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              onClick={() => setSelectedImage(null)}
-              className="absolute top-5 right-5 p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
-            >
-              <X className="w-6 h-6" />
-            </motion.button>
+            {/* ── Full Image Preview Overlay ── */}
+            <AnimatePresence>
+              {selectedImage && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-xl flex flex-col items-center justify-center p-4 sm:p-10"
+                  onClick={() => setSelectedImage(null)}
+                >
+                  <motion.button
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    onClick={() => setSelectedImage(null)}
+                    className="absolute top-5 right-5 p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
+                  >
+                    <X className="w-6 h-6" />
+                  </motion.button>
 
-            <motion.button
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              onClick={() => downloadFile(selectedImage, "preview", "image")}
-              className="absolute top-[75px] right-5 p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
-            >
-              <Download className="w-6 h-6" />
-            </motion.button>
-            
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative max-w-5xl w-full h-full flex items-center justify-center"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <img 
-                src={selectedImage} 
-                alt="" 
-                className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl"
-              />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                  <motion.button
+                    initial={{ scale: 0.5, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    onClick={() => downloadFile(selectedImage, "preview", "image")}
+                    className="absolute top-[75px] right-5 p-2.5 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full text-white transition-all z-10"
+                  >
+                    <Download className="w-6 h-6" />
+                  </motion.button>
 
-      {/* ── Custom Clear Chat Confirmation Modal ── */}
-      <AnimatePresence>
-        {showClearConfirm && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className={`w-full max-w-sm rounded-[32px] overflow-hidden border shadow-2xl p-8 relative ${
-                isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/10 text-black"
-              }`}
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
-              <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
-                  <Trash2 className="w-8 h-8 text-destructive" />
-                </div>
-                <h3 className="text-xl font-black mb-3 tracking-tight">Clear all messages?</h3>
-                <p className="text-sm opacity-60 font-medium mb-8">
-                  This will permanently delete all messages in this room for everyone. This action cannot be undone.
-                </p>
-                <div className="flex flex-col w-full gap-3">
-                  <button
-                    onClick={() => {
-                      clearChat();
-                      setShowClearConfirm(false);
-                    }}
-                    className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-destructive/30 bg-[linear-gradient(45deg,#4a0000,#ff1a1a,#4a0000)] animate-gradient"
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    className="relative max-w-5xl w-full h-full flex items-center justify-center"
+                    onClick={(e) => e.stopPropagation()}
                   >
-                    Yes, Clear Everything
-                  </button>
-                  <button
-                    onClick={() => setShowClearConfirm(false)}
-                    className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${
-                      isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
-                    }`}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      
-      {/* ── Phone Action Modal ── */}
-      <AnimatePresence>
-        {selectedPhone && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => setSelectedPhone(null)}
-            />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.9, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className={`relative w-full max-w-[280px] rounded-[32px] overflow-hidden shadow-2xl border ${
-                isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
-              }`}
-            >
-              <div className="p-6 text-center">
-                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
-                  <Phone className="w-6 h-6 text-primary" />
-                </div>
-                <h3 className={`text-lg font-bold mb-1 ${isDarkMode ? "text-white" : "text-black"}`}>
-                  {selectedPhone}
-                </h3>
-                <p className="text-xs opacity-50 mb-6 font-medium">Phone Number</p>
-                
-                <div className="space-y-2">
-                  <a
-                    href={`tel:${selectedPhone}`}
-                    onClick={() => setSelectedPhone(null)}
-                    className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm transition-all active:scale-95 shadow-lg shadow-primary/20"
-                  >
-                    Dial the number
-                  </a>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(selectedPhone || "");
-                        addNotification("Number copied!", "success");
-                        setSelectedPhone(null);
-                      }}
-                      className={`w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 border ${
-                        isDarkMode ? "bg-white/5 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"
+                    <img
+                      src={selectedImage}
+                      alt=""
+                      className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl"
+                    />
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Custom Clear Chat Confirmation Modal ── */}
+            <AnimatePresence>
+              {showClearConfirm && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    className={`w-full max-w-sm rounded-[32px] overflow-hidden border shadow-2xl p-8 relative ${isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/10 text-black"
                       }`}
-                    >
-                      Copy number
-                    </button>
-                  <button
-                    onClick={() => setSelectedPhone(null)}
-                    className="w-full py-3 text-xs opacity-50 font-bold uppercase tracking-widest hover:opacity-100"
                   >
-                    Cancel
-                  </button>
+                    <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
+                        <Trash2 className="w-8 h-8 text-destructive" />
+                      </div>
+                      <h3 className="text-xl font-black mb-3 tracking-tight">Clear all messages?</h3>
+                      <p className="text-sm opacity-60 font-medium mb-8">
+                        This will permanently delete all messages in this room for everyone. This action cannot be undone.
+                      </p>
+                      <div className="flex flex-col w-full gap-3">
+                        <button
+                          onClick={() => {
+                            clearChat();
+                            setShowClearConfirm(false);
+                          }}
+                          className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-destructive/30 bg-[linear-gradient(45deg,#4a0000,#ff1a1a,#4a0000)] animate-gradient"
+                        >
+                          Yes, Clear Everything
+                        </button>
+                        <button
+                          onClick={() => setShowClearConfirm(false)}
+                          className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
+                            }`}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Phone Action Modal ── */}
+            <AnimatePresence>
+              {selectedPhone && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                    onClick={() => setSelectedPhone(null)}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className={`relative w-full max-w-[280px] rounded-[32px] overflow-hidden shadow-2xl border ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
+                      }`}
+                  >
+                    <div className="p-6 text-center">
+                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center mx-auto mb-4">
+                        <Phone className="w-6 h-6 text-primary" />
+                      </div>
+                      <h3 className={`text-lg font-bold mb-1 ${isDarkMode ? "text-white" : "text-black"}`}>
+                        {selectedPhone}
+                      </h3>
+                      <p className="text-xs opacity-50 mb-6 font-medium">Phone Number</p>
+
+                      <div className="space-y-2">
+                        <a
+                          href={`tel:${selectedPhone}`}
+                          onClick={() => setSelectedPhone(null)}
+                          className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm transition-all active:scale-95 shadow-lg shadow-primary/20"
+                        >
+                          Dial the number
+                        </a>
+                        <button
+                          onClick={() => {
+                            navigator.clipboard.writeText(selectedPhone || "");
+                            addNotification("Number copied!", "success");
+                            setSelectedPhone(null);
+                          }}
+                          className={`w-full py-3 rounded-2xl font-bold text-sm transition-all active:scale-95 border ${isDarkMode ? "bg-white/5 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"
+                            }`}
+                        >
+                          Copy number
+                        </button>
+                        <button
+                          onClick={() => setSelectedPhone(null)}
+                          className="w-full py-3 text-xs opacity-50 font-bold uppercase tracking-widest hover:opacity-100"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              )}
+            </AnimatePresence>
 
           </div>{/* end body */}
         </motion.div>{/* end ovii-chat-frame */}
