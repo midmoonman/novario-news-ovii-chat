@@ -6,8 +6,9 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2 } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
+import changelogData from "@/lib/changelog.json";
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
@@ -113,9 +114,12 @@ type Msg = {
   uid: string;
   avatar: string;
   name?: string;
-  type: "text" | "image" | "voice";
+  type: "text" | "image" | "voice" | "video" | "audio" | "file";
   content: string;
   caption?: string;
+  fileName?: string;
+  fileSize?: number;
+  mimeType?: string;
   createdAt?: Timestamp;
   status?: "sending" | "sent" | "delivered" | "read";
   replyTo?: { id: string, content: string, avatar: string, name?: string };
@@ -374,8 +378,8 @@ const RecordingVisualizer = () => (
 
 // ─── MediaList (formerly FilesList) ───────────────────────────────────────────
 function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void }) {
-  const mediaMsgs = msgs.filter(m => m.type === "voice" || m.type === "image");
-  if (mediaMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs">No saved media.</p>;
+  const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
+  if (mediaMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs font-medium opacity-50">No files saved yet.</p>;
 
   const groups = mediaMsgs.reduce((acc, m) => {
     const date = m.createdAt?.toDate().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) || "Today";
@@ -395,14 +399,33 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { 
                 : "bg-white border-black/5 hover:bg-black/5 shadow-md"
               }`}>
               <div className="flex-1 min-w-0">
-                {m.type === "voice" ? (
-                  <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
-                ) : (
+                {m.type === "voice" || m.type === "audio" ? (
+                  <div className="flex-1">
+                    <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                    {m.fileName && <div className={`text-[10px] mt-1 truncate px-2 opacity-50 ${isDarkMode ? "text-white" : "text-black"}`}>{m.fileName}</div>}
+                  </div>
+                ) : m.type === "image" ? (
                   <div className="flex items-center gap-3 p-1">
                     <img src={m.content} className="w-12 h-12 rounded-lg object-cover shadow-sm cursor-pointer active:scale-95 transition-transform" onClick={() => setSelectedImage(m.content)} alt="" />
                     <div className="flex-1 min-w-0">
-                      <div className={`text-[12px] font-bold truncate ${isDarkMode ? "text-white/80" : "text-black/80"}`}>Photo</div>
+                      <div className={`text-[12px] font-bold truncate ${isDarkMode ? "text-white/80" : "text-black/80"}`}>{m.fileName || "Photo"}</div>
                       <div className="text-[10px] opacity-40 uppercase">{m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-3 p-1">
+                    <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+                      {m.type === "video" ? <Video className="w-6 h-6 text-primary" /> : 
+                       m.mimeType?.includes("pdf") ? <FileText className="w-6 h-6 text-red-500" /> :
+                       m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? <FileArchive className="w-6 h-6 text-orange-500" /> :
+                       <File className="w-6 h-6 text-blue-500" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className={`text-[12px] font-bold truncate ${isDarkMode ? "text-white/80" : "text-black/80"}`}>{m.fileName || "Document"}</div>
+                      <div className="text-[10px] opacity-40 uppercase">
+                        {m.fileSize ? `${(m.fileSize / (1024 * 1024)).toFixed(1)} MB • ` : ""}
+                        {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -417,8 +440,17 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { 
                     <ImageIcon className="w-4 h-4" />
                   </button>
                 )}
+                {m.type === "video" && (
+                  <button
+                    onClick={() => window.open(m.content, "_blank")}
+                    className="p-2.5 bg-primary/5 hover:bg-primary/10 rounded-full text-primary transition-all shrink-0"
+                    aria-label="Play video"
+                  >
+                    <Play className="w-4 h-4" />
+                  </button>
+                )}
                 <button
-                  onClick={() => downloadFile(m.content, m.id, m.type)}
+                  onClick={() => downloadFile(m.content, m.fileName || m.id, m.type)}
                   className="p-2.5 bg-primary/10 hover:bg-primary/20 rounded-full text-primary transition-all shrink-0 shadow-sm"
                   aria-label={`Download ${m.type}`}
                 >
@@ -560,6 +592,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [otherOnline, setOtherOnline] = useState(false);
   const [otherAvatar, setOtherAvatar] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [showLogs, setShowLogs] = useState(false);
 
   // -- Back gesture handling for image preview --
   useEffect(() => {
@@ -750,12 +783,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             const ts = m.createdAt?.toMillis?.() ?? 0;
             if (!ts) continue;
 
-            // Retention logic:
-            // Text: 5 days
-            // Voice/Photo: 14 days
-            const limit = m.type === "text"
-              ? 5 * 24 * 60 * 60 * 1000
-              : 14 * 24 * 60 * 60 * 1000;
+            // Retention logic: 14 days for everything
+            const limit = 14 * 24 * 60 * 60 * 1000;
 
             if (tnow - ts > limit) {
               deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => { });
@@ -914,12 +943,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     }
   };
 
-  const sendImage = async (url: string, caption?: string) => {
+  const sendFile = async (type: Msg["type"], url: string, fileName: string, fileSize: number, mimeType: string, caption?: string) => {
     if (!uid || !url) return;
     lastActivity.current = Date.now();
-    const msgData: any = { uid, avatar, name, type: "image", content: url, caption, status: "sent", createdAt: Timestamp.now() };
+    const msgData: any = { 
+      uid, avatar, name, type, content: url, fileName, fileSize, mimeType, caption, 
+      status: "sent", createdAt: Timestamp.now() 
+    };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
-    setTimeout(() => scrollToBottom(false), 300); // Wait for image to start loading and scroll down
+    if (type === "image" || type === "video") {
+      setTimeout(() => scrollToBottom(false), 300);
+    }
+  };
+
+  const sendImage = async (url: string, caption?: string) => {
+    await sendFile("image", url, "Photo", 0, "image/jpeg", caption);
   };
 
   const onText = async (e?: React.FormEvent | React.KeyboardEvent) => {
@@ -960,17 +998,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     return data.secure_url;
   };
 
-  const onImage = async (file: File) => {
+  const onFile = async (file: File) => {
     if (!uid) return;
-    if (file.size > 200 * 1024 * 1024) { setError("File too large (max 200MB)"); return; }
+    if (file.size > 200 * 1024 * 1024) { 
+      addNotification("File too large (max 200MB)", "error"); 
+      return; 
+    }
 
-    setUploadingText("Sending photo...");
-    setIsUploading(true); // Show loader immediately
+    const type = file.type.startsWith("image/") ? "image" :
+                 file.type.startsWith("video/") ? "video" :
+                 file.type.startsWith("audio/") ? "audio" : "file";
+
+    setUploadingText(`Sending ${type}...`);
+    setIsUploading(true);
     try {
       const url = await uploadToCloudinary(file);
-      await sendImage(url, ""); // Send immediately with empty caption
+      await sendFile(type, url, file.name, file.size, file.type);
     } catch (e: any) {
-      setError("Image upload failed: " + (e.message || "Unknown error"));
+      addNotification("Upload failed: " + (e.message || "Unknown error"), "error");
     } finally {
       setIsUploading(false);
     }
@@ -995,7 +1040,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       if (e.clipboardData.items[i].type.startsWith("image/")) {
         e.preventDefault();
         const file = e.clipboardData.items[i].getAsFile();
-        if (file) onImage(file);
+        if (file) onFile(file);
         return;
       }
     }
@@ -1011,7 +1056,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     const url = e.dataTransfer.getData("text/uri-list") || e.dataTransfer.getData("text/plain");
     if (url && (url.includes(".gif") || url.includes("images") || url.includes("media"))) { await send("image", url); return; }
     const file = e.dataTransfer.files?.[0];
-    if (file && file.type.startsWith("image/")) onImage(file);
+    if (file) onFile(file);
   };
 
   const startRec = async () => {
@@ -1076,35 +1121,27 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setPres({ recording: false });
   };
 
-  const downloadFile = async (url: string, id: string, type: string) => {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const blobUrl = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = blobUrl;
-      const ext = type === "voice" ? "webm" : "jpg";
-      a.download = `${type}-${id.slice(0, 8)}.${ext}`;
+      const ext = type === "voice" ? "webm" : 
+                  type === "audio" ? "mp3" :
+                  type === "video" ? "mp4" : "bin";
+      a.download = fileName.includes(".") ? fileName : `${type}-${id.slice(0, 8)}.${ext}`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
       addNotification("Download started", "success");
     } catch { window.open(url, "_blank"); }
   };
 
-  const now = Date.now();
-  const SEVEN_DAYS = 7 * 24 * 60 * 60 * 1000;
-  const FIVE_DAYS = 5 * 24 * 60 * 60 * 1000;
+  const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
 
-  // chatMsgs: Text for 5 days, Media for 7 days
+  // chatMsgs: Everything for 14 days
   const chatMsgs = msgs.filter(m => {
     const ts = m.createdAt?.toMillis?.() ?? 0;
     if (!ts) return true; // Keep pending messages
     const age = now - ts;
-    if (m.type === "text") return age < FIVE_DAYS;
-    return age < SEVEN_DAYS;
+    return age < FOURTEEN_DAYS;
   }).sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
 
-  const mediaMsgs = msgs.filter(m => m.type === "voice" || m.type === "image");
+  const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
   const unreadMedia = mediaMsgs.length;
 
   // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
@@ -1371,6 +1408,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           <Folder className="w-4 h-4 text-destructive" />
                           <div className="flex-1 text-left font-medium">Files</div>
                           {unreadMedia > 0 && <span className="bg-[#25d366] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadMedia}</span>}
+                        </button>
+
+                         <button
+                          onClick={() => { setShowLogs(true); setShowMenu(false); }}
+                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
+                            }`}
+                        >
+                          <History className="w-4 h-4 text-primary" />
+                          <div className="flex-1 text-left font-medium">Update Logs</div>
+                          <span className="text-[9px] font-bold opacity-40 uppercase">v2.4</span>
                         </button>
 
                         <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
@@ -1728,6 +1775,48 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                         </div>
                                       )}
 
+                                      {m.type === "video" && !m.isDeleted && (
+                                        <div className="mb-0 overflow-hidden rounded-[18px] relative group/vid cursor-pointer active:scale-[0.99] transition-transform bg-black/10">
+                                          <video 
+                                            src={m.content} 
+                                            controls
+                                            className="w-full max-w-[320px] md:max-w-[500px] max-h-[300px] object-cover shadow-sm block" 
+                                          />
+                                          {m.caption && (
+                                            <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
+                                              {m.caption}
+                                            </div>
+                                          )}
+                                        </div>
+                                      )}
+
+                                      {m.type === "audio" && !m.isDeleted && (
+                                        <div className="flex flex-col gap-1 min-w-[200px]">
+                                          <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                                          {m.fileName && <div className="text-[10px] px-2 opacity-50 truncate">{m.fileName}</div>}
+                                        </div>
+                                      )}
+
+                                      {m.type === "file" && !m.isDeleted && (
+                                        <div 
+                                          className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:brightness-95 transition-all ${isDarkMode ? "bg-black/20" : "bg-black/5"}`}
+                                          onClick={() => downloadFile(m.content, m.fileName || m.id, "file")}
+                                        >
+                                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isDarkMode ? "bg-white/10" : "bg-black/10"}`}>
+                                            {m.mimeType?.includes("pdf") ? <FileText className="w-5 h-5 text-red-500" /> :
+                                             m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? <FileArchive className="w-5 h-5 text-orange-500" /> :
+                                             <File className="w-5 h-5 text-blue-500" />}
+                                          </div>
+                                          <div className="flex-1 min-w-0">
+                                            <div className="text-[13px] font-bold truncate">{m.fileName || "File"}</div>
+                                            <div className="text-[10px] opacity-50 uppercase font-bold">
+                                              {m.fileSize ? `${(m.fileSize / (1024 * 1024)).toFixed(1)} MB` : "File"}
+                                            </div>
+                                          </div>
+                                          <Download className="w-4 h-4 opacity-40 shrink-0" />
+                                        </div>
+                                      )}
+
                                       <div className="relative min-w-[60px]">
                                         {m.type === "text" && (
                                           <>
@@ -1899,9 +1988,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 <input
                   ref={fileRef}
                   type="file"
-                  accept="image/*,.gif"
                   className="hidden"
-                  onChange={(e) => { const f = e.target.files?.[0]; if (f) onImage(f); e.target.value = ""; }}
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); e.target.value = ""; }}
                 />
 
                 {recording ? (
@@ -2215,6 +2303,164 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         >
                           Cancel
                         </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Elegant Changelog / Logs Modal ── */}
+            <AnimatePresence>
+              {showLogs && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                    className={`w-full max-w-2xl h-[85vh] rounded-[48px] overflow-hidden border shadow-[0_0_100px_rgba(37,211,102,0.15)] flex flex-col relative ${isDarkMode ? "bg-[#0b141a]/90 border-emerald-500/20" : "bg-white/95 border-emerald-500/30"
+                      }`}
+                  >
+                    {/* Magical Glow Backgrounds */}
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                      <div className="absolute -top-[20%] -left-[20%] w-[60%] h-[60%] bg-emerald-500/10 blur-[120px] rounded-full animate-pulse" />
+                      <div className="absolute -bottom-[20%] -right-[20%] w-[60%] h-[60%] bg-orange-500/5 blur-[120px] rounded-full animate-pulse" style={{ animationDelay: '1s' }} />
+                      
+                      {/* Animated Orange Particles */}
+                      {[...Array(12)].map((_, i) => (
+                        <motion.div
+                          key={i}
+                          animate={{ 
+                            y: [0, -100, 0],
+                            x: [0, Math.random() * 40 - 20, 0],
+                            opacity: [0, 0.4, 0],
+                            scale: [0.5, 1, 0.5]
+                          }}
+                          transition={{ 
+                            duration: Math.random() * 10 + 10,
+                            repeat: Infinity,
+                            delay: Math.random() * 10,
+                            ease: "easeInOut"
+                          }}
+                          className="absolute w-1 h-1 bg-orange-400 rounded-full"
+                          style={{ 
+                            left: `${Math.random() * 100}%`,
+                            top: `${Math.random() * 100}%`
+                          }}
+                        />
+                      ))}
+                    </div>
+
+                    <div className={`p-8 border-b relative z-10 flex items-center justify-between shrink-0 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+                      <div className="flex items-center gap-5">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-emerald-500 blur-lg opacity-40 animate-pulse" />
+                          <div className="w-14 h-14 rounded-2xl bg-emerald-500 flex items-center justify-center text-black shadow-[0_8px_20px_rgba(16,185,129,0.4)] relative">
+                            <History className="w-7 h-7 stroke-[2.5]" />
+                          </div>
+                        </div>
+                        <div>
+                          <h3 className={`text-2xl font-black tracking-tighter ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>System Architecture Logs</h3>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="w-2 h-2 rounded-full bg-orange-500 animate-ping" />
+                            <p className="text-[10px] opacity-60 font-black uppercase tracking-[0.2em]">Build Protocol v2.4.1</p>
+                          </div>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => setShowLogs(false)} 
+                        className={`p-3.5 rounded-full transition-all active:scale-90 relative group ${isDarkMode ? "hover:bg-emerald-500/10 text-emerald-500/60" : "hover:bg-emerald-500/5 text-emerald-600/60"}`}
+                      >
+                        <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+                      </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto p-10 space-y-16 scrollbar-hide relative z-10">
+                      {changelogData.map((day, idx) => (
+                        <div key={day.date} className="relative pl-12">
+                          {/* Modern Vertical Timeline */}
+                          <div className={`absolute left-[5px] top-0 bottom-0 w-[2px] ${isDarkMode ? "bg-gradient-to-b from-emerald-500/40 via-emerald-500/20 to-transparent" : "bg-gradient-to-b from-emerald-500/30 via-emerald-500/10 to-transparent"}`} />
+                          
+                          <motion.div 
+                            initial={{ opacity: 0, x: -10 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            className="absolute -left-[6px] top-0 w-[24px] h-[24px] rounded-full flex items-center justify-center bg-[#0b141a] border-2 border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.6)]"
+                          >
+                             <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                          </motion.div>
+
+                          <div className="mb-10">
+                            <h4 className={`text-[11px] font-black uppercase tracking-[0.3em] mb-1 ${isDarkMode ? "text-emerald-400/50" : "text-emerald-600/50"}`}>
+                              {day.date === new Date().toISOString().split('T')[0] ? "Operational Update" : "Historical Record"}
+                            </h4>
+                            <div className={`text-4xl font-black tracking-tighter ${isDarkMode ? "text-white" : "text-black"}`}>
+                              {day.date === new Date().toISOString().split('T')[0] ? "Today" : new Date(day.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric' })}
+                            </div>
+                          </div>
+
+                          <div className="space-y-12">
+                            {day.updates.map((update, uIdx) => (
+                              <motion.div 
+                                key={uIdx}
+                                initial={{ opacity: 0, y: 20 }}
+                                whileInView={{ opacity: 1, y: 0 }}
+                                viewport={{ once: true }}
+                                transition={{ delay: uIdx * 0.1 }}
+                                className="group relative"
+                              >
+                                <div className="flex items-start gap-5">
+                                  <div className={`mt-2 w-2 h-2 rounded-full bg-orange-500 shadow-[0_0_10px_rgba(249,115,22,0.8)] shrink-0 group-hover:scale-150 transition-transform`} />
+                                  <div className="flex-1">
+                                    <h5 className={`text-lg font-black mb-3 tracking-tight ${isDarkMode ? "text-emerald-100 group-hover:text-emerald-400" : "text-black group-hover:text-emerald-600"} transition-colors`}>
+                                      {update.title}
+                                    </h5>
+                                    <p className={`text-sm leading-relaxed font-medium mb-6 ${isDarkMode ? "text-white/50" : "text-black/60"}`}>
+                                      {update.description}
+                                    </p>
+                                    {update.rationale && (
+                                      <div className={`p-5 rounded-[28px] border overflow-hidden relative ${isDarkMode ? "bg-emerald-500/5 border-emerald-500/10" : "bg-emerald-500/5 border-emerald-500/10"}`}>
+                                        <div className="absolute top-0 left-0 w-1 h-full bg-emerald-500" />
+                                        <span className={`block text-[9px] font-black uppercase tracking-widest mb-2 ${isDarkMode ? "text-emerald-500" : "text-emerald-600"}`}>
+                                          Strategic Rationale
+                                        </span>
+                                        <p className={`text-xs italic leading-snug ${isDarkMode ? "text-white/40" : "text-black/50"}`}>
+                                          {update.rationale}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+                      ))}
+                      
+                      <div className="pt-20 pb-10 text-center relative">
+                        <div className="absolute top-1/2 left-0 right-0 h-px bg-emerald-500/10" />
+                        <span className={`relative z-10 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.4em] ${isDarkMode ? "bg-[#0b141a] text-emerald-500/40" : "bg-white text-emerald-600/40"}`}>
+                          Genesis Reached
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className={`p-8 border-t relative z-10 text-center ${isDarkMode ? "bg-black/40 border-white/5" : "bg-black/5 border-black/5"}`}>
+                      <div className="flex items-center justify-center gap-6 opacity-40">
+                         <div className="flex items-center gap-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                           <span className="text-[10px] font-black uppercase tracking-widest">Encrypted</span>
+                         </div>
+                         <div className="flex items-center gap-2">
+                           <div className="w-1.5 h-1.5 rounded-full bg-orange-500" />
+                           <span className="text-[10px] font-black uppercase tracking-widest">Verified</span>
+                         </div>
                       </div>
                     </div>
                   </motion.div>

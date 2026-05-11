@@ -1,0 +1,67 @@
+[
+  {
+    "date": "2026-05-11",
+    "updates": [
+      {
+        "title": "Unified Media Retention & Advanced File Support",
+        "description": "Standardized the retention policy to 14 days for all message types including text, images, and attachments. Added native support for multi-modal sharing including 4K videos, zip archives, and HTML documents with a 200MB limit per file.",
+        "rationale": "To ensure user privacy while providing a robust, high-capacity file sharing experience similar to native messaging apps."
+      },
+      {
+        "title": "Performance Optimization (120Hz)",
+        "description": "Optimized rendering pipelines to ensure a lag-free experience on high-refresh-rate mobile devices. Refined auto-scroll logic for seamless media interaction.",
+        "rationale": "To provide a premium, smooth user experience on modern flagship smartphones."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-10",
+    "updates": [
+      {
+        "title": "Visual Identity & Backgrounds",
+        "description": "Implemented high-fidelity real-time visual feedback for media uploads and integrated a premium WhatsApp-inspired doodle background.",
+        "rationale": "Enhances emotional resonance and provides a professional, stable feel to the interface."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-09",
+    "updates": [
+      {
+        "title": "Glassmorphism 2.0 & News Notifications",
+        "description": "Integrated a full Glassmorphism 2.0 interface with backdrop blur and refined profile management. Added a strategic news notification system for offline users.",
+        "rationale": "Achieves a state-of-the-art aesthetic and improves user retention through non-intrusive updates."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-08",
+    "updates": [
+      {
+        "title": "Latency Reduction & UI Cleanup",
+        "description": "Removed redundant UI elements and optimized image loading times to resolve latency issues.",
+        "rationale": "Streamlines the user experience and ensures lightning-fast interactions."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-07",
+    "updates": [
+      {
+        "title": "Database Management & Security",
+        "description": "Implemented 'Clear Chat' and 'No Lock' session continuity mechanisms. Finalized early retention logic.",
+        "rationale": "Provides users with more control over their data and ensures uninterrupted chat sessions."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-06",
+    "updates": [
+      {
+        "title": "Desktop-Native Layout Transformation",
+        "description": "Converted the mobile-first UI into a full-bleed, desktop-native responsive layout.",
+        "rationale": "Optimizes usability for both large monitor users and mobile-first users simultaneously."
+      }
+    ]
+  }
+]
