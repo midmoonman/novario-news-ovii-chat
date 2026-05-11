@@ -2468,42 +2468,45 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                          </p>
                       </div>
 
-                      {/* Tabs */}
+                      {/* Tabs (Liquid Segmented Control) */}
                       <div className="flex justify-center mb-10">
-                        <div className={`relative flex p-1 rounded-full border shadow-inner w-64 ${isDarkMode ? "bg-black/30 border-white/5" : "bg-black/5 border-black/5"}`}>
-                          <div className="absolute inset-y-1 left-1 right-1 pointer-events-none">
+                        <div className={`relative flex p-1.5 rounded-2xl border w-64 ${isDarkMode ? "bg-black/90 border-white/5" : "bg-black/95 border-black/90"}`}>
+                          <div className="absolute inset-y-1.5 left-1.5 right-1.5 pointer-events-none">
                             <div className="relative w-full h-full flex">
                               <motion.div 
-                                className={`absolute top-0 bottom-0 w-[calc(50%)] rounded-full border ${
-                                  logTab === "updates" ? "bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)] border-emerald-500/30" : 
-                                  historyLevel === "easy" ? "bg-orange-500/20 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.3)]" :
-                                  historyLevel === "medium" ? "bg-blue-500/20 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.3)]" :
-                                  "bg-purple-500/20 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                                className={`absolute top-0 bottom-0 w-[calc(50%)] rounded-xl border ${
+                                  logTab === "updates" ? "bg-[#222] border-[#333] shadow-[0_0_15px_rgba(16,185,129,0.15)]" : 
+                                  historyLevel === "easy" ? "bg-[#222] border-[#333] shadow-[0_0_15px_rgba(249,115,22,0.15)]" :
+                                  historyLevel === "medium" ? "bg-[#222] border-[#333] shadow-[0_0_15px_rgba(59,130,246,0.15)]" :
+                                  "bg-[#222] border-[#333] shadow-[0_0_15px_rgba(168,85,247,0.15)]"
                                 }`}
+                                style={{
+                                  boxShadow: "inset 0 1px 1px rgba(255, 255, 255, 0.06), inset 0 -1px 2px rgba(0, 0, 0, 0.6)"
+                                }}
                                 initial={false}
                                 animate={{ x: logTab === "updates" ? "0%" : "100%" }}
-                                transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                                transition={{ ease: [0.22, 0.9, 0.25, 1], duration: 0.55 }}
                               />
                             </div>
                           </div>
                           <button
                             onClick={() => setLogTab("updates")}
-                            className={`relative flex-1 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${
+                            className={`relative flex-1 py-2.5 text-[13px] font-bold tracking-wide transition-all duration-300 active:scale-95 ${
                               logTab === "updates"
-                                ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
-                                : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
+                                ? isDarkMode ? "text-emerald-400" : "text-emerald-400"
+                                : "text-[#555] hover:text-[#888]"
                             }`}
                           >
                             Updates
                           </button>
                           <button
                             onClick={() => setLogTab("history")}
-                            className={`relative flex-1 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${
+                            className={`relative flex-1 py-2.5 text-[13px] font-bold tracking-wide transition-all duration-300 active:scale-95 ${
                               logTab === "history"
-                                ? historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
-                                  historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
-                                  (isDarkMode ? "text-purple-400" : "text-purple-600")
-                                : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
+                                ? historyLevel === "easy" ? "text-orange-400" :
+                                  historyLevel === "medium" ? "text-blue-400" :
+                                  "text-purple-400"
+                                : "text-[#555] hover:text-[#888]"
                             }`}
                           >
                             History
