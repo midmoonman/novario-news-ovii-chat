@@ -594,6 +594,36 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showLogs, setShowLogs] = useState(false);
 
+  const [showMenu, setShowMenu] = useState(false);
+  const [contextMsg, setContextMsg] = useState<Msg | null>(null);
+  const [isEditing, setIsEditing] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // -- Android Gesture / History Handling (Thumb Rule) --
+  useEffect(() => {
+    const handlePopState = (e: PopStateEvent) => {
+      // If any modal is open, close it and prevent navigation
+      if (showLogs || showAvatarPicker || showFolder || selectedImage || selectedPhone || showClearConfirm || showMenu) {
+        setShowLogs(false);
+        setShowAvatarPicker(false);
+        setShowFolder(false);
+        setSelectedImage(null);
+        setSelectedPhone(null);
+        setShowClearConfirm(false);
+        setShowMenu(false);
+        // Push state back to prevent exit
+        window.history.pushState({ modal: 'closed' }, "");
+      }
+    };
+
+    // Push initial state
+    window.history.pushState({ modal: 'closed' }, "");
+    window.addEventListener("popstate", handlePopState);
+    
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [showLogs, showAvatarPicker, showFolder, selectedImage, selectedPhone, showClearConfirm, showMenu]);
+
   // -- Stable layout handling (anti-jitter) --
   useEffect(() => {
     if (showLogs || showAvatarPicker || showFolder || selectedImage) {
@@ -614,12 +644,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       return () => window.removeEventListener("popstate", handlePop);
     }
   }, [selectedImage]);
-  const [showMenu, setShowMenu] = useState(false);
-  const [contextMsg, setContextMsg] = useState<Msg | null>(null);
-  const [isEditing, setIsEditing] = useState<string | null>(null);
-  const menuRef = useRef<HTMLDivElement>(null);
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
-
   // Close menu on click outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -2308,7 +2332,28 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <div className="flex flex-col w-full gap-3">
                         <button
                           onClick={() => {
-                  {/* ── Immersive 'Greenery Build Book' Protocol Section ── */}
+                            clearChat();
+                            setShowClearConfirm(false);
+                          }}
+                          className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-destructive/30 bg-[linear-gradient(45deg,#4a0000,#ff1a1a,#4a0000)] animate-gradient"
+                        >
+                          Yes, Clear Everything
+                        </button>
+                        <button
+                          onClick={() => setShowClearConfirm(false)}
+                          className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
+                            }`}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Immersive 'Greenery Build Book' Protocol Section ── */}
             <AnimatePresence>
               {showLogs && (
                 <motion.div
@@ -2454,28 +2499,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                          <div className="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full" />
                          <div className="w-16 sm:w-24 h-0.5 bg-emerald-500/30 mx-auto mb-8 sm:mb-10 relative z-10" />
                          <p className="text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] opacity-30 relative z-10">End of Technical Protocol</p>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-p className={`text-[15px] italic leading-relaxed font-medium ${isDarkMode ? "text-white/40" : "text-black/50"}`}>
-                                      {update.rationale}
-                                    </p>
-                                  </div>
-                                )}
-                              </motion.div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* Book Footer */}
-                      <div className="pt-40 pb-24 text-center relative">
-                         <div className="absolute inset-0 bg-emerald-500/5 blur-3xl rounded-full" />
-                         <div className="w-24 h-0.5 bg-emerald-500/30 mx-auto mb-10 relative z-10" />
-                         <p className="text-[12px] font-black uppercase tracking-[0.6em] opacity-40 relative z-10">End of Technical Protocol</p>
                       </div>
                     </div>
                   </div>
