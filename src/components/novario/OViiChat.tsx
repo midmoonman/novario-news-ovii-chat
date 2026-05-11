@@ -600,6 +600,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
+  // -- Stable High-Entropy Particles for Build Book --
+  const [bookParticles] = useState(() => Array.from({ length: 25 }).map((_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    y: Math.random() * 100,
+    driftX: Math.random() * 40 - 20,
+    driftY: -(Math.random() * 60 + 40),
+    duration: 15 + Math.random() * 20,
+    delay: Math.random() * -30,
+    size: Math.random() * 1.5 + 1
+  })));
+
   // -- Android Gesture / History Handling (Thumb Rule) --
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
@@ -2371,29 +2383,31 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] bg-emerald-400/10 blur-[120px] rounded-full" />
                     </div>
                     
-                    {/* High-Performance Neon Orange Particles */}
-                    {[...Array(18)].map((_, i) => {
-                      const startX = Math.random() * 100;
-                      const startY = Math.random() * 100;
-                      return (
-                        <motion.div
-                          key={i}
-                          initial={{ x: `${startX}%`, y: `${startY}%`, opacity: 0 }}
-                          animate={{ 
-                            y: [`${startY}%`, `${startY - 40}%`, `${startY - 80}%`],
-                            x: [`${startX}%`, `${startX + (Math.random() * 20 - 10)}%`, `${startX}%`],
-                            opacity: [0, 0.7, 0.3, 0],
-                          }}
-                          transition={{ 
-                            duration: 15 + Math.random() * 15,
-                            repeat: Infinity,
-                            delay: Math.random() * -20,
-                            ease: "linear"
-                          }}
-                          className="absolute w-1 h-1 bg-orange-500 rounded-full shadow-[0_0_12px_rgba(249,115,22,1)] will-change-transform"
-                        />
-                      );
-                    })}
+                    {/* High-Performance Neon Orange Particles (Live & Persistent) */}
+                    {bookParticles.map((p) => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ x: `${p.x}%`, y: `${p.y}%`, opacity: 0 }}
+                        animate={{ 
+                          y: [`${p.y}%`, `${p.y + p.driftY}%`],
+                          x: [`${p.x}%`, `${p.x + p.driftX}%`, `${p.x}%`],
+                          opacity: [0, 0.9, 0.4, 0],
+                          scale: [0.6, 1.3, 0.8]
+                        }}
+                        transition={{ 
+                          duration: p.duration,
+                          repeat: Infinity,
+                          delay: p.delay,
+                          ease: "linear"
+                        }}
+                        className="absolute bg-orange-500 rounded-full shadow-[0_0_18px_rgba(249,115,22,1)] will-change-transform"
+                        style={{ 
+                          width: p.size, 
+                          height: p.size,
+                          filter: `blur(${p.size < 1.5 ? '0px' : '0.5px'})` 
+                        }}
+                      />
+                    ))}
                   </div>
 
                   {/* Header / Protocol Identity */}
