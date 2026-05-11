@@ -8,7 +8,7 @@ import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
 import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
-import changelogData from "@/lib/changelog.json";
+import changelogData from "../../lib/changelog.json";
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
@@ -1121,16 +1121,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setPres({ recording: false });
   };
 
+  const downloadFile = async (url: string, name: string, type: string) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
       const ext = type === "voice" ? "webm" : 
                   type === "audio" ? "mp3" :
                   type === "video" ? "mp4" : "bin";
-      a.download = fileName.includes(".") ? fileName : `${type}-${id.slice(0, 8)}.${ext}`;
+      a.download = name.includes(".") ? name : `${type}-${name.slice(0, 8)}.${ext}`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
       addNotification("Download started", "success");
     } catch { window.open(url, "_blank"); }
   };
 
+  const now = Date.now();
   const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
 
   // chatMsgs: Everything for 14 days
