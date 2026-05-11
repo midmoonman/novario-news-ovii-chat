@@ -927,6 +927,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     }
   }, [isTyping]);
 
+  useEffect(() => {
+    if (isUploading) {
+      setTimeout(() => scrollToBottom(false), 50);
+      setTimeout(() => scrollToBottom(false), 200);
+    }
+  }, [isUploading]);
+
   const setPres = (data: any) => {
     if (uid) setDoc(doc(db, "ovii", ROOM, "presence", uid), data, { merge: true }).catch(() => { });
   };
@@ -1771,8 +1778,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   </div>
                                 )}
 
-                                {m.type === "voice" ? (
-                                  <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                                {m.type === "voice" || m.type === "audio" ? (
+                                  <div className="flex flex-col gap-1 max-w-full">
+                                    <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                                    {m.type === "audio" && m.fileName && (
+                                      <div className={`text-[11px] px-3 py-1.5 rounded-[12px] opacity-90 font-medium break-all w-fit max-w-[280px] shadow-sm ${mine ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef]" : "bg-[#dcf8c6] text-[#111b21]") : (isDarkMode ? "bg-[#202c33] text-[#e9edef]" : "bg-white text-[#111b21]")}`}>
+                                        {m.fileName}
+                                      </div>
+                                    )}
+                                  </div>
                                 ) : (
                                   <div
                                     className={`md:rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px]" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px]"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col shadow-sm md:shadow-md transition-all w-fit max-w-full
@@ -1831,13 +1845,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                               {m.caption}
                                             </div>
                                           )}
-                                        </div>
-                                      )}
-
-                                      {m.type === "audio" && !m.isDeleted && (
-                                        <div className="flex flex-col gap-1 min-w-[220px] pb-6 px-1">
-                                          <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
-                                          {m.fileName && <div className="text-[11px] px-2 opacity-60 font-medium break-all">{m.fileName}</div>}
                                         </div>
                                       )}
 

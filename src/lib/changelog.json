@@ -3,6 +3,12 @@
     "date": "2026-05-11",
     "updates": [
       {
+        "title": "Voice Note & Media UX Refinements",
+        "status": "DEPLOYED",
+        "description": "Fixed UI overlapping of voice note audio player and filename. Engineered robust auto-scroll logic that snaps to the newest incoming message and dynamically tracks uploading files to enhance immediate visual feedback.",
+        "rationale": "Resolves layout degradation and restores fluid messaging interactions for continuous, immersive chats."
+      },
+      {
         "title": "Full Filename Integrity (Thumb Rule)",
         "status": "DEPLOYED",
         "description": "Removed truncation from Audio and Document filenames. Optimized layout to prevent overlap with metadata by implementing vertical stacking for long file identities.",
