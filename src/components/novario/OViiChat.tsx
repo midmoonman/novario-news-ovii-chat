@@ -2374,14 +2374,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: "100%", opacity: 0 }}
                   transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                  className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
+                  className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden ${isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#022c22] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#ecfdf5] to-[#f0f2f5]"}`}
                 >
-                  {/* Intense Optimized Neon Glow Background for Glassmorphism */}
+                  {/* Intense Dark Green Neon Gradient Glow */}
                   <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                     <div className="absolute top-0 left-0 w-full h-full will-change-transform">
-                      <div className="absolute -top-[15%] -left-[15%] w-[70%] h-[70%] bg-emerald-500/30 blur-[120px] rounded-full animate-pulse-slow" />
-                      <div className="absolute -bottom-[15%] -right-[15%] w-[70%] h-[70%] bg-blue-500/20 blur-[120px] rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }} />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] bg-purple-500/20 blur-[140px] rounded-full" />
+                      <div className="absolute -top-[20%] -left-[10%] w-[80%] h-[80%] bg-emerald-500/20 blur-[140px] rounded-full pointer-events-none" />
+                      <div className="absolute top-[30%] -right-[20%] w-[70%] h-[70%] bg-emerald-700/20 blur-[150px] rounded-full pointer-events-none" />
                     </div>
                   </div>
 
