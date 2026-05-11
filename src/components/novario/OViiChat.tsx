@@ -595,8 +595,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [showLogs, setShowLogs] = useState(false);
   const [logTab, setLogTab] = useState<"updates" | "history">("updates");
-  const [historyLevel, setHistoryLevel] = useState<"orange" | "easy" | "medium" | "hard">("orange");
-  const [showInfo, setShowInfo] = useState(false);
+  const [historyLevel, setHistoryLevel] = useState<"easy" | "medium" | "hard">("easy");
+  const [showHistoryInfo, setShowHistoryInfo] = useState(false);
 
   const [showMenu, setShowMenu] = useState(false);
   const [contextMsg, setContextMsg] = useState<Msg | null>(null);
@@ -2375,26 +2375,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: "100%", opacity: 0 }}
                   transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                  className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden transition-colors duration-700 ${
-                    logTab === "updates" 
-                      ? isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"
-                      : historyLevel === "orange"
-                        ? isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#431407] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#ffedd5] to-[#f0f2f5]"
-                        : historyLevel === "easy"
-                          ? isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#052e16] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#dcfce7] to-[#f0f2f5]"
-                          : historyLevel === "medium"
-                            ? isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#172554] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#dbeafe] to-[#f0f2f5]"
-                            : isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#3b0764] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#f3e8ff] to-[#f0f2f5]"
-                  }`}
+                  className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden transition-colors duration-700 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
                 >
                   {/* Dynamic Neon Gradient Glow */}
                   <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                     <div className="absolute top-0 left-0 w-full h-full will-change-transform">
                       <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${
-                        logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "orange" ? "bg-orange-500/20" : historyLevel === "easy" ? "bg-green-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
+                        logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
                       }`} />
                       <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${
-                        logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "orange" ? "bg-orange-700/20" : historyLevel === "easy" ? "bg-green-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
+                        logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "easy" ? "bg-orange-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
                       }`} />
                     </div>
                   </div>
@@ -2427,21 +2417,22 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       {/* Genesis Header with Optimized Glow */}
                       <div className="text-center mb-24 sm:mb-40 relative px-4">
                          <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 blur-[80px] rounded-full pointer-events-none transition-colors duration-700 ${
-                           logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "orange" ? "bg-orange-500/20" : historyLevel === "easy" ? "bg-green-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
+                           logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
                          }`} />
                          <div className={`relative inline-block p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] border-2 mb-6 sm:mb-8 transition-colors duration-700 ${
                            logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.2)]" :
-                           historyLevel === "orange" ? "bg-orange-500/10 border-orange-500/20 shadow-[0_0_25px_rgba(249,115,22,0.2)]" :
-                           historyLevel === "easy" ? "bg-green-500/10 border-green-500/20 shadow-[0_0_25px_rgba(34,197,94,0.2)]" :
+                           historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/20 shadow-[0_0_25px_rgba(249,115,22,0.2)]" :
                            historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.2)]" :
-                           "bg-purple-500/10 border-purple-500/20 shadow-[0_0_25px_rgba(168,85,247,0.2)]"
+                           logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/20" :
+                           historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/20" :
+                           historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/20" :
+                           "bg-purple-500/10 border-purple-500/20"
                          }`}>
                             <History className={`w-10 h-10 sm:w-12 sm:h-12 transition-colors duration-700 ${
-                              logTab === "updates" ? (isDarkMode ? "text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.8)]" : "text-emerald-600") :
-                              historyLevel === "orange" ? (isDarkMode ? "text-orange-400 drop-shadow-[0_0_8px_rgba(249,115,22,0.8)]" : "text-orange-600") :
-                              historyLevel === "easy" ? (isDarkMode ? "text-green-400 drop-shadow-[0_0_8px_rgba(34,197,94,0.8)]" : "text-green-600") :
-                              historyLevel === "medium" ? (isDarkMode ? "text-blue-400 drop-shadow-[0_0_8px_rgba(59,130,246,0.8)]" : "text-blue-600") :
-                              (isDarkMode ? "text-purple-400 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]" : "text-purple-600")
+                              logTab === "updates" ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") :
+                              historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
+                              historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
+                              (isDarkMode ? "text-purple-400" : "text-purple-600")
                             }`} />
                          </div>
                          <h1 className={`text-4xl sm:text-6xl font-black tracking-tighter mb-4 sm:mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>Build Theory</h1>
@@ -2560,37 +2551,38 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             <div className="flex items-center gap-2 relative z-50">
                               <div className="relative flex items-center justify-center">
                                 <button 
-                                  onClick={() => setShowInfo(!showInfo)}
+                                  onClick={() => setShowHistoryInfo(true)}
                                   className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl border transition-colors ${
-                                    showInfo ? (isDarkMode ? "bg-white/20 border-white/30 text-white" : "bg-black/20 border-black/30 text-black") :
+                                    showHistoryInfo ? (isDarkMode ? "bg-white/20 border-white/30 text-white" : "bg-black/20 border-black/30 text-black") :
                                     (isDarkMode ? "bg-white/5 border-white/10 hover:bg-white/10 text-white/50 hover:text-white" : "bg-black/5 border-black/10 hover:bg-black/10 text-black/50 hover:text-black")
                                   }`}
                                 >
                                   <Info className="w-4 h-4" />
                                 </button>
                                 <AnimatePresence>
-                                  {showInfo && (
-                                    <motion.div 
-                                      initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                      animate={{ opacity: 1, y: 0, scale: 1 }}
-                                      exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                      className={`absolute top-full right-0 sm:right-auto sm:left-0 mt-3 w-[280px] sm:w-72 p-5 rounded-2xl border backdrop-blur-3xl shadow-2xl ${isDarkMode ? "bg-[#111c24]/95 border-white/10 text-white/80" : "bg-white/95 border-black/10 text-black/80"}`}
-                                    >
-                                      <button onClick={() => setShowInfo(false)} className="absolute top-2 right-2 p-1.5 opacity-50 hover:opacity-100">
-                                        <X className="w-4 h-4" />
-                                      </button>
-                                      <h4 className={`text-xs font-black uppercase tracking-widest mb-3 ${isDarkMode ? "text-white" : "text-black"}`}>Difficulty Levels</h4>
-                                      <p className="mb-3 text-[11px] sm:text-xs leading-relaxed"><strong className="text-green-500 block text-[12px] sm:text-[13px] mb-0.5">Easy</strong> For those who don't want technical knowledge, simple things.</p>
-                                      <p className="mb-3 text-[11px] sm:text-xs leading-relaxed"><strong className="text-blue-500 block text-[12px] sm:text-[13px] mb-0.5">Medium</strong> For those who cannot understand technical things.</p>
-                                      <p className="text-[11px] sm:text-xs leading-relaxed"><strong className="text-purple-500 block text-[12px] sm:text-[13px] mb-0.5">Hard</strong> For developers. Full architectural breakdown.</p>
-                                    </motion.div>
+                                  {showHistoryInfo && (
+                                    <div className="fixed inset-0 z-[500] flex items-center justify-center px-4 pointer-events-auto bg-black/40 backdrop-blur-sm">
+                                      <motion.div 
+                                        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                        className={`relative w-full max-w-[320px] p-6 rounded-3xl border shadow-2xl ${isDarkMode ? "bg-[#111c24] border-white/10 text-white" : "bg-white border-black/10 text-black"}`}
+                                      >
+                                        <button onClick={() => setShowHistoryInfo(false)} className={`absolute top-4 right-4 p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10 text-white/50 hover:text-white" : "hover:bg-black/5 text-black/50 hover:text-black"}`}>
+                                          <X className="w-5 h-5" />
+                                        </button>
+                                        <h4 className="text-sm font-black uppercase tracking-widest mb-5">Difficulty Levels</h4>
+                                        <p className="mb-4 text-xs leading-relaxed"><strong className="text-orange-500 block text-sm mb-1 font-black">Easy</strong> Simple concepts without technical jargon.</p>
+                                        <p className="mb-4 text-xs leading-relaxed"><strong className="text-blue-500 block text-sm mb-1 font-black">Medium</strong> General technical overview.</p>
+                                        <p className="text-xs leading-relaxed"><strong className="text-purple-500 block text-sm mb-1 font-black">Hard</strong> Full architectural breakdown for developers.</p>
+                                      </motion.div>
+                                    </div>
                                   )}
                                 </AnimatePresence>
                               </div>
                               <button
                                 onClick={() => {
-                                  const activeLvl = historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard";
-                                  const d = historyData[activeLvl];
+                                  const d = historyData[historyLevel];
                                   const text = [
                                     d.title,
                                     d.intro,
@@ -2610,22 +2602,22 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           </div>
 
                           <div className={`p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden shadow-2xl ${
-                            logTab === "history" && historyLevel === "easy" ? isDarkMode ? "bg-[#0b141a] border-green-500/20" : "bg-white border-green-500/20" :
+                            logTab === "history" && historyLevel === "easy" ? isDarkMode ? "bg-[#0b141a] border-orange-500/20" : "bg-white border-orange-500/20" :
                             logTab === "history" && historyLevel === "medium" ? isDarkMode ? "bg-[#0b141a] border-blue-500/20" : "bg-white border-blue-500/20" :
                             logTab === "history" && historyLevel === "hard" ? isDarkMode ? "bg-[#0b141a] border-purple-500/20" : "bg-white border-purple-500/20" :
                             isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"
                           }`}>
-                            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-green-400 to-green-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : historyLevel === "hard" ? "from-purple-400 to-purple-600" : "from-orange-400 to-orange-600"}`} />
+                            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-orange-400 to-orange-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : "from-purple-400 to-purple-600"}`} />
                             
                             <h2 className={`text-2xl sm:text-4xl font-black tracking-tighter mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>
-                              {historyData[historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard"].title}
+                              {historyData[historyLevel].title}
                             </h2>
                             <p className={`text-sm sm:text-lg leading-relaxed font-medium mb-10 ${isDarkMode ? "text-white/70" : "text-black/70"}`}>
-                              {historyData[historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard"].intro}
+                              {historyData[historyLevel].intro}
                             </p>
 
                             <div className="space-y-8 sm:space-y-12">
-                              {historyData[historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard"].sections.map((section: any, idx: number) => (
+                              {historyData[historyLevel].sections.map((section: any, idx: number) => (
                                 <div key={idx} className="relative">
                                   <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
                                     {section.heading}
@@ -2639,7 +2631,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                             <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
                                <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
-                                 {historyData[historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard"].summary}
+                                 {historyData[historyLevel].summary}
                                </p>
                             </div>
                           </div>
