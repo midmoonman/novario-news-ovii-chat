@@ -2374,13 +2374,25 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   animate={{ x: 0, opacity: 1 }}
                   exit={{ x: "100%", opacity: 0 }}
                   transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                  className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden ${isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#022c22] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#ecfdf5] to-[#f0f2f5]"}`}
+                  className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden transition-colors duration-700 ${
+                    logTab === "updates" 
+                      ? isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#022c22] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#ecfdf5] to-[#f0f2f5]"
+                      : historyLevel === "easy"
+                        ? isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#052e16] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#dcfce7] to-[#f0f2f5]"
+                        : historyLevel === "medium"
+                          ? isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#172554] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#dbeafe] to-[#f0f2f5]"
+                          : isDarkMode ? "bg-gradient-to-br from-[#0b141a] via-[#3b0764] to-[#0b141a]" : "bg-gradient-to-br from-[#f0f2f5] via-[#f3e8ff] to-[#f0f2f5]"
+                  }`}
                 >
-                  {/* Intense Dark Green Neon Gradient Glow */}
+                  {/* Dynamic Neon Gradient Glow */}
                   <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                     <div className="absolute top-0 left-0 w-full h-full will-change-transform">
-                      <div className="absolute -top-[20%] -left-[10%] w-[80%] h-[80%] bg-emerald-500/20 blur-[140px] rounded-full pointer-events-none" />
-                      <div className="absolute top-[30%] -right-[20%] w-[70%] h-[70%] bg-emerald-700/20 blur-[150px] rounded-full pointer-events-none" />
+                      <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${
+                        logTab === "updates" || historyLevel === "easy" ? "bg-emerald-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
+                      }`} />
+                      <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${
+                        logTab === "updates" || historyLevel === "easy" ? "bg-emerald-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
+                      }`} />
                     </div>
                   </div>
 
@@ -2495,7 +2507,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 </p>
                                 {update.rationale && (
                                   <div className={`p-5 sm:p-8 rounded-[24px] sm:rounded-[40px] border relative overflow-hidden transition-all group-hover:border-emerald-500/30 ${isDarkMode ? "bg-black/40 border-emerald-500/10" : "bg-white border-emerald-500/10"}`}>
-                                    <div className="absolute top-0 left-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-emerald-500 to-blue-500" />
+                                    <div className="absolute top-0 left-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-emerald-500 to-orange-500" />
                                     <span className={`block text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-2 sm:mb-4 ${isDarkMode ? "text-emerald-500" : "text-emerald-600"}`}>
                                       Build Rationale
                                     </span>
@@ -2528,27 +2540,44 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 </button>
                               ))}
                             </div>
-                            <button
-                              onClick={() => {
-                                const d = historyData[historyLevel];
-                                const text = [
-                                  d.title,
-                                  d.intro,
-                                  "",
-                                  ...d.sections.map(s => `## ${s.heading}\n${s.content}\n`),
-                                  d.summary
-                                ].join("\n");
-                                navigator.clipboard.writeText(text);
-                                addNotification("History Copied!", "success");
-                              }}
-                              className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all active:scale-95 border ${isDarkMode ? "bg-white/5 text-white hover:bg-white/10 border-white/10" : "bg-black/5 text-black hover:bg-black/10 border-black/10"}`}
-                            >
-                              <Copy className="w-3.5 h-3.5" />
-                              Copy
-                            </button>
+                            <div className="flex items-center gap-2 relative">
+                              <div className="group relative flex items-center justify-center">
+                                <button className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl border transition-colors ${isDarkMode ? "bg-white/5 border-white/10 hover:bg-white/10 text-white/50 hover:text-white" : "bg-black/5 border-black/10 hover:bg-black/10 text-black/50 hover:text-black"}`}>
+                                  <Info className="w-4 h-4" />
+                                </button>
+                                <div className={`absolute bottom-full right-0 mb-3 w-56 sm:w-64 p-4 rounded-2xl border backdrop-blur-xl opacity-0 pointer-events-none group-hover:opacity-100 transition-all z-50 shadow-2xl ${isDarkMode ? "bg-black/90 border-white/10 text-white/80" : "bg-white/90 border-black/10 text-black/80"}`}>
+                                  <p className="mb-2 text-[10px] sm:text-xs leading-relaxed"><strong className="text-green-500 block text-[11px] sm:text-[13px] mb-0.5">Easy</strong> For those who don't want technical knowledge, simple things.</p>
+                                  <p className="mb-2 text-[10px] sm:text-xs leading-relaxed"><strong className="text-blue-500 block text-[11px] sm:text-[13px] mb-0.5">Medium</strong> For those who cannot understand technical things.</p>
+                                  <p className="text-[10px] sm:text-xs leading-relaxed"><strong className="text-purple-500 block text-[11px] sm:text-[13px] mb-0.5">Hard</strong> For developers. Full architectural breakdown.</p>
+                                </div>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  const d = historyData[historyLevel];
+                                  const text = [
+                                    d.title,
+                                    d.intro,
+                                    "",
+                                    ...d.sections.map(s => `## ${s.heading}\n${s.content}\n`),
+                                    d.summary
+                                  ].join("\n");
+                                  navigator.clipboard.writeText(text);
+                                  addNotification("History Copied!", "success");
+                                }}
+                                className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all active:scale-95 border ${isDarkMode ? "bg-white/5 text-white hover:bg-white/10 border-white/10" : "bg-black/5 text-black hover:bg-black/10 border-black/10"}`}
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                                Copy
+                              </button>
+                            </div>
                           </div>
 
-                          <div className={`p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden shadow-2xl ${isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"}`}>
+                          <div className={`p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden shadow-2xl ${
+                            logTab === "history" && historyLevel === "easy" ? isDarkMode ? "bg-[#0b141a] border-green-500/20" : "bg-white border-green-500/20" :
+                            logTab === "history" && historyLevel === "medium" ? isDarkMode ? "bg-[#0b141a] border-blue-500/20" : "bg-white border-blue-500/20" :
+                            logTab === "history" && historyLevel === "hard" ? isDarkMode ? "bg-[#0b141a] border-purple-500/20" : "bg-white border-purple-500/20" :
+                            isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"
+                          }`}>
                             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-green-400 to-green-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : "from-purple-400 to-purple-600"}`} />
                             
                             <h2 className={`text-2xl sm:text-4xl font-black tracking-tighter mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>
@@ -2564,7 +2593,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
                                     {section.heading}
                                   </h3>
-                                  <p className={`text-sm sm:text-base leading-relaxed ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+                                  <p className={`text-sm sm:text-base leading-relaxed break-words whitespace-pre-wrap ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
                                     {section.content}
                                   </p>
                                 </div>
