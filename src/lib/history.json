@@ -50,24 +50,28 @@
     "intro": "OVii Chat is an advanced, React-based ephemeral messaging progressive web app (PWA) embedded within the Novario ecosystem. It leverages a serverless architecture utilizing Firebase for real-time synchronization and Cloudinary for optimized media asset delivery.",
     "sections": [
       {
-        "heading": "Gateway Routing Integration",
-        "content": "The application operates as a hidden route within Novario News. The entry sequence is obfuscated; users trigger the OVii Chat initialization by selecting a specific localized language parameter within the News tab UI. This acts as a client-side routing switch that mounts the OVii component, bypassing standard navigation."
+        "heading": "Gateway Routing Integration (src/routes)",
+        "content": "The application operates as a hidden route within Novario News. The entry sequence is obfuscated; users trigger the OVii Chat initialization by selecting a specific localized language parameter (e.g., 'ovii') within the News tab UI. The router (`src/routes/__root.tsx`, `src/routes/ovii.tsx`) detects this parameter and mounts the OVii component, bypassing standard navigation paths like `index.tsx`, `news.tsx`, or `newsroom.tsx`."
       },
       {
-        "heading": "Real-Time Infrastructure (Firebase/Firestore)",
-        "content": "State synchronization is handled via Firebase Firestore. We utilize snapshot listeners (`onSnapshot`) to push updates instantly to clients. The architecture includes a `messages` collection for the chat payload and a highly optimized `presence` collection that tracks user status (online/offline), typing states, and active audio recording states. Heartbeat mechanisms run every 15 seconds to manage session lifecycles, and anonymous authentication (`signInAnonymously`) secures the connection."
+        "heading": "Real-Time Infrastructure (src/lib/firebase.ts)",
+        "content": "State synchronization is handled via Firebase Firestore (`src/lib/firebase.ts`). We utilize snapshot listeners (`onSnapshot`) to push updates instantly to clients. The architecture includes a `messages` collection for the chat payload and a highly optimized `presence` collection that tracks user status (online/offline), typing states, and active audio recording states. Heartbeat mechanisms run every 15 seconds to manage session lifecycles, and anonymous authentication (`signInAnonymously`) secures the connection."
+      },
+      {
+        "heading": "Core UI Component (src/components/novario/OViiChat.tsx)",
+        "content": "The heart of the application is `OViiChat.tsx`. It manages all sub-states: real-time messaging, file uploading, media previews, audio playback (`wavesurfer.js`), presence tracking, and the custom Build Book (changelog viewer). It employs Framer Motion for high-fidelity animations, a `ResizeObserver` for robust mobile-first auto-scrolling, and visual viewport metrics to compensate for software keyboards on iOS/Android. It dynamically renders 'Glassmorphism' or 'Neon Glow' UI elements based on the active theme."
       },
       {
         "heading": "Media Pipeline and Storage",
-        "content": "Media handling is entirely decoupled from Firebase to optimize costs and bandwidth. Image, video, and audio file uploads are piped directly to Cloudinary's REST API using unsigned upload presets. Voice notes are captured via the native `MediaRecorder` API (encoded as WebM/Opus) and visualized in the UI using the `wavesurfer.js` library, complete with playback speed controls."
+        "content": "Media handling is entirely decoupled from Firebase to optimize costs and bandwidth. Image, video, and audio file uploads are piped directly to Cloudinary's REST API using unsigned upload presets. Voice notes are captured via the native `MediaRecorder` API (encoded as WebM/Opus) and visualized in the UI using the `wavesurfer.js` library, complete with playback speed controls (1x, 1.5x, 2x)."
       },
       {
         "heading": "Retention Engine and Data Lifecycle",
-        "content": "OVii enforces a strict programmatic 14-day TTL (Time To Live) retention policy. Client-side hydration scripts evaluate message timestamps (`createdAt`) against the current epoch. If `now - timestamp > 14 days`, the client initiates a secure `deleteDoc` transaction to purge the record from Firestore permanently."
+        "content": "OVii enforces a strict programmatic 14-day TTL (Time To Live) retention policy. Client-side hydration scripts evaluate message timestamps (`createdAt`) against the current epoch. If `now - timestamp > 14 days`, the client initiates a secure `deleteDoc` transaction to purge the record from Firestore permanently. Text messages are purged at 5 days, while media assets persist for the full 14-day cycle in 'My Files'."
       },
       {
-        "heading": "UI/UX Engineering and Visual Systems",
-        "content": "The frontend is built with React and heavily animated using Framer Motion. The UI prioritizes a 'Mobile-First Absolute' strategy, implementing custom visual viewport observers to handle software keyboard layout shifts seamlessly on iOS/Android. The aesthetic employs a dual-theme system (Light/Dark) with dynamic 'Neon Glow' and 'Glassmorphism' utilities via Tailwind CSS. Micro-interactions (swipe-to-reply, long-press context menus) are engineered natively to avoid third-party bloat."
+        "heading": "Supporting Utilities and Components",
+        "content": "The application relies on a rich ecosystem of files: `src/lib/avatars.ts` provides the base64 encoded user avatars. `src/lib/utils.ts` and `src/hooks/use-mobile.tsx` handle responsive scaling. Shadcn UI components (e.g., `dialog.tsx`, `button.tsx`, `scroll-area.tsx`, `sheet.tsx`, `avatar.tsx`) provide accessible base primitives. Additional data like geographic locales (`cities.ts`, `location.ts`) and translations (`i18n.tsx`, `languages.ts`) are modularized in the `src/lib/` directory."
       }
     ],
     "summary": "Technical Summary: OVii Chat is a high-performance, serverless React application utilizing Firebase Firestore for sub-second presence/message synchronization, Cloudinary for robust media pipelines, and Framer Motion for native-tier UX, all secured by a strict 14-day cryptographic data purge protocol."
