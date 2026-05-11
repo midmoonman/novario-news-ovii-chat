@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy } from "lucide-react";
+import { Mic, Paperclip, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyData from "../../lib/history.json";
@@ -2051,23 +2051,35 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                 {recording ? (
                   /* ── Recording state ── */
-                  <div className={`flex-1 flex items-center gap-3 rounded-[28px] px-4 h-[54px] overflow-hidden shadow-inner ${isDarkMode ? "bg-[#2a3942]" : "bg-white"}`}>
-                    <RecordingVisualizer />
-                    <div className="flex-1 overflow-hidden">
-                      <motion.span 
-                        animate={{ opacity: [0.4, 1, 0.4] }} 
-                        transition={{ duration: 1.5, repeat: Infinity }}
-                        className={`text-[13px] font-medium truncate ${isDarkMode ? "text-white" : "text-black"}`}
-                      >
-                        Recording...
-                      </motion.span>
+                  <div className={`flex-1 flex items-center justify-between rounded-[28px] px-2 sm:px-4 h-[54px] overflow-hidden shadow-inner ${isDarkMode ? "bg-[#2a3942]" : "bg-white"}`}>
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                      <span className="w-2 h-2 sm:w-2.5 sm:h-2.5 bg-red-500 rounded-full shadow-[0_0_10px_red] animate-pulse" />
+                      <div className="hidden sm:block">
+                        <RecordingVisualizer />
+                      </div>
+                      <span className="text-red-500 font-black text-[10px] sm:text-xs uppercase tracking-widest ml-1">{formatDuration(recDuration)}</span>
                     </div>
-                    <button 
-                      onPointerDown={(e) => { e.preventDefault(); cancelRec(); }}
-                      className="p-2 text-destructive hover:bg-destructive/10 rounded-full transition-colors"
+                    
+                    <motion.div 
+                      drag="x"
+                      dragConstraints={{ right: 0, left: -100 }}
+                      dragElastic={0.1}
+                      onDragEnd={(e, info) => {
+                        if (info.offset.x < -60) {
+                          cancelRec();
+                          toast.error("Recording cancelled");
+                        }
+                      }}
+                      className="flex items-center gap-2 sm:gap-4 cursor-grab active:cursor-grabbing shrink-0"
                     >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
+                      <div className={`flex items-center gap-1 sm:gap-2 text-[8px] sm:text-[10px] font-black uppercase tracking-widest select-none ${isDarkMode ? "text-white/40" : "text-black/40"}`}>
+                        <ChevronLeft className="w-3 h-3 animate-pulse" />
+                        Slide to cancel
+                      </div>
+                      <button type="button" onClick={stopAndSendRec} className="h-8 sm:h-9 px-3 sm:px-5 rounded-full bg-[#00a884] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#00a884]/90 transition-all shadow-lg flex items-center gap-1 sm:gap-2 active:scale-95">
+                        <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Send</span>
+                      </button>
+                    </motion.div>
                   </div>
                 ) : (
                   <>
@@ -2077,7 +2089,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       className={`shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white" : "text-black/40 hover:text-black"
                         }`}
                     >
-                      <ImageIcon className="w-6 h-6 md:w-7 md:h-7" />
+                      <Paperclip className="w-6 h-6 md:w-7 md:h-7" />
                     </button>
 
                     <div className={`flex-1 flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
