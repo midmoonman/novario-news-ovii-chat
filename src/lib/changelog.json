@@ -3,6 +3,12 @@
     "date": "2026-05-11",
     "updates": [
       {
+        "title": "Build Book: Pure Neon Aesthetics",
+        "status": "DEPLOYED",
+        "description": "Refined the Build Book aesthetic. Removed heavy Glassmorphism 2.0 (backdrop blurs and glass borders) in favor of maintaining intense, immersive neon glow orbs. Fixed text contrast issues to ensure legibility in Light Mode.",
+        "rationale": "Prioritizes clean performance and high-contrast readability across all themes while retaining a magical visual atmosphere."
+      },
+      {
         "title": "Voice Note & Media UX Refinements",
         "status": "DEPLOYED",
         "description": "Fixed UI overlapping of voice note audio player and filename. Engineered robust auto-scroll logic that snaps to the newest incoming message and dynamically tracks uploading files to enhance immediate visual feedback.",
