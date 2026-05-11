@@ -816,16 +816,35 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     };
   }, []);
 
-  // ── Scroll to bottom on load and new messages ──────────────────────────
+  // ── Robust Auto-Scroll: Handles images, videos, and dynamic content ─────
   useEffect(() => {
-    const timer = setTimeout(() => scrollToBottom(true), 250);
-    return () => clearTimeout(timer);
-  }, []);
+    if (!scrollRef.current) return;
+    
+    // Initial scroll sequence to ensure we land at the bottom
+    const timers = [
+      setTimeout(() => scrollToBottom(true), 100),
+      setTimeout(() => scrollToBottom(true), 500),
+      setTimeout(() => scrollToBottom(false), 1500)
+    ];
 
-  useEffect(() => {
-    const timer = setTimeout(() => scrollToBottom(false), 100);
-    return () => clearTimeout(timer);
-  }, [msgs.length, isTyping]);
+    // ResizeObserver: Triggered when images or previews load and expand the container
+    const observer = new ResizeObserver(() => {
+      // Only auto-scroll if the user is already near the bottom or if it's the initial load
+      const t = scrollRef.current;
+      if (!t) return;
+      const isNearBottom = t.scrollHeight - t.scrollTop < t.clientHeight + 200;
+      if (isNearBottom || isLoading) {
+        scrollToBottom(false);
+      }
+    });
+
+    observer.observe(scrollRef.current);
+    
+    return () => {
+      timers.forEach(clearTimeout);
+      observer.disconnect();
+    };
+  }, [msgs.length, isLoading]);
 
   useEffect(() => {
     if (isTyping) {
