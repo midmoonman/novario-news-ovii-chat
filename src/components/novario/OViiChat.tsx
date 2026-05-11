@@ -600,18 +600,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
-  // -- Stable High-Entropy Particles for Build Book --
-  const [bookParticles] = useState(() => Array.from({ length: 25 }).map((_, i) => ({
-    id: i,
-    x: Math.random() * 100,
-    y: Math.random() * 100,
-    driftX: Math.random() * 40 - 20,
-    driftY: -(Math.random() * 60 + 40),
-    duration: 15 + Math.random() * 20,
-    delay: Math.random() * -30,
-    size: Math.random() * 1.5 + 1
-  })));
-
   // -- Android Gesture / History Handling (Thumb Rule) --
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
@@ -1847,29 +1835,31 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       )}
 
                                       {m.type === "audio" && !m.isDeleted && (
-                                        <div className="flex flex-col gap-1 min-w-[220px] pr-20 pb-3">
+                                        <div className="flex flex-col gap-1 min-w-[220px] pb-6 px-1">
                                           <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
-                                          {m.fileName && <div className="text-[10px] px-2 opacity-50 truncate max-w-[140px]">{m.fileName}</div>}
+                                          {m.fileName && <div className="text-[11px] px-2 opacity-60 font-medium break-all">{m.fileName}</div>}
                                         </div>
                                       )}
 
                                       {m.type === "file" && !m.isDeleted && (
                                         <div 
-                                          className={`flex items-center gap-3 p-3 pr-24 rounded-xl cursor-pointer hover:brightness-95 transition-all ${isDarkMode ? "bg-black/20" : "bg-black/5"}`}
+                                          className={`flex flex-col gap-2 p-3 pb-6 rounded-xl cursor-pointer hover:brightness-95 transition-all ${isDarkMode ? "bg-black/20" : "bg-black/5"}`}
                                           onClick={() => downloadFile(m.content, m.fileName || m.id, "file")}
                                         >
-                                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isDarkMode ? "bg-white/10" : "bg-black/10"}`}>
-                                            {m.mimeType?.includes("pdf") ? <FileText className="w-5 h-5 text-red-500" /> :
-                                             m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? <FileArchive className="w-5 h-5 text-orange-500" /> :
-                                             <File className="w-5 h-5 text-blue-500" />}
-                                          </div>
-                                          <div className="flex-1 min-w-0">
-                                            <div className="text-[13px] font-bold truncate">{m.fileName || "File"}</div>
-                                            <div className="text-[10px] opacity-50 uppercase font-bold">
-                                              {m.fileSize ? `${(m.fileSize / (1024 * 1024)).toFixed(1)} MB` : "File"}
+                                          <div className="flex items-center gap-3">
+                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isDarkMode ? "bg-white/10" : "bg-black/10"}`}>
+                                              {m.mimeType?.includes("pdf") ? <FileText className="w-5 h-5 text-red-500" /> :
+                                               m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? <FileArchive className="w-5 h-5 text-orange-500" /> :
+                                               <File className="w-5 h-5 text-blue-500" />}
                                             </div>
+                                            <div className="flex-1 min-w-0">
+                                              <div className="text-[13px] font-bold break-all leading-tight">{m.fileName || "File"}</div>
+                                              <div className="text-[10px] opacity-50 uppercase font-bold">
+                                                {m.fileSize ? `${(m.fileSize / (1024 * 1024)).toFixed(1)} MB` : "File"}
+                                              </div>
+                                            </div>
+                                            <Download className="w-4 h-4 opacity-40 shrink-0" />
                                           </div>
-                                          <Download className="w-4 h-4 opacity-40 shrink-0" />
                                         </div>
                                       )}
 
@@ -2383,34 +2373,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <div className="absolute -bottom-[15%] -right-[15%] w-[70%] h-[70%] bg-emerald-500/20 blur-[100px] rounded-full animate-pulse-slow" style={{ animationDelay: '3s' }} />
                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[50%] h-[50%] bg-emerald-400/10 blur-[120px] rounded-full" />
                     </div>
-                  </div>
-
-                  {/* Prestigious Front-Layer Particles (Fixed Overlay) */}
-                  <div className="fixed inset-0 pointer-events-none z-[600] overflow-hidden">
-                    {bookParticles.map((p) => (
-                      <motion.div
-                        key={p.id}
-                        initial={{ x: `${p.x}%`, y: `${p.y}%`, opacity: 0 }}
-                        animate={{ 
-                          y: [`${p.y}%`, `${p.y + p.driftY}%`],
-                          x: [`${p.x}%`, `${p.x + p.driftX}%`, `${p.x}%`],
-                          opacity: [0, 1, 0.6, 0],
-                          scale: [0.7, 1.4, 0.9]
-                        }}
-                        transition={{ 
-                          duration: p.duration,
-                          repeat: Infinity,
-                          delay: p.delay,
-                          ease: "linear"
-                        }}
-                        className="absolute bg-orange-500 rounded-full shadow-[0_0_25px_rgba(249,115,22,1)] will-change-transform"
-                        style={{ 
-                          width: p.size, 
-                          height: p.size,
-                          filter: `blur(${p.size < 1.5 ? '0px' : '0.5px'})` 
-                        }}
-                      />
-                    ))}
                   </div>
 
                   {/* Header / Protocol Identity */}

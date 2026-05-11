@@ -3,46 +3,28 @@
     "date": "2026-05-11",
     "updates": [
       {
-        "title": "Timestamp Stability Protocol (Thumb Rule)",
+        "title": "Full Filename Integrity (Thumb Rule)",
         "status": "DEPLOYED",
-        "description": "Enforced a zero-overlap layout system for all message types. Audio, Document, and Text bubbles now feature reserved 'safety islands' for metadata to prevent UI collapse.",
-        "rationale": "Ensures professional readability and prevents the 'merging' of filenames with timing data on narrow mobile screens."
+        "description": "Removed truncation from Audio and Document filenames. Optimized layout to prevent overlap with metadata by implementing vertical stacking for long file identities.",
+        "rationale": "Ensures full technical visibility of file names while strictly adhering to the zero-overlap 'Thumb Rule'."
       },
       {
-        "title": "Prestigious Front-Layer Particle Physics",
+        "title": "Android Navigation Gesture capturing",
         "status": "DEPLOYED",
-        "description": "Migrated orange live sparks to a global fixed overlay at Z-index 600. Optimized shadow-glow to 25px with stable high-entropy randomization.",
-        "rationale": "Achieves the intended 'prestigious' atmosphere by ensuring particles float over all content without being clipped by scroll containers."
+        "description": "Implemented popstate history management. Android back gestures now close active modals instead of exiting the platform.",
+        "rationale": "Essential for native-feeling stability on mobile devices."
       },
       {
-        "title": "Android Navigation Thumb Rule",
+        "title": "Build Book Protocol & Theory Sync",
         "status": "DEPLOYED",
-        "description": "Integrated popstate history injection. Android/Mobile back gestures are now captured to close active modals and the Build Book instead of exiting the platform.",
-        "rationale": "Critical for native-app feel and preventing accidental session termination during navigation."
+        "description": "Implemented the full-screen immersive 'Build Book' and 'Build Theory' protocol for architectural transparency.",
+        "rationale": "Transitions logs to a prestigious technical record."
       },
       {
-        "title": "Build Book Technical Architecture",
-        "status": "DEPLOYED",
-        "description": "Decommissioned 'Update Logs' in favor of the 'Build Book' and 'Build Theory' protocol. Implemented immersive greenery glow and technical rationale tracking.",
-        "rationale": "Shifts the platform identity towards a more authoritative and architectural development style."
-      },
-      {
-        "title": "Firestore Message Integrity Fix",
-        "status": "DEPLOYED",
-        "description": "Resolved a critical 'addDoc' failure where undefined captions caused upload crashes. Implemented stable string fallback for all media metadata.",
-        "rationale": "Restores 100% stability to the photo and document sharing infrastructure."
-      },
-      {
-        "title": "Infrastructure Expansion: 200MB Storage",
-        "status": "DEPLOYED",
-        "description": "Re-engineered file handling to support up to 200MB per attachment across all formats (PDF, ZIP, RAR, HTML, etc.).",
-        "rationale": "Empowers users to share professional-grade project files without compression or size constraints."
-      },
-      {
-        "title": "Suspension: Pure Glassmorphism 2.0",
+        "title": "Suspension: Front-Layer Spark Protocol",
         "status": "SUPERSEDED",
-        "description": "The full-screen high-refraction Glassmorphism 2.0 experiment has been suspended. While backdrop blurs are active, the complex multi-layer frosted highlights were removed to preserve 120Hz performance on mobile.",
-        "rationale": "High-fidelity performance and battery life on mobile devices prioritized over heavy CSS filter chains."
+        "description": "Suspended the orange front-layer particle protocol to prioritize clean UI clarity and extreme mobile performance efficiency.",
+        "rationale": "User preference for absolute visual clarity and removal of decorative layers."
       }
     ]
   },
@@ -53,7 +35,62 @@
         "title": "Visual Identity & Doodle Layer",
         "status": "DEPLOYED",
         "description": "Integrated custom WhatsApp-style background doodles and real-time upload feedback systems.",
-        "rationale": "Establishes the base emotional resonance of the chat environment."
+        "rationale": "Establishes base emotional resonance."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-09",
+    "updates": [
+      {
+        "title": "PWA & Native Experience Optimization",
+        "status": "DEPLOYED",
+        "description": "Configured manifest and service workers for high-fidelity native app installation experience. Optimized startup times.",
+        "rationale": "Novario transition from web-lite to web-native application status."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-08",
+    "updates": [
+      {
+        "title": "Real-Time Presence Infrastructure",
+        "status": "DEPLOYED",
+        "description": "Architected the Firestore 'Presence' collection for 🟢 Online/⚫ Offline status synchronization across global sessions.",
+        "rationale": "Enables immediate social awareness within the Novario ecosystem."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-07",
+    "updates": [
+      {
+        "title": "Advanced File Retention Logic",
+        "status": "DEPLOYED",
+        "description": "Engineered the 14-day retention cycle. Implemented logic to automatically purge text logs after 5 days while preserving media for the full term.",
+        "rationale": "Strategic balance between technical lightweighting and user data persistence."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-06",
+    "updates": [
+      {
+        "title": "Cross-Platform Layout Refinement",
+        "status": "DEPLOYED",
+        "description": "Initial engineering of the adaptive full-bleed wide-screen desktop layout and compact mobile view.",
+        "rationale": "Ensures usability across monitors, tablets, and handheld devices."
+      }
+    ]
+  },
+  {
+    "date": "2026-05-05",
+    "updates": [
+      {
+        "title": "Genesis: Novario/Ovii Protocol",
+        "status": "DEPLOYED",
+        "description": "Initial architectural deployment of the secure, real-time messaging core utilizing Firebase synchronization.",
+        "rationale": "Foundation of the entire communication ecosystem."
       }
     ]
   }
