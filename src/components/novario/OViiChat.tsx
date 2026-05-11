@@ -143,8 +143,6 @@ const formatMessageDate = (date: Date) => {
 const formatLastSeen = (timestamp?: number | null) => {
   if (!timestamp) return "";
   const now = Date.now();
-  const diff = now - timestamp;
-  if (diff < 60000) return "Online";
 
   const date = new Date(timestamp);
   const timeStr = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
@@ -1818,7 +1816,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-[10px] font-black text-orange-500 uppercase tracking-tighter">Editing message</div>
-                      <div className="text-xs opacity-60 truncate">
+                      <div className={`text-xs truncate ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
                         {msgs.find(m => m.id === isEditing)?.content || "..."}
                       </div>
                     </div>
