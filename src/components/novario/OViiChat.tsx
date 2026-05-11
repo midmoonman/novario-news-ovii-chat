@@ -480,13 +480,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [appNotifications, setAppNotifications] = useState<{ id: string, message: string, type: "success" | "error" | "info" }[]>([]);
-  const [particles] = useState(() => Array.from({ length: 12 }).map((_, i) => ({
+  const [particles] = useState(() => Array.from({ length: 6 }).map((_, i) => ({
     id: i,
     left: Math.random() * 100,
     top: Math.random() * 100,
     size: Math.random() * 2 + 1,
-    duration: Math.random() * 20 + 15,
-    delay: Math.random() * 10
+    duration: Math.random() * 15 + 10,
+    delay: Math.random() * 5
   })));
 
   const addNotification = (message: string, type: "success" | "error" | "info" = "info") => {
@@ -1092,31 +1092,23 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center bg-[#0b141a]/95 backdrop-blur-3xl transition-colors duration-300 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"}`}
+        className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center backdrop-blur-xl transition-colors duration-300 ${isDarkMode ? "bg-[#0b141a]/95" : "bg-[#efeae2]/95"}`}
         style={rootStyle}
       >
         {/* Magical Atmosphere Layer */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
           {particles.map(p => (
-            <motion.div
+            <div
               key={p.id}
-              className={`absolute rounded-full ${isDarkMode ? 'bg-white/20' : 'bg-primary/30'}`}
+              className={`absolute rounded-full ${isDarkMode ? 'bg-white/10' : 'bg-primary/20'} animate-float-slow`}
               style={{
                 left: `${p.left}%`,
                 top: `${p.top}%`,
                 width: p.size,
                 height: p.size,
-              }}
-              animate={{
-                y: [0, -150, 0],
-                x: [0, 50, 0],
-                opacity: [0.1, 0.4, 0.1],
-              }}
-              transition={{
-                duration: p.duration,
-                repeat: Infinity,
-                delay: p.delay,
-                ease: "easeInOut"
+                animationDuration: `${p.duration}s`,
+                animationDelay: `${p.delay}s`,
+                willChange: "transform, opacity"
               }}
             />
           ))}
@@ -1517,10 +1509,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               {/* Scroll area — overflow-x:hidden prevents horizontal bleed from drag */}
               <div
                 ref={scrollRef}
-                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col items-stretch touch-pan-y relative transition-all duration-300"
+                className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col items-stretch touch-pan-y relative"
                 style={{
                   overscrollBehavior: "contain",
-                  overflowX: "hidden"
+                  overflowX: "hidden",
+                  willChange: "scroll-position"
                 }}
                 onScroll={(e) => {
                   const t = e.currentTarget;
@@ -1558,7 +1551,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 )}
 
                 <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-3.5 sm:px-6">
-                  <AnimatePresence mode="popLayout" initial={false}>
+                  <AnimatePresence initial={false}>
                     {chatMsgs.filter(m => !m.deletedFor?.includes(uid || "")).map((m, i) => {
                       const mine = m.uid === uid;
                       const prevMsg = chatMsgs[i - 1];
@@ -1576,7 +1569,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <Fragment key={m.id}>
                           {showDateHeader && dateStr !== "Today" && (
                             <div className="w-full flex justify-center my-4 sticky top-2 z-10 pointer-events-none">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest backdrop-blur-md shadow-sm border pointer-events-auto ${isDarkMode ? "bg-[#182229]/80 text-white/50 border-white/5" : "bg-white/80 text-black/40 border-black/5"
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border pointer-events-auto ${isDarkMode ? "bg-[#182229] text-white/50 border-white/5" : "bg-white text-black/40 border-black/5"
                                 }`}>
                                 {dateStr}
                               </span>
@@ -1584,23 +1577,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           )}
 
                           <motion.div
-                            layout
-                            initial={{ opacity: 0, y: 20, scale: 0.7, originX: mine ? 1 : 0 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.5 }}
-                            transition={{
-                              type: "spring",
-                              damping: 25,
-                              stiffness: 400,
-                              layout: { duration: 0.2 }
-                            }}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2 }}
                             className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
                           >
                             <motion.div
-                              initial={{ opacity: 0, y: 12, scale: 0.9 }}
-                              animate={{ opacity: 1, y: 0, scale: 1, x: 0 }}
-                              exit={{ opacity: 0, scale: 0.8 }}
-                              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                              initial={{ opacity: 0, scale: 0.95 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.2 }}
                               drag="x"
                               dragConstraints={{ left: 0, right: 0 }}
                               dragElastic={0.2}
