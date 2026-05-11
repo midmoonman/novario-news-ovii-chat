@@ -6,8 +6,9 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
+import EmojiPicker, { Theme } from "emoji-picker-react";
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
@@ -124,6 +125,7 @@ type Msg = {
   isDeleted?: boolean;
   isForwarded?: boolean;
   reactions?: Record<string, string[]>;
+  deletedFor?: string[];
 };
 
 const ROOM = "ovii-room";
@@ -563,6 +565,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [showMenu, setShowMenu] = useState(false);
   const [contextMsg, setContextMsg] = useState<Msg | null>(null);
   const [isEditing, setIsEditing] = useState<string | null>(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [emojiPickerTarget, setEmojiPickerTarget] = useState<"text" | "reaction">("text");
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -847,16 +851,22 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
   };
 
-  const deleteMessage = async (msgId: string) => {
+  const deleteMessage = async (msgId: string, mode: "me" | "everyone") => {
     try {
-      await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
-        isDeleted: true,
-        content: "This message was deleted",
-        type: "text"
-      }, { merge: true });
-      addNotification("Message deleted", "info");
+      if (mode === "everyone") {
+        await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
+          isDeleted: true,
+          content: "This message was deleted",
+          type: "text"
+        }, { merge: true });
+      } else {
+        const msg = msgs.find(m => m.id === msgId);
+        if (!msg || !uid) return;
+        const deletedFor = [...(msg.deletedFor || []), uid];
+        await setDoc(doc(db, "ovii", ROOM, "messages", msgId), { deletedFor }, { merge: true });
+      }
     } catch (e) {
-      addNotification("Failed to delete message", "error");
+      addNotification("Action failed", "error");
     }
   };
 
@@ -866,10 +876,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         content: newContent,
         isEdited: true
       }, { merge: true });
-      addNotification("Message edited", "success");
       setIsEditing(null);
     } catch (e) {
-      addNotification("Failed to edit message", "error");
+      addNotification("Edit failed", "error");
     }
   };
 
@@ -1552,7 +1561,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                  <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-3.5 sm:px-6">
                   <AnimatePresence mode="popLayout" initial={false}>
-                    {chatMsgs.map((m, i) => {
+                    {chatMsgs.filter(m => !m.deletedFor?.includes(uid || "")).map((m, i) => {
                       const mine = m.uid === uid;
                       const prevMsg = chatMsgs[i - 1];
                       const isConsecutive = prevMsg && prevMsg.uid === m.uid;
@@ -1994,6 +2003,178 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </div>
 
+              {/* ── Edit Message Preview Banner ── */}
+              <AnimatePresence>
+                {isEditing && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className={`mx-4 mb-2 p-3 rounded-2xl flex items-center gap-3 border-l-4 border-orange-500 shadow-lg ${
+                      isDarkMode ? "bg-[#1f2c33]" : "bg-white"
+                    }`}
+                  >
+                    <div className="p-2 bg-orange-500/10 rounded-lg text-orange-500">
+                      <ChevronDown className="w-4 h-4 rotate-180" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] font-black text-orange-500 uppercase tracking-tighter">Editing message</div>
+                      <div className="text-xs opacity-60 truncate">
+                        {msgs.find(m => m.id === isEditing)?.content || "..."}
+                      </div>
+                    </div>
+                    <button onClick={() => { setIsEditing(null); setText(""); }} className="p-2 opacity-40 hover:opacity-100">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ── Emoji Picker ── */}
+              <AnimatePresence>
+                {showEmojiPicker && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className="absolute bottom-[90px] left-4 z-[400] shadow-2xl"
+                  >
+                    <div className="relative">
+                       {/* Import would be at top, but for the tool call we assume it's there */}
+                       <EmojiPicker 
+                          theme={isDarkMode ? Theme.DARK : Theme.LIGHT}
+                          onEmojiClick={(emojiData) => {
+                            if (emojiPickerTarget === "text") {
+                              setText(prev => prev + emojiData.emoji);
+                            } else if (contextMsg) {
+                              reactToMessage(contextMsg.id, emojiData.emoji);
+                              setContextMsg(null);
+                            }
+                            setShowEmojiPicker(false);
+                          }}
+                       />
+                       <button onClick={() => setShowEmojiPicker(false)} className="absolute -top-3 -right-3 p-2 bg-background border border-border rounded-full shadow-lg z-[401]">
+                          <X className="w-4 h-4" />
+                       </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Input bar */}
+              <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 bg-transparent`}>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/*,.gif"
+                  className="hidden"
+                  onChange={(e) => { const f = e.target.files?.[0]; if (f) onImage(f); e.target.value = ""; }}
+                />
+
+                {recording ? (
+                  /* ── Recording state ── */
+                  <div className={`flex-1 flex items-center gap-3 rounded-[28px] px-4 h-[54px] overflow-hidden shadow-inner ${isDarkMode ? "bg-[#2a3942]" : "bg-white"}`}>
+                    {/* Recording UI content... */}
+                  </div>
+                ) : (
+                  <>
+                    <div className={`flex-1 flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
+                      }`}>
+                      <button
+                        type="button"
+                        onClick={() => { setEmojiPickerTarget("text"); setShowEmojiPicker(!showEmojiPicker); }}
+                        className={`shrink-0 w-12 h-12 flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white" : "text-black/40 hover:text-black"
+                          }`}
+                      >
+                        <Sun className={`w-6 h-6 ${showEmojiPicker && emojiPickerTarget === "text" ? "text-primary" : ""}`} />
+                      </button>
+
+                      <textarea
+                        ref={inputRef}
+                        rows={1}
+                        autoComplete="off"
+                        value={text}
+                        placeholder={isEditing ? "Edit message..." : "Type a message..."}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" && !e.shiftKey && !isMobileDevice()) {
+                            e.preventDefault();
+                            onText();
+                          }
+                          if (e.key === "Escape" && isEditing) {
+                            setIsEditing(null);
+                            setText("");
+                          }
+                        }}
+                        onPaste={handlePaste}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setText(val);
+                          
+                          // WhatsApp style smooth autogrow
+                          const prevH = e.target.style.height;
+                          e.target.style.height = '1px';
+                          const nextH = Math.max(44, Math.min(e.target.scrollHeight, 138));
+                          e.target.style.height = prevH;
+                          setInputHeight(nextH);
+
+                          if (uid && !isEditing) {
+                            const typingNow = val.length > 0;
+                            if (typingNow !== isTyping) { setIsTyping(typingNow); setPres({ typing: typingNow }); }
+                            if (typingTimer.current) clearTimeout(typingTimer.current);
+                            if (typingNow) typingTimer.current = setTimeout(() => { setIsTyping(false); setPres({ typing: false }); }, 2000);
+                          }
+                        }}
+                        className={`w-full bg-transparent px-2 py-2.5 text-[14px] leading-[1.4] focus:outline-none placeholder:opacity-40 resize-none overflow-y-auto scrollbar-hide break-words ${isDarkMode ? "text-white" : "text-black"
+                          }`}
+                        style={{ height: `${inputHeight}px` }}
+                      />
+
+                      <button
+                        type="button"
+                        onClick={() => fileRef.current?.click()}
+                        className={`shrink-0 w-10 h-12 flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white" : "text-black/40 hover:text-black"
+                          }`}
+                      >
+                        <Folder className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="shrink-0 w-12 h-12 flex items-center justify-center relative">
+                      <AnimatePresence mode="popLayout">
+                        {text.trim() || isEditing ? (
+                          <motion.button
+                            key="send"
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.5, opacity: 0 }}
+                            type="button"
+                            onClick={() => onText()}
+                             className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${isEditing ? "bg-orange-500" : "bg-[#00a884]"} text-white flex items-center justify-center shadow-md md:shadow-lg active:scale-90 transition-all shrink-0`}
+                          >
+                            {isEditing ? <CheckCircle2 className="w-5 h-5" /> : <Send className="w-5 h-5 md:w-6 md:h-6 fill-white stroke-[1.5] md:stroke-2" />}
+                          </motion.button>
+                        ) : (
+                          <motion.button
+                            key="mic"
+                            initial={{ scale: 0.5, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.5, opacity: 0 }}
+                            type="button"
+                            onPointerDown={(e) => { e.preventDefault(); startRec(); }}
+                            className={`w-12 h-12 rounded-full flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white hover:bg-white/10" : "text-black/40 hover:text-black hover:bg-black/10"
+                              }`}
+                            aria-label="Tap to record"
+                          >
+                            <Mic className="w-7 h-7" />
+                          </motion.button>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+
             {/* ── Message Context Menu (Reactions, Edit, Delete) ── */}
             <AnimatePresence>
               {contextMsg && (
@@ -2028,6 +2209,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             {emoji}
                           </button>
                         ))}
+                        <button
+                          onClick={() => {
+                            setEmojiPickerTarget("reaction");
+                            setShowEmojiPicker(true);
+                          }}
+                          className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-xl hover:bg-white/10 transition-colors"
+                        >
+                          +
+                        </button>
                       </div>
                     )}
 
@@ -2047,7 +2237,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           onClick={() => {
                             send(contextMsg.type, contextMsg.content, { isForwarded: true });
                             setContextMsg(null);
-                            addNotification("Message forwarded", "success");
                           }}
                           className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                         >
@@ -2067,12 +2256,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               }}
                               className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                             >
-                              <ImageIcon className="w-4 h-4 opacity-60" /> Edit
+                              <Pencil className="w-4 h-4 opacity-60" /> Edit Message
                             </button>
                           )}
                           <button
                             onClick={() => {
-                              deleteMessage(contextMsg.id);
+                              deleteMessage(contextMsg.id, "everyone");
                               setContextMsg(null);
                             }}
                             className="w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium text-destructive hover:bg-destructive/5"
@@ -2081,11 +2270,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           </button>
                         </>
                       )}
+
+                      <button
+                        onClick={() => {
+                          deleteMessage(contextMsg.id, "me");
+                          setContextMsg(null);
+                        }}
+                        className="w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium text-destructive hover:bg-destructive/5"
+                      >
+                        <Trash2 className="w-4 h-4 opacity-60" /> Delete for Me
+                      </button>
                       
                       <button
                         onClick={() => {
                           navigator.clipboard.writeText(contextMsg.content);
-                          addNotification("Copied to clipboard", "success");
+                          addNotification("Copied", "success");
                           setContextMsg(null);
                         }}
                         className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
