@@ -1847,15 +1847,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       )}
 
                                       {m.type === "audio" && !m.isDeleted && (
-                                        <div className="flex flex-col gap-1 min-w-[200px]">
+                                        <div className="flex flex-col gap-1 min-w-[220px] pr-20 pb-3">
                                           <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
-                                          {m.fileName && <div className="text-[10px] px-2 opacity-50 truncate">{m.fileName}</div>}
+                                          {m.fileName && <div className="text-[10px] px-2 opacity-50 truncate max-w-[140px]">{m.fileName}</div>}
                                         </div>
                                       )}
 
                                       {m.type === "file" && !m.isDeleted && (
                                         <div 
-                                          className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer hover:brightness-95 transition-all ${isDarkMode ? "bg-black/20" : "bg-black/5"}`}
+                                          className={`flex items-center gap-3 p-3 pr-24 rounded-xl cursor-pointer hover:brightness-95 transition-all ${isDarkMode ? "bg-black/20" : "bg-black/5"}`}
                                           onClick={() => downloadFile(m.content, m.fileName || m.id, "file")}
                                         >
                                           <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isDarkMode ? "bg-white/10" : "bg-black/10"}`}>
@@ -1883,7 +1883,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                                 </span>
                                               ) : renderMessageContent(m.content)}
                                               {/* Spacer to reserve room for absolute timestamp on the same line */}
-                                              <span className={`inline-block h-[1px] ${mine ? "w-[85px]" : "w-[65px]"} ${m.isEdited ? "ml-8" : ""}`} />
+                                              <span className={`inline-block h-[1px] ${mine ? "w-[85px]" : "w-[65px]"} ${m.isEdited ? "ml-8" : "ml-2"}`} />
                                             </span>
                                             {(() => {
                                               const urlRegex = /(https?:\/\/[^\s]+)/g;
@@ -2385,6 +2385,34 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </div>
                   </div>
 
+                  {/* Prestigious Front-Layer Particles (Fixed Overlay) */}
+                  <div className="fixed inset-0 pointer-events-none z-[600] overflow-hidden">
+                    {bookParticles.map((p) => (
+                      <motion.div
+                        key={p.id}
+                        initial={{ x: `${p.x}%`, y: `${p.y}%`, opacity: 0 }}
+                        animate={{ 
+                          y: [`${p.y}%`, `${p.y + p.driftY}%`],
+                          x: [`${p.x}%`, `${p.x + p.driftX}%`, `${p.x}%`],
+                          opacity: [0, 1, 0.6, 0],
+                          scale: [0.7, 1.4, 0.9]
+                        }}
+                        transition={{ 
+                          duration: p.duration,
+                          repeat: Infinity,
+                          delay: p.delay,
+                          ease: "linear"
+                        }}
+                        className="absolute bg-orange-500 rounded-full shadow-[0_0_25px_rgba(249,115,22,1)] will-change-transform"
+                        style={{ 
+                          width: p.size, 
+                          height: p.size,
+                          filter: `blur(${p.size < 1.5 ? '0px' : '0.5px'})` 
+                        }}
+                      />
+                    ))}
+                  </div>
+
                   {/* Header / Protocol Identity */}
                   <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-3xl ${isDarkMode ? "bg-[#202c33]/90 border-emerald-500/20" : "bg-white/90 border-emerald-500/20"}`}>
                     <div className="flex items-center gap-4 sm:gap-6">
@@ -2492,32 +2520,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </div>
                   </div>
 
-                  {/* Prestigious Front-Layer Particles */}
-                  <div className="absolute inset-0 pointer-events-none z-[500] overflow-hidden">
-                    {bookParticles.map((p) => (
-                      <motion.div
-                        key={p.id}
-                        initial={{ x: `${p.x}%`, y: `${p.y}%`, opacity: 0 }}
-                        animate={{ 
-                          y: [`${p.y}%`, `${p.y + p.driftY}%`],
-                          x: [`${p.x}%`, `${p.x + p.driftX}%`, `${p.x}%`],
-                          opacity: [0, 0.9, 0.4, 0],
-                          scale: [0.6, 1.3, 0.8]
-                        }}
-                        transition={{ 
-                          duration: p.duration,
-                          repeat: Infinity,
-                          delay: p.delay,
-                          ease: "linear"
-                        }}
-                        className="absolute bg-orange-500 rounded-full shadow-[0_0_20px_rgba(249,115,22,1)] will-change-transform"
-                        style={{ 
-                          width: p.size, 
-                          height: p.size,
-                          filter: `blur(${p.size < 1.5 ? '0px' : '0.5px'})` 
-                        }}
-                      />
-                    ))}
+                    </div>
                   </div>
                 </motion.div>
               )}
