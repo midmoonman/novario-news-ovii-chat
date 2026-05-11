@@ -1455,7 +1455,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     <div className="text-[10px] font-bold text-destructive uppercase tracking-widest mb-0.5">Error</div>
                     <div className={`text-xs font-medium ${isDarkMode ? "text-white" : "text-black"}`}>{error}</div>
                   </div>
-                  <button onClick={() => setError(null)} className="p-1 opacity-40 hover:opacity-100">
+                  <button onClick={() => setError("")} className="p-1 opacity-40 hover:opacity-100">
                     <X className="w-4 h-4" />
                   </button>
                 </div>
