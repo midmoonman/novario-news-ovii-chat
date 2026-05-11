@@ -1137,37 +1137,39 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
           {/* ── Avatar Picker Overlay ── */}
           {showAvatarPicker && (
-            <div className="absolute inset-0 z-50 bg-background/95 flex items-center justify-center p-4">
-              <div className="w-full max-w-sm rounded-[32px] border border-white/20 bg-card p-8 shadow-2xl text-center relative overflow-hidden">
+            <div className={`absolute inset-0 z-[500] flex items-center justify-center p-4 backdrop-blur-md ${isDarkMode ? "bg-black/40" : "bg-white/40"}`}>
+              <div className={`w-full max-w-sm rounded-[32px] border p-8 shadow-2xl text-center relative overflow-hidden transition-all ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
+                }`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent pointer-events-none" />
 
                 {/* Close button */}
                 <button
                   onClick={() => setShowAvatarPicker(false)}
-                  className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/70 transition-all active:scale-90"
+                  className={`absolute top-4 right-4 p-2 rounded-full transition-all active:scale-90 ${isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/50" : "bg-black/5 hover:bg-black/10 text-black/40"}`}
                   title="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>
 
-                <h2 className="text-2xl font-black mb-1 text-white tracking-tight">Profile</h2>
-                <p className="text-xs text-white/50 mb-8 font-medium">Customize your presence in the room</p>
+                <h2 className={`text-2xl font-black mb-1 tracking-tight ${isDarkMode ? "text-white" : "text-black"}`}>Profile</h2>
+                <p className={`text-xs mb-8 font-medium ${isDarkMode ? "text-white/50" : "text-black/40"}`}>Customize your presence in the room</p>
 
                 <div className="space-y-6 relative z-10">
                   <div className="text-left">
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1 mb-1.5 block">Display Name</label>
+                    <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 mb-1.5 block ${isDarkMode ? "text-white/40" : "text-black/40"}`}>Display Name</label>
                     <input
                       type="text"
                       placeholder="Enter your name..."
                       maxLength={20}
                       value={inputName}
                       onChange={e => setInputName(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all placeholder:text-white/20"
+                      className={`w-full border rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40 transition-all ${isDarkMode ? "bg-white/5 border-white/10 text-white placeholder:text-white/20" : "bg-black/5 border-black/10 text-black placeholder:text-black/30"
+                        }`}
                     />
                   </div>
 
                   <div>
-                    <label className="text-[10px] font-bold uppercase tracking-widest text-white/40 ml-1 mb-3 block text-left">Choose Avatar</label>
+                    <label className={`text-[10px] font-bold uppercase tracking-widest ml-1 mb-3 block text-left ${isDarkMode ? "text-white/40" : "text-black/40"}`}>Choose Avatar</label>
                     <div className="grid grid-cols-4 gap-4 max-h-[280px] overflow-y-auto pr-2 scrollbar-hide">
                       {AVATARS.map((av) => (
                         <button
@@ -1181,7 +1183,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             setShowAvatarPicker(false);
                             addNotification("Profile updated", "success");
                           }}
-                          className={`rounded-full overflow-hidden border-2 transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : "border-transparent hover:border-white/30"
+                          className={`rounded-full overflow-hidden border-2 transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : `border-transparent ${isDarkMode ? "hover:border-white/30" : "hover:border-black/20"}`
                             }`}
                         >
                           <img src={av.url} alt={av.name} className="w-full h-auto" />
@@ -1223,9 +1225,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
 
           {/* ── Header ── */}
-          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 ${isDarkMode
-              ? "bg-[#202c33]/70 border-white/5 text-white shadow-[0_4px_30px_rgba(0,0,0,0.1)]"
-              : "bg-white/70 border-black/5 text-black shadow-[0_4px_30px_rgba(0,0,0,0.05)]"
+          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${isDarkMode
+              ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white"
+              : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black"
             }`}>
             <div className="flex items-center gap-3">
               <div
@@ -1820,7 +1822,33 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         {msgs.find(m => m.id === isEditing)?.content || "..."}
                       </div>
                     </div>
-                    <button onClick={() => { setIsEditing(null); setText(""); }} className="p-2 opacity-40 hover:opacity-100">
+                    <button onClick={() => { setIsEditing(null); setText(""); }} className={`p-2 transition-opacity ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
+                      <X className="w-4 h-4" />
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ── Reply Preview Banner ── */}
+              <AnimatePresence>
+                {replyingTo && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className={`mx-4 mb-2 p-3 rounded-2xl flex items-center gap-3 border-l-4 border-primary shadow-lg ${isDarkMode ? "bg-[#1f2c33]" : "bg-white"
+                      }`}
+                  >
+                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                      <Reply className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-[10px] font-black text-primary uppercase tracking-tighter">Replying to {replyingTo.name || "User"}</div>
+                      <div className={`text-xs truncate ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+                        {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
+                      </div>
+                    </div>
+                    <button onClick={() => setReplyingTo(null)} className={`p-2 transition-opacity ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
                       <X className="w-4 h-4" />
                     </button>
                   </motion.div>
@@ -1971,6 +1999,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         onClick={() => {
                           setReplyingTo(contextMsg);
                           setContextMsg(null);
+                          setTimeout(() => inputRef.current?.focus(), 100);
                         }}
                         className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                       >
