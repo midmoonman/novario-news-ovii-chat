@@ -1460,7 +1460,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
 
               </div>
-            </header>
+            </div>
+          </header>
 
           {/* ── Body: messages col + optional desktop sidebar ── */}
           <div className="flex-1 flex min-h-0 overflow-hidden">
@@ -2162,9 +2163,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               )}
             </AnimatePresence>
 
-          </div>{/* end body */}
-        </motion.div>{/* end ovii-chat-frame */}
-      </motion.div>{/* end ovii-chat-root */}
 
       {/* ── Full Image Preview Overlay ── */}
       <AnimatePresence>
@@ -2322,6 +2320,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           </div>
         )}
       </AnimatePresence>
+
+          </div>{/* end body */}
+        </motion.div>{/* end ovii-chat-frame */}
+      </motion.div>{/* end ovii-chat-root */}
     </AnimatePresence>
   );
 }
