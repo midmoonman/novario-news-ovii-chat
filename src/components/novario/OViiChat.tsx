@@ -2589,12 +2589,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               </div>
                               <button
                                 onClick={() => {
-                                  const d = historyData[historyLevel];
+                                  const activeLvl = historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard";
+                                  const d = historyData[activeLvl];
                                   const text = [
                                     d.title,
                                     d.intro,
                                     "",
-                                    ...d.sections.map(s => `## ${s.heading}\n${s.content}\n`),
+                                    ...d.sections.map((s: any) => `## ${s.heading}\n${s.content}\n`),
                                     d.summary
                                   ].join("\n");
                                   navigator.clipboard.writeText(text);
@@ -2614,17 +2615,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             logTab === "history" && historyLevel === "hard" ? isDarkMode ? "bg-[#0b141a] border-purple-500/20" : "bg-white border-purple-500/20" :
                             isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"
                           }`}>
-                            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-green-400 to-green-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : "from-purple-400 to-purple-600"}`} />
+                            <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-green-400 to-green-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : historyLevel === "hard" ? "from-purple-400 to-purple-600" : "from-orange-400 to-orange-600"}`} />
                             
                             <h2 className={`text-2xl sm:text-4xl font-black tracking-tighter mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>
-                              {historyData[historyLevel].title}
+                              {historyData[historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard"].title}
                             </h2>
                             <p className={`text-sm sm:text-lg leading-relaxed font-medium mb-10 ${isDarkMode ? "text-white/70" : "text-black/70"}`}>
-                              {historyData[historyLevel].intro}
+                              {historyData[historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard"].intro}
                             </p>
 
                             <div className="space-y-8 sm:space-y-12">
-                              {historyData[historyLevel].sections.map((section, idx) => (
+                              {historyData[historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard"].sections.map((section: any, idx: number) => (
                                 <div key={idx} className="relative">
                                   <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
                                     {section.heading}
@@ -2638,7 +2639,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                             <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
                                <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
-                                 {historyData[historyLevel].summary}
+                                 {historyData[historyLevel === "orange" ? "easy" : historyLevel as "easy" | "medium" | "hard"].summary}
                                </p>
                             </div>
                           </div>
