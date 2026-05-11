@@ -6,9 +6,8 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil } from "lucide-react";
+import { Mic, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2 } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
-import EmojiPicker, { Theme } from "emoji-picker-react";
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
@@ -122,7 +121,6 @@ type Msg = {
   replyTo?: { id: string, content: string, avatar: string, name?: string };
   isEdited?: boolean;
   isDeleted?: boolean;
-  reactions?: Record<string, string[]>;
   deletedFor?: string[];
 };
 
@@ -567,8 +565,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [showMenu, setShowMenu] = useState(false);
   const [contextMsg, setContextMsg] = useState<Msg | null>(null);
   const [isEditing, setIsEditing] = useState<string | null>(null);
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [emojiPickerTarget, setEmojiPickerTarget] = useState<"text" | "reaction">("text");
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
@@ -881,33 +877,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       setIsEditing(null);
     } catch (e) {
       addNotification("Edit failed", "error");
-    }
-  };
-
-  const reactToMessage = async (msgId: string, emoji: string) => {
-    try {
-      const msg = msgs.find(m => m.id === msgId);
-      if (!msg || !uid) return;
-
-      const reactions = { ...(msg.reactions || {}) };
-      const current = reactions[emoji] || [];
-
-      if (current.includes(uid)) {
-        reactions[emoji] = current.filter(id => id !== uid);
-        if (reactions[emoji].length === 0) delete reactions[emoji];
-      } else {
-        // Remove uid from any other emoji first (WhatsApp style: one reaction per user)
-        Object.keys(reactions).forEach(k => {
-          reactions[k] = (reactions[k] || []).filter(id => id !== uid);
-          if (reactions[k].length === 0) delete reactions[k];
-        });
-        reactions[emoji] = [...(reactions[emoji] || []), uid];
-      }
-
-      await setDoc(doc(db, "ovii", ROOM, "messages", msgId), { reactions }, { merge: true });
-      if (window.navigator.vibrate) window.navigator.vibrate(10);
-    } catch (e) {
-      addNotification("Failed to react", "error");
     }
   };
 
@@ -1743,16 +1712,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       </div>
 
                                       {/* Reactions Display */}
-                                      {m.reactions && Object.keys(m.reactions).length > 0 && (
-                                        <div className={`absolute -bottom-3 ${mine ? "right-1" : "left-1"} flex items-center gap-0.5 bg-card border border-border/40 rounded-full px-1.5 py-0.5 shadow-sm scale-90 z-20`}>
-                                          {Object.entries(m.reactions).map(([emoji, uids]) => (
-                                            <div key={emoji} className="flex items-center gap-0.5">
-                                              <span className="text-[10px]">{emoji}</span>
-                                              {uids.length > 1 && <span className="text-[8px] font-bold opacity-60">{uids.length}</span>}
-                                            </div>
-                                          ))}
-                                        </div>
-                                      )}
                                     </div>
 
                                     {/* Desktop hover reply button */}
@@ -1853,36 +1812,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 )}
               </AnimatePresence>
 
-              {/* ── Emoji Picker ── */}
-              <AnimatePresence>
-                {showEmojiPicker && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
-                    className="absolute bottom-[90px] left-4 z-[400] shadow-2xl"
-                  >
-                    <div className="relative">
-                      {/* Import would be at top, but for the tool call we assume it's there */}
-                      <EmojiPicker
-                        theme={isDarkMode ? Theme.DARK : Theme.LIGHT}
-                        onEmojiClick={(emojiData) => {
-                          if (emojiPickerTarget === "text") {
-                            setText(prev => prev + emojiData.emoji);
-                          } else if (contextMsg) {
-                            reactToMessage(contextMsg.id, emojiData.emoji);
-                            setContextMsg(null);
-                          }
-                          setShowEmojiPicker(false);
-                        }}
-                      />
-                      <button onClick={() => setShowEmojiPicker(false)} className="absolute -top-3 -right-3 p-2 bg-background border border-border rounded-full shadow-lg z-[401]">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
 
               {/* Input bar */}
               <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 bg-transparent`}>
@@ -1903,14 +1832,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   <>
                     <div className={`flex-1 flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
                       }`}>
-                      <button
-                        type="button"
-                        onClick={() => { setEmojiPickerTarget("text"); setShowEmojiPicker(!showEmojiPicker); }}
-                        className={`shrink-0 w-12 h-12 flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white" : "text-black/40 hover:text-black"
-                          }`}
-                      >
-                        <Sun className={`w-6 h-6 ${showEmojiPicker && emojiPickerTarget === "text" ? "text-primary" : ""}`} />
-                      </button>
 
                       <textarea
                         ref={inputRef}
@@ -2016,32 +1937,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       }`}
                     onPointerDown={(e) => e.stopPropagation()}
                   >
-                    {/* Reactions Bar */}
-                    {!contextMsg.isDeleted && (
-                      <div className="flex items-center justify-between p-4 border-b border-white/5">
-                        {["❤️", "😂", "😮", "😢", "🙏", "👍"].map(emoji => (
-                          <button
-                            key={emoji}
-                            onClick={() => {
-                              reactToMessage(contextMsg.id, emoji);
-                              setContextMsg(null);
-                            }}
-                            className="text-2xl hover:scale-125 transition-transform active:scale-90"
-                          >
-                            {emoji}
-                          </button>
-                        ))}
-                        <button
-                          onClick={() => {
-                            setEmojiPickerTarget("reaction");
-                            setShowEmojiPicker(true);
-                          }}
-                          className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-xl hover:bg-white/10 transition-colors"
-                        >
-                          +
-                        </button>
-                      </div>
-                    )}
 
                     <div className="py-2">
                       <button
