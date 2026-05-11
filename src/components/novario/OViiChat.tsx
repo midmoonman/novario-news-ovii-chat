@@ -1520,7 +1520,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               {!mine && !isConsecutive && m.name && <span className="hidden md:inline-block text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
 
                               {m.replyTo && (
-                                <div className="bg-m3-surface-container-high/50 px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden">
+                                <div className={`px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden ${
+                                  isDarkMode ? "bg-m3-surface-container-high/50 text-[#e9edef]/80" : "bg-black/5 text-[#111b21]/70"
+                                }`}>
                                   <img src={m.replyTo.avatar} className="w-4 h-4 rounded-full border border-border/20 shrink-0" alt="" />
                                   <div className="flex flex-col min-w-0">
                                     {m.replyTo.name && <span className="text-[8px] font-black text-primary uppercase tracking-tighter truncate">{m.replyTo.name}</span>}
@@ -1736,20 +1738,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="flex items-center gap-2 px-4 pt-2 w-full border-b border-white/5 pb-1.5"
+                            className={`flex items-center gap-2 px-4 pt-2 w-full border-b pb-1.5 ${
+                              isDarkMode ? "border-white/5" : "border-black/5"
+                            }`}
                           >
                             <div className="w-1 bg-[#25d366] h-8 rounded-full shrink-0" />
                             <div className="flex-1 min-w-0">
                               <div className="text-[10px] font-bold text-[#25d366] truncate">{replyingTo.name || "User"}</div>
-                              <div className={`text-[11px] italic truncate leading-tight ${isDarkMode ? "text-white/50" : "text-black/50"
-                                }`}>
+                              <div className={`text-[11px] italic truncate leading-tight ${
+                                isDarkMode ? "text-white/50" : "text-black/60"
+                              }`}>
                                 {replyingTo.type === "text" ? replyingTo.content : replyingTo.type === "image" ? "Photo" : "Voice Note"}
                               </div>
                             </div>
                             <button
                               onClick={() => setReplyingTo(null)}
-                              className={`shrink-0 p-1 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
-                                }`}
+                              className={`shrink-0 p-1 rounded-full transition-colors ${
+                                isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
+                              }`}
                             >
                               <X className={`w-3.5 h-3.5 ${isDarkMode ? "text-white/40" : "text-black/40"}`} />
                             </button>
