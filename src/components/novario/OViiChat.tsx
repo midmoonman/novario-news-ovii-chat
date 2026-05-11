@@ -142,7 +142,7 @@ const formatMessageDate = (date: Date) => {
   return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
-const formatLastSeen = (timestamp?: number) => {
+const formatLastSeen = (timestamp?: number | null) => {
   if (!timestamp) return "offline";
   const now = Date.now();
   const diff = now - timestamp;
