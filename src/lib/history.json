@@ -20,11 +20,33 @@
         "content": "You can see when the other person is typing or recording a voice note in real-time. If you want to reply to a specific message, just swipe on it! Plus, there's a dark mode and 6 custom 'Paints' dual-tone themes to personalize your chat bubbles however you like."
       }
     ],
+    "faqs": [
+      {
+        "question": "Why was this platform built?",
+        "answer": "Because talking to people in real life is terrifying. We wanted a secret room where your messages disappear faster than your will to exercise on a Monday morning."
+      },
+      {
+        "question": "How easy was it to build this?",
+        "answer": "Oh, incredibly easy! It's just like building a spaceship out of LEGOs while your house is on fire. Only took about 5,000 cups of coffee."
+      }
+    ],
+    "analytics": {
+      "hardwareUsage": [
+        { "label": "UI Rendering", "value": 15, "color": "#f97316" },
+        { "label": "Cloud Sync", "value": 65, "color": "#22c55e" },
+        { "label": "Animations", "value": 20, "color": "#3b82f6" }
+      ],
+      "fileDistribution": [
+        { "category": "Text", "percentage": 30 },
+        { "category": "Media", "percentage": 45 },
+        { "category": "Voice", "percentage": 25 }
+      ]
+    },
     "summary": "In short: OVii Chat is a fun, private, hidden messaging app inside Novario News where you can chat, share media, and know that everything will safely disappear after a while."
   },
   "medium": {
     "title": "OVii Chat: Overview and Purpose",
-    "intro": "OVii Chat is a private, lightweight messaging platform seamlessly integrated as a hidden feature within the Novario News application. It was designed to provide a secure, ephemeral communication space without the heavy tracking or permanent storage typical of mainstream social apps.",
+    "intro": "OVii Chat is a private, lightweight messaging platform seamlessly integrated as a hidden feature within the Novario ecosystem. It was designed to provide a secure, ephemeral communication space without the heavy tracking or permanent storage typical of mainstream social apps.",
     "sections": [
       {
         "heading": "Access and Entry",
@@ -43,6 +65,28 @@
         "content": "The interface is optimized for a premium, app-like feel on both mobile and desktop. It features a custom 'Build Book' to view development history, real-time typing indicators, a 'No Lock' feature to keep the session active, a sleek Dark Mode, and a new 'Paints' menu for selecting distinct dual-tone UI themes."
       }
     ],
+    "faqs": [
+      {
+        "question": "Why was this platform built?",
+        "answer": "To prove that privacy isn't dead, it's just hiding behind a news app. It's a sanctuary for people who don't want their private chats archived in a Silicon Valley database forever."
+      },
+      {
+        "question": "How easy was it to build this?",
+        "answer": "As easy as solving a Rubik's cube in a dark room. Between real-time Firebase sync and hardware-aware performance shields, it was basically a walk in the park... a park filled with fire and jagged code."
+      }
+    ],
+    "analytics": {
+      "hardwareUsage": [
+        { "label": "GPU Layers", "value": 10, "color": "#f97316" },
+        { "label": "Cloud Pipeline", "value": 75, "color": "#22c55e" },
+        { "label": "DOM Engine", "value": 15, "color": "#3b82f6" }
+      ],
+      "fileDistribution": [
+        { "category": "Text", "percentage": 25 },
+        { "category": "Images", "percentage": 40 },
+        { "category": "Voice/Video", "percentage": 35 }
+      ]
+    },
     "summary": "Summary: OVii Chat provides a hidden, secure, and user-friendly messaging experience with a strict auto-deletion policy, designed for seamless and private one-on-one communication."
   },
   "hard": {
@@ -74,6 +118,28 @@
         "content": "Below is the complete file and component architecture of the Novario/OVii system:\n\nsrc/\n├── main.tsx (Entry Point)\n├── router.tsx\n├── styles.css\n├── components/\n│   ├── novario/\n│   │   ├── ArticleTimeline.tsx\n│   │   ├── BottomNav.tsx\n│   │   ├── BreakingTicker.tsx\n│   │   ├── CategoryGrid.tsx\n│   │   ├── Header.tsx\n│   │   ├── HeroSlider.tsx\n│   │   ├── LanguageMenu.tsx\n│   │   ├── LiveCounter.tsx\n│   │   ├── LiveIllustration.tsx\n│   │   ├── OViiChat.tsx (Core Engine)\n│   │   ├── PasswordModal.tsx\n│   │   ├── ShareCard.tsx\n│   │   ├── TrendingPeople.tsx\n│   │   ├── TrendingRow.tsx\n│   │   └── WeatherWidget.tsx\n│   └── ui/ (Shadcn UI Library)\n│       ├── accordion.tsx, alert.tsx, avatar.tsx, badge.tsx, button.tsx, card.tsx, carousel.tsx\n│       ├── dialog.tsx, drawer.tsx, dropdown-menu.tsx, input.tsx, popover.tsx, scroll-area.tsx\n│       ├── select.tsx, sheet.tsx, sidebar.tsx, sonner.tsx, switch.tsx, tabs.tsx, tooltip.tsx, etc.\n├── hooks/\n│   └── use-mobile.tsx\n├── lib/\n│   ├── avatars.ts\n│   ├── changelog.json\n│   ├── cities.ts\n│   ├── crypto.ts\n│   ├── firebase.ts (Database config)\n│   ├── history.json\n│   ├── i18n.tsx\n│   ├── languages.ts\n│   ├── location.ts\n│   ├── news.ts\n│   └── utils.ts\n├── routes/\n│   ├── __root.tsx\n│   ├── about.tsx, contact.tsx, index.tsx, privacy.tsx, terms.tsx\n│   ├── news.tsx, news.$slug.tsx, newsroom.tsx\n│   └── ovii.tsx (Chat entry point)\n└── server/\n    └── newsapi.functions.ts"
       }
     ],
+    "faqs": [
+      {
+        "question": "Why was this platform built?",
+        "answer": "Architected as a serverless experiment in ephemeral cryptography. Essentially, we built it because we could, and because standard messaging apps have the structural integrity of a wet paper towel when it comes to data sovereignty."
+      },
+      {
+        "question": "How easy was it to build this?",
+        "answer": "Trivial, really. If you consider engineering a real-time reactive PWA with Cloudinary media pipelines, Firestore presence heartbeats, and a dynamic hardware-throttling engine 'trivial'. It's basically just moving colored pixels around until they stop lagging."
+      }
+    ],
+    "analytics": {
+      "hardwareUsage": [
+        { "label": "GPU Shaders", "value": 5, "color": "#f97316" },
+        { "label": "Cloud Sync", "value": 85, "color": "#22c55e" },
+        { "label": "Client Logic", "value": 10, "color": "#3b82f6" }
+      ],
+      "fileDistribution": [
+        { "category": "JSON Logs", "percentage": 10 },
+        { "category": "Encrypted Media", "percentage": 60 },
+        { "category": "Presence Data", "percentage": 30 }
+      ]
+    },
     "summary": "Technical Summary: OVii Chat is a high-performance, serverless React application utilizing Firebase Firestore for sub-second presence/message synchronization, Cloudinary for robust media pipelines, and Framer Motion for native-tier UX, all secured by a strict 14-day cryptographic data purge protocol."
   }
 }

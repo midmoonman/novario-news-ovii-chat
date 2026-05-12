@@ -2850,24 +2850,109 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               {historyData[historyLevel].intro}
                             </p>
 
-                            <div className="space-y-8 sm:space-y-12">
-                              {historyData[historyLevel].sections.map((section: any, idx: number) => (
-                                <div key={idx} className="relative">
-                                  <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
-                                    {section.heading}
-                                  </h3>
-                                  <p className={`text-sm sm:text-base leading-relaxed break-words whitespace-pre-wrap ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
-                                    {section.content}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
+                             <div className="space-y-8 sm:space-y-12">
+                               {historyData[historyLevel].sections.map((section: any, idx: number) => (
+                                 <div key={idx} className="relative">
+                                   <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
+                                     {section.heading}
+                                   </h3>
+                                   <p className={`text-sm sm:text-base leading-relaxed break-words whitespace-pre-wrap ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+                                     {section.content}
+                                   </p>
+                                 </div>
+                               ))}
+                             </div>
 
-                            <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
-                               <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
-                                 {historyData[historyLevel].summary}
-                               </p>
-                            </div>
+                             {/* Sarcastic FAQs Section */}
+                             {(historyData[historyLevel] as any).faqs && (
+                               <div className="mt-16 sm:mt-24 space-y-10">
+                                 <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 ${isDarkMode ? "text-white" : "text-black"}`}>
+                                   <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
+                                   Protocol Intel (FAQs)
+                                 </h3>
+                                 <div className="grid gap-6">
+                                   {(historyData[historyLevel] as any).faqs.map((faq: any, idx: number) => (
+                                     <div key={idx} className={`p-6 rounded-3xl border transition-all hover:scale-[1.01] ${isDarkMode ? "bg-white/5 border-white/5" : "bg-black/5 border-black/5"}`}>
+                                       <h4 className={`text-sm sm:text-base font-black mb-3 flex items-start gap-2 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
+                                         <span className="opacity-40">Q:</span> {faq.question}
+                                       </h4>
+                                       <p className={`text-xs sm:text-sm font-semibold italic leading-relaxed ${isDarkMode ? "text-white/50" : "text-black/50"}`}>
+                                         {faq.answer}
+                                       </p>
+                                     </div>
+                                   ))}
+                                 </div>
+                               </div>
+                             )}
+
+                             {/* Hardware Analytics Dashboard (Excel Style) */}
+                             {(historyData[historyLevel] as any).analytics && (
+                               <div className="mt-16 sm:mt-24">
+                                 <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 mb-10 ${isDarkMode ? "text-white" : "text-black"}`}>
+                                   <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
+                                   System Hardware Metrics
+                                 </h3>
+                                 
+                                 <div className={`rounded-3xl border overflow-hidden shadow-xl ${isDarkMode ? "bg-black/40 border-white/10" : "bg-white border-black/10"}`}>
+                                   {/* Header */}
+                                   <div className={`grid grid-cols-3 border-b text-[10px] font-black uppercase tracking-widest p-4 ${isDarkMode ? "bg-white/5 border-white/10 text-white/40" : "bg-black/5 border-black/10 text-black/40"}`}>
+                                     <div>Component</div>
+                                     <div className="text-center">Cloud Load</div>
+                                     <div className="text-right">HW Status</div>
+                                   </div>
+                                   
+                                   {/* Table Rows */}
+                                   <div className="divide-y divide-white/5">
+                                     {(historyData[historyLevel] as any).analytics.hardwareUsage.map((item: any, idx: number) => (
+                                       <div key={idx} className="p-4 grid grid-cols-3 items-center">
+                                         <div className="text-xs font-bold flex items-center gap-2">
+                                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                                           {item.label}
+                                         </div>
+                                         <div className="flex flex-col items-center gap-1.5 px-4">
+                                           <div className={`w-full h-1.5 rounded-full ${isDarkMode ? "bg-white/10" : "bg-black/10"} overflow-hidden`}>
+                                             <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
+                                           </div>
+                                           <span className="text-[10px] font-black opacity-50">{item.value}%</span>
+                                         </div>
+                                         <div className="text-right text-[10px] font-black text-emerald-500">OPTIMIZED</div>
+                                       </div>
+                                     ))}
+                                   </div>
+
+                                   {/* Footer Percentage Chart */}
+                                   <div className={`p-6 border-t ${isDarkMode ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}>
+                                     <div className="flex items-center justify-between mb-4">
+                                       <span className="text-[10px] font-black uppercase tracking-widest opacity-40">File Distribution Analytics</span>
+                                       <span className="text-[10px] font-black text-emerald-500">SYNCED</span>
+                                     </div>
+                                     <div className="flex h-3 rounded-full overflow-hidden w-full bg-black/20">
+                                       {(historyData[historyLevel] as any).analytics.fileDistribution.map((f: any, idx: number) => (
+                                         <div 
+                                           key={idx} 
+                                           style={{ width: `${f.percentage}%` }} 
+                                           className={`${idx === 0 ? "bg-emerald-500" : idx === 1 ? "bg-blue-500" : "bg-orange-500"} h-full border-r border-black/20 last:border-0`}
+                                         />
+                                       ))}
+                                     </div>
+                                     <div className="flex flex-wrap gap-4 mt-4">
+                                       {(historyData[historyLevel] as any).analytics.fileDistribution.map((f: any, idx: number) => (
+                                         <div key={idx} className="flex items-center gap-1.5">
+                                           <div className={`w-2 h-2 rounded-full ${idx === 0 ? "bg-emerald-500" : idx === 1 ? "bg-blue-500" : "bg-orange-500"}`} />
+                                           <span className="text-[9px] font-black uppercase tracking-wider opacity-60">{f.category}: {f.percentage}%</span>
+                                         </div>
+                                       ))}
+                                     </div>
+                                   </div>
+                                 </div>
+                               </div>
+                             )}
+
+                             <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
+                                <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
+                                  {historyData[historyLevel].summary}
+                                </p>
+                             </div>
                           </div>
                         </div>
                       </div>
