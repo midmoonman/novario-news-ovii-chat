@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Novario News Cinematic Overhaul",
+        "status": "DEPLOYED",
+        "description": "Transformed the News Hub from a static list into a high-fidelity Bento Grid layout. Added animated Background Glow Orbs, a premium Orange 'Live' Ticker, and motion-based navigation underlines to create a cinematic, magazine-style experience.",
+        "rationale": "Eliminates the 'empty' feeling of the front page and aligns the news hub's aesthetics with the premium look of the OVii Chat portal."
+      },
+      {
         "title": "High-Fidelity UI Magic",
         "status": "DEPLOYED",
         "description": "Implemented the 'OVii Orb' animated empty state, an enhanced contextual reply preview with media thumbnails, and a 'Smart Photo Grid' that clusters consecutive images into a beautiful collage layout.",

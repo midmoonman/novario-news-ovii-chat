@@ -4,6 +4,7 @@ import { WeatherWidget } from "./WeatherWidget";
 import { LiveCounter } from "./LiveCounter";
 import { LanguageMenu } from "./LanguageMenu";
 import { useTranslation } from "@/lib/i18n";
+import { motion } from "framer-motion";
 
 const NAV: { label: string; cat?: string }[] = [
   { label: "Home" },

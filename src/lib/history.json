@@ -1,4 +1,26 @@
 {
+  "history": [
+    {
+      "id": "protocol-114-cinematic-news",
+      "title": "Protocol 114: Cinematic News Matrix",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "The news page now looks like a cool magazine with glowing backgrounds.",
+        "medium": "Replaced standard vertical lists with a Bento Grid architecture and added animated background shaders (Glow Orbs).",
+        "hard": "Implemented a modular Bento Box grid system for section rendering. Integrated high-performance Framer Motion shaders for background depth and real-time 'Live' pulse telemetry."
+      }
+    },
+    {
+      "id": "protocol-113-high-fidelity-ux",
+      "title": "Protocol 113: High-Fidelity UX Refinement",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "Added cool animations like a glowing orb for new chats and better photo grids.",
+        "medium": "Implemented 'OVii Orb' empty states and a smart PhotoGrid clustering engine to group consecutive images.",
+        "hard": "Refactored message rendering loop with cluster-detection logic. Injected CSS-filter based pulse animations for emotional empty-state feedback."
+      }
+    }
+  ],
   "easy": {
     "title": "What is OVii Chat?",
     "intro": "OVii Chat is a secret, private chat room hidden inside Novario News. It’s built for one-on-one hanging out where everything you send eventually disappears.",
