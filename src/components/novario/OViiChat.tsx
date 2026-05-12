@@ -3023,8 +3023,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                      ))}
                                    </div>
 
-                                   </div>
-
                                    {/* Real-World OVii Analytics Table */}
                                    {(historyData[historyLevel] as any).analytics.oviiAnalytics && (
                                      <div className="mt-12 space-y-6 px-1">
@@ -3078,8 +3076,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                      </div>
                                    )}
                                  </div>
-                               </div>
-                             )}
+                               )}
 
                              <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
                                 <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
