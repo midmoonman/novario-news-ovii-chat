@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
