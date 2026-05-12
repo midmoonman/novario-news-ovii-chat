@@ -113,6 +113,10 @@
     "intro": "OVii Chat is a React-based PWA utilizing a serverless architecture (Firebase/Cloudinary). It features a custom hardware-detection engine to throttle rendering based on client-side constraints.",
     "sections": [
       {
+        "heading": "Complete Project Architecture",
+        "content": "The system is structured as a modular PWA. Key directories include: /src/components/ui (Shadcn Base), /src/components/novario (Core Business Logic), /src/lib (Internal Logic & Documentation), /src/routes (Immersive Navigation Layer). This ensures high separation of concerns."
+      },
+      {
         "heading": "Rendering Logic & Jitter Elimination",
         "content": "We refactored the Build Book component to eliminate layout thrashing. By removing 'AnimatePresence' from large data arrays and utilizing 'display: none' for tab switching, we reduced CPU spikes from 80% to 15% during navigation."
       },
@@ -161,8 +165,14 @@
       "oviiAnalytics": [
         { "metric": "Active Sync Nodes", "value": "1,422", "trend": "+12%" },
         { "metric": "Messages Processed", "value": "48,290", "trend": "+5.4k" },
-        { "metric": "Media Entropy", "value": "92.4%", "trend": "STABLE" },
-        { "metric": "Avg. Node Latency", "value": "14ms", "trend": "-2ms" }
+        { "metric": "Global Linguistic Reach", "value": "91 Nodes", "trend": "+70" },
+        { "metric": "Avg. Node Latency", "value": "14ms", "trend": "-2ms" },
+        { "metric": "UI Component Units", "value": "43 Blocks", "trend": "STABLE" },
+        { "metric": "Identity Entropy", "value": "16 Avatars", "trend": "MAX" },
+        { "metric": "Media Purge Velocity", "value": "100%", "trend": "SECURE" },
+        { "metric": "Encryption Depth", "value": "256-bit", "trend": "AES" },
+        { "metric": "Adaptive GPU Load", "value": "85%", "trend": "SCALED" },
+        { "metric": "Data Recovery Prob.", "value": "0%", "trend": "SAFE" }
       ],
       "colorPalette": [
         { "name": "Orange Energy", "value": "oklch(0.72 0.18 35)", "hex": "#F59E0B", "usage": "Primary Branding" },
