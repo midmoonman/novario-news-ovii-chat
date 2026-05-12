@@ -351,18 +351,14 @@
   opacity: 1;
 }
 
-/* Glassmorphism 2.0 - Premium News Cards */
+/* Glassmorphism 2.0 - Refined & Professional */
 .glass-card {
-  background: rgba(255, 255, 255, 0.11);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 
-    0 8px 32px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.1),
-    inset 0 0 38px 19px rgba(255, 255, 255, 0.15); /* Slightly reduced the heavy inner glow for readability */
+  background: rgba(255, 255, 255, 0.01);
+  backdrop-filter: blur(13.7px);
+  -webkit-backdrop-filter: blur(13.7px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.19);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
@@ -378,7 +374,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0.4),
     transparent
   );
   z-index: 10;
@@ -393,20 +389,18 @@
   height: 100%;
   background: linear-gradient(
     180deg,
-    rgba(255, 255, 255, 0.8),
+    rgba(255, 255, 255, 0.4),
     transparent,
-    rgba(255, 255, 255, 0.3)
+    rgba(255, 255, 255, 0.1)
   );
   z-index: 10;
 }
 
 .glass-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  border: 1px solid rgba(255, 255, 255, 0.5);
-  box-shadow: 
-    0 15px 45px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
-    inset 0 0 45px 20px rgba(255, 255, 255, 0.2);
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
 
 .cloud {
