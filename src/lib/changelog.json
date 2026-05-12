@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "History Analytics & Sarcastic Intel",
+        "status": "DEPLOYED",
+        "description": "Enhanced the History module with a 'Protocol Intel' FAQ section featuring tiered sarcastic responses. Integrated a high-fidelity 'Hardware Analytics Dashboard' that visualizes cloud-vs-hardware load and data distribution using premium SVG charts and Excel-style metrics.",
+        "rationale": "Deepens the 'Developer Insider' feel of the Build Book, providing transparent (and humorous) system analytics to users."
+      },
+      {
         "title": "Performance Shield & Jitter Eradication",
         "status": "DEPLOYED",
         "description": "Engineered a hardware-aware 'Performance Shield' that detects low-end devices (e.g., Redmi 5A) to automatically throttle heavy GPU effects. Eliminated layout thrashing and jitter in the Build Book by refactoring tab-switching logic and removing redundant entrance animations from large data arrays.",
