@@ -40,9 +40,9 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur bg-background/80 border-b border-border w-full overflow-x-hidden">
+    <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-primary/10 w-full overflow-x-hidden">
       <div className="mx-auto max-w-7xl px-4 w-full">
-        <div className="flex items-center justify-between gap-4 py-2 text-xs text-muted-foreground border-b border-border/60 min-w-0">
+        <div className="flex items-center justify-between gap-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-primary/5 min-w-0">
           <div suppressHydrationWarning className="truncate">{today || "\u00A0"}</div>
           <div className="flex items-center gap-3 md:gap-6 shrink-0">
             <div className="hidden md:flex items-center gap-6">
@@ -56,18 +56,21 @@ export function Header() {
         {/* Loading progress bar */}
         {isLoading && (
           <div className="absolute left-0 right-0 top-full h-0.5 z-50 overflow-hidden">
-            <div className="h-full w-1/3 bg-primary rounded-full animate-loading-bar" />
+            <div className="h-full w-1/3 bg-primary rounded-full animate-loading-bar shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
           </div>
         )}
 
-        <div className="flex items-center justify-between py-4 min-w-0 gap-2">
-          <Link to="/news" className="flex items-baseline gap-2 shrink-0">
-            <span className="serif text-3xl md:text-4xl font-extrabold tracking-tight">
-              Nov<span className="text-primary">a</span>rio
+        <div className="flex items-center justify-between py-5 min-w-0 gap-2">
+          <Link to="/news" className="flex items-baseline gap-2.5 shrink-0 group">
+            <span className="serif text-3xl md:text-5xl font-black tracking-tighter transition-all group-hover:tracking-normal">
+              Nov<span className="text-primary relative">a<span className="absolute -inset-1 bg-primary/20 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity" /></span>rio
             </span>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground hidden sm:inline">News</span>
+            <div className="flex flex-col">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-primary leading-none">News</span>
+              <span className="text-[8px] font-bold uppercase tracking-widest text-muted-foreground/60 leading-none mt-0.5">Premium Hub</span>
+            </div>
           </Link>
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
+          <nav className="hidden md:flex items-center gap-8 text-sm font-bold uppercase tracking-wide">
             {NAV.map((n) => {
               const isActive = activeLabel === n.label;
               return (
@@ -75,29 +78,32 @@ export function Header() {
                   key={n.label}
                   to="/news"
                   search={{ cat: n.cat }}
-                  className={`relative py-1 transition-all duration-200 ${
+                  className={`relative py-1 transition-all duration-300 ${
                     isActive
-                      ? "text-primary font-bold"
-                      : "text-foreground/70 hover:text-primary"
+                      ? "text-primary drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]"
+                      : "text-foreground/50 hover:text-primary"
                   }`}
                 >
                   {t(n.label)}
                   {isActive && (
-                    <span className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+                    <motion.span 
+                      layoutId="navUnderline"
+                      className="absolute -bottom-1 left-0 right-0 h-1 bg-primary rounded-full shadow-[0_0_12px_rgba(245,158,11,0.6)]" 
+                    />
                   )}
                 </Link>
               );
             })}
           </nav>
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="hidden sm:flex items-center rounded-full border border-border overflow-hidden focus-within:border-primary/50 transition-colors h-9">
-              <span className="pl-3 text-muted-foreground">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="hidden sm:flex items-center rounded-full bg-muted/50 border border-primary/10 overflow-hidden focus-within:border-primary/50 transition-all h-10 w-48 shadow-inner">
+              <span className="pl-4 text-muted-foreground/50">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
               </span>
               <input
                 type="text"
                 placeholder={t("Search...")}
-                className="bg-transparent border-none focus:outline-none px-2 w-32 text-sm"
+                className="bg-transparent border-none focus:outline-none px-3 w-full text-xs font-bold"
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     const q = e.currentTarget.value.trim();
@@ -108,14 +114,14 @@ export function Header() {
             </div>
             <button
               onClick={() => alert("Subscribe feature coming soon!")}
-              className="rounded-full bg-primary px-4 py-2 text-xs font-bold text-primary-foreground hover:opacity-90"
+              className="rounded-full bg-gradient-to-br from-primary to-orange-600 px-5 py-2.5 text-[11px] font-black uppercase tracking-widest text-primary-foreground hover:scale-105 active:scale-95 transition-all shadow-[0_4px_15px_rgba(245,158,11,0.3)]"
             >
-              {t("Subscribe")}
+              {t("Join")}
             </button>
           </div>
         </div>
         {/* Mobile category nav with active glow */}
-        <nav className="md:hidden flex items-center gap-4 overflow-x-auto scrollbar-hide pb-3 text-sm font-medium">
+        <nav className="md:hidden flex items-center gap-6 overflow-x-auto scrollbar-hide pb-4 text-xs font-black uppercase tracking-widest">
           {NAV.map((n) => {
             const isActive = activeLabel === n.label;
             return (
@@ -123,15 +129,15 @@ export function Header() {
                 key={n.label}
                 to="/news"
                 search={{ cat: n.cat }}
-                className={`relative shrink-0 pb-1 transition-all duration-200 ${
+                className={`relative shrink-0 pb-1 transition-all duration-300 ${
                   isActive
-                    ? "text-primary font-bold"
-                    : "text-foreground/70 hover:text-primary"
+                    ? "text-primary"
+                    : "text-foreground/40 hover:text-primary"
                 }`}
               >
                 {t(n.label)}
                 {isActive && (
-                  <span className="absolute -bottom-0.5 left-0 right-0 h-0.5 bg-primary rounded-full shadow-[0_0_8px_rgba(245,158,11,0.6)]" />
+                  <span className="absolute -bottom-1 left-0 right-0 h-1 bg-primary rounded-full shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
                 )}
               </Link>
             );
