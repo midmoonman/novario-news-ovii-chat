@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Layout Precision & Glass Refinement",
+        "status": "DEPLOYED",
+        "description": "Eliminated unprofessional vertical gaps by removing rigid min-height constraints and tightening bento-grid padding. Refined Glassmorphism 2.0 values (rgba 0.01 background, 13.7px blur) for a more sophisticated, high-end look.",
+        "rationale": "Improves visual density and content hierarchy, ensuring the news hub feels full and meticulously designed."
+      },
+      {
         "title": "Glassmorphism 2.0 Card System",
         "status": "DEPLOYED",
         "description": "Integrated a premium Glassmorphism 2.0 card system for Novario News. Features include inner glows, high-contrast border gradients, backdrop blurs, and dynamic image treatments that react to hover states.",

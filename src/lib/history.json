@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-116-layout-precision",
+      "title": "Protocol 116: Layout Precision & Density",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "Made the cards smaller and tighter so there isn't so much empty space.",
+        "medium": "De-jittered the layout by removing hardcoded min-heights and reducing bento-grid gap volumes. Applied subtle 13.7px blur glassmorphism.",
+        "hard": "Eliminated layout thrashing and unprofessional vertical overflows by transitioning to content-driven height constraints. Refined the glass architecture to use 1% opacity backgrounds for maximum professional clarity."
+      }
+    },
+    {
       "id": "protocol-115-glass-matrix",
       "title": "Protocol 115: Glassmorphism 2.0 Matrix",
       "date": "2026-05-12",
