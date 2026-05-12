@@ -2707,23 +2707,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 >
                   {/* Dynamic Neon Gradient Glow - DISABLED FOR LOW END */}
                   {!isLowEnd && (
-                    <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-                      <div className="absolute top-0 left-0 w-full h-full will-change-transform">
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none select-none buildbook-ambient">
                         <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
                           }`} />
                         <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "easy" ? "bg-orange-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
                           }`} />
-                      </div>
                     </div>
                   )}
 
 
                   {/* Header / Protocol Identity */}
-                  <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-3xl transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "bg-[#202c33]/90 border-emerald-500/20" : "bg-white/90 border-emerald-500/20") :
-                    historyLevel === "easy" ? (isDarkMode ? "bg-[#202c33]/90 border-orange-500/20" : "bg-white/90 border-orange-500/20") :
-                      historyLevel === "medium" ? (isDarkMode ? "bg-[#202c33]/90 border-blue-500/20" : "bg-white/90 border-blue-500/20") :
-                        (isDarkMode ? "bg-[#202c33]/90 border-purple-500/20" : "bg-white/90 border-purple-500/20")
-                    }`}>
+                  <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-md transition-colors duration-300 ${logTab === "updates" ? (isDarkMode ? "bg-[#202c33]/95 border-emerald-500/20" : "bg-white/95 border-emerald-500/20") :
+                    historyLevel === "easy" ? (isDarkMode ? "bg-[#202c33]/95 border-orange-500/20" : "bg-white/95 border-orange-500/20") :
+                      historyLevel === "medium" ? (isDarkMode ? "bg-[#202c33]/95 border-blue-500/20" : "bg-white/95 border-blue-500/20") :
+                        (isDarkMode ? "bg-[#202c33]/95 border-purple-500/20" : "bg-white/95 border-purple-500/20")
+                    }` } style={{ transform: "translateZ(0)" }}>
                     <div className="flex items-center gap-4 sm:gap-6">
                       <button onClick={() => setShowLogs(false)} className={`p-2 rounded-full transition-all active:scale-90 shadow-md ${logTab === "updates" ? (isDarkMode ? "bg-white/10 hover:bg-emerald-500/20 text-emerald-400" : "bg-black/5 hover:bg-emerald-500/10 text-emerald-600") :
                         historyLevel === "easy" ? (isDarkMode ? "bg-white/10 hover:bg-orange-500/20 text-orange-400" : "bg-black/5 hover:bg-orange-500/10 text-orange-600") :
@@ -2760,7 +2758,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </div>
 
                   {/* Content / Book Body */}
-                  <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 scroll-smooth scrollbar-hide">
+                  <div className="buildbook-scroll flex-1 overflow-y-auto overflow-x-hidden relative z-10 scrollbar-hide">
                     <div className="max-w-4xl mx-auto px-6 sm:px-8 py-12 sm:py-20 space-y-16 sm:space-y-24">
 
                       {/* Genesis Header with Optimized Glow */}
@@ -2845,7 +2843,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </button>
                           </div>
                           {changelogData.map((day, idx) => (
-                            <div key={day.date} className="relative pl-10 sm:pl-28 pb-20 sm:pb-32 last:pb-0">
+                            <div key={day.date} className="relative pl-10 sm:pl-28 pb-20 sm:pb-32 last:pb-0" style={{ contentVisibility: "auto", containIntrinsicSize: "0 600px" }}>
 
                               {/* Intense Neon Timeline Line */}
                               <div className={`absolute left-4 sm:left-14 top-0 bottom-0 w-0.5 ${isDarkMode ? "bg-emerald-500/20" : "bg-emerald-500/10"}`} />
@@ -2989,7 +2987,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                             <div className="space-y-8 sm:space-y-12">
                               {historyData[historyLevel].sections.map((section: any, idx: number) => (
-                                <div key={idx} className="relative">
+                                <div key={idx} className="relative" style={{ contentVisibility: "auto", containIntrinsicSize: "0 200px" }}>
                                   <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
                                     {section.heading}
                                   </h3>

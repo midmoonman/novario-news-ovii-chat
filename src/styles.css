@@ -279,6 +279,22 @@
   }
 }
 
+/* ─── Build Book / History: GPU-accelerated scroll ─── */
+.buildbook-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  will-change: transform;
+  contain: content;
+  scroll-behavior: auto;
+  isolation: isolate;
+}
+
+.buildbook-ambient {
+  will-change: opacity;
+  contain: strict;
+  pointer-events: none;
+}
+
 /* ─── Global Custom Scrollbar ─── */
 ::-webkit-scrollbar {
   width: 5px;
