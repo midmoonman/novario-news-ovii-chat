@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Performance Shield & Jitter Eradication",
+        "status": "DEPLOYED",
+        "description": "Engineered a hardware-aware 'Performance Shield' that detects low-end devices (e.g., Redmi 5A) to automatically throttle heavy GPU effects. Eliminated layout thrashing and jitter in the Build Book by refactoring tab-switching logic and removing redundant entrance animations from large data arrays.",
+        "rationale": "Ensures a premium, high-fidelity experience on flagship devices while maintaining absolute stability and smoothness on legacy hardware."
+      },
+      {
         "title": "Theme Contrast & UI Optimization",
         "status": "DEPLOYED",
         "description": "Engineered advanced contrast logic for the 'Paints' system. Separated global username styling from chat bubble styling to ensure names remain perfectly legible against any dynamic background (e.g., Light Pink names on Dark Blue bubbles). Headers now utilize deeply tinted 'dark darker' gradients for premium glassmorphism without muddying the UI.",
