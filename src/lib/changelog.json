@@ -3,6 +3,24 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Protocol 122: Immersive Pinning System",
+        "status": "DEPLOYED",
+        "description": "Engineered a professional message pinning system. Features include long-press context menu integration, a floating navigation bar with back/forward controls, auto-scrolling with glowing highlight effects, and a 5-second pulse feedback on chat clearing. Pinned messages are explicitly preserved during 'Clear Chat' operations.",
+        "rationale": "Empowers users to save critical information and media permanently while maintaining the platform's ephemeral core for all other messages."
+      },
+      {
+        "title": "Elite Avatar Collection Update",
+        "status": "DEPLOYED",
+        "description": "Replaced the generic avatar set with a curated collection of 16 high-fidelity, high-personality custom images (hamsters, dogs, cats, and more). Integrated specific ID-mapping and vibrant theme-color pairing for each new identity.",
+        "rationale": "Significantly increases the platform's 'fun' factor and provides users with more expressive and unique identities."
+      },
+      {
+        "title": "High-Priority Toast Synchronization",
+        "status": "DEPLOYED",
+        "description": "Re-engineered the z-index hierarchy for real-time presence toasts. Increased priority to z-150 to ensure 'User Online/Offline' notifications always float above the pinned bar and other UI layers.",
+        "rationale": "Eliminates visual layering bugs and ensures mission-critical social awareness is never obscured."
+      },
+      {
         "title": "Build Book Intelligence Hub",
         "status": "DEPLOYED",
         "description": "Overhauled the Build Book History section with real-world analytics charts (Active Nodes, Message Volume, Sync Latency) and a comprehensive Brand Color Matrix. Replaced static file distribution charts with dynamic, glassmorphic intelligence tables.",

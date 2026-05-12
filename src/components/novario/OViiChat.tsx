@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
@@ -1993,15 +1993,26 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         </div>
                       </div>
                       {pinnedMsgs.length > 1 && (
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setCurrentPinnedIdx(prev => (prev + 1) % pinnedMsgs.length);
-                          }}
-                          className={`p-1.5 rounded-full hover:bg-black/5 transition-colors ${isDarkMode ? "text-white/40" : "text-black/40"}`}
-                        >
-                          <ChevronDown className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center gap-1">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentPinnedIdx(prev => (prev - 1 + pinnedMsgs.length) % pinnedMsgs.length);
+                            }}
+                            className={`p-1.5 rounded-full hover:bg-black/5 transition-colors ${isDarkMode ? "text-white/40" : "text-black/40"}`}
+                          >
+                            <ChevronLeft className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setCurrentPinnedIdx(prev => (prev + 1) % pinnedMsgs.length);
+                            }}
+                            className={`p-1.5 rounded-full hover:bg-black/5 transition-colors ${isDarkMode ? "text-white/40" : "text-black/40"}`}
+                          >
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
+                        </div>
                       )}
                       <button 
                         onClick={(e) => {

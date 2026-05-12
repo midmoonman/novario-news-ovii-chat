@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-122-immersive-pinning",
+      "title": "Protocol 122: Immersive Pinning System",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "Added a Pin button so you can save important messages. They stay even if you clear the chat!",
+        "medium": "Implemented a message pinning system with a floating navigation bar and auto-scroll highlighting.",
+        "hard": "Engineered a persistent pinning protocol. Integrated Firestore-synced Boolean states with a custom navigation layer featuring Framer Motion pulse animations and high-priority z-index toast management."
+      }
+    },
+    {
       "id": "protocol-121-intelligence-integration",
       "title": "Protocol 121: Build Book Intelligence Hub",
       "date": "2026-05-12",
