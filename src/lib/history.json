@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-115-glass-matrix",
+      "title": "Protocol 115: Glassmorphism 2.0 Matrix",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "News stories now float in beautiful glass cards that glow when you touch them.",
+        "medium": "Implemented a custom Glassmorphism 2.0 CSS engine with multi-layered inner shadows and backdrop blurs for all news cards.",
+        "hard": "Engineered a complex CSS glass architecture using ::before/::after border gradients and inset shadows. Integrated dynamic image blur-filters that activate on hover to enhance textual legibility."
+      }
+    },
+    {
       "id": "protocol-114-cinematic-news",
       "title": "Protocol 114: Cinematic News Matrix",
       "date": "2026-05-12",

@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Glassmorphism 2.0 Card System",
+        "status": "DEPLOYED",
+        "description": "Integrated a premium Glassmorphism 2.0 card system for Novario News. Features include inner glows, high-contrast border gradients, backdrop blurs, and dynamic image treatments that react to hover states.",
+        "rationale": "Provides a tactile, high-end feel that elevates news stories to featured, floating 'objects' within the UI."
+      },
+      {
         "title": "Novario News Cinematic Overhaul",
         "status": "DEPLOYED",
         "description": "Transformed the News Hub from a static list into a high-fidelity Bento Grid layout. Added animated Background Glow Orbs, a premium Orange 'Live' Ticker, and motion-based navigation underlines to create a cinematic, magazine-style experience.",

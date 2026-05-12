@@ -148,19 +148,23 @@ function NewsHome() {
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                 {/* Main Hero Card */}
                 <div className="lg:col-span-7">
-                  <Link to="/news/$slug" params={{ slug: mainArticle.slug }} className="group/hero relative block h-full min-h-[400px] rounded-3xl overflow-hidden shadow-2xl border border-white/5">
+                  <Link to="/news/$slug" params={{ slug: mainArticle.slug }} className="glass-card group/hero relative block h-full min-h-[450px]">
                     <img src={mainArticle.image} alt="" className="absolute inset-0 w-full h-full object-cover transition-transform duration-1000 group-hover/hero:scale-110" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                    <div className="absolute bottom-0 left-0 p-8 w-full">
-                      <div className="flex items-center gap-2 mb-4">
-                        <span className="px-3 py-1 rounded-full bg-primary text-[10px] font-black uppercase tracking-wider text-primary-foreground shadow-lg">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
+                    
+                    {/* Glass Overlay for Content */}
+                    <div className="absolute bottom-6 left-6 right-6 p-8 rounded-3xl bg-black/20 backdrop-blur-md border border-white/10 z-20 overflow-hidden shadow-2xl group-hover/hero:bg-black/40 transition-all">
+                      <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
+                      <div className="flex items-center gap-3 mb-4">
+                        <span className="px-4 py-1.5 rounded-full bg-primary text-[10px] font-black uppercase tracking-[0.2em] text-primary-foreground shadow-lg">
                           {mainArticle.source}
                         </span>
-                        <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
-                          {mainArticle.readTime} min read
+                        <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+                        <span className="text-white/80 text-[10px] font-black uppercase tracking-[0.3em]">
+                          {mainArticle.readTime} MIN READ
                         </span>
                       </div>
-                      <h3 className="serif text-2xl md:text-4xl font-black text-white leading-tight group-hover/hero:text-primary transition-colors">
+                      <h3 className="serif text-3xl md:text-5xl font-black text-white leading-[1.1] group-hover/hero:text-primary transition-colors drop-shadow-lg">
                         {mainArticle.title}
                       </h3>
                     </div>
@@ -170,14 +174,20 @@ function NewsHome() {
                 {/* Side Cards */}
                 <div className="lg:col-span-5 grid grid-cols-1 sm:grid-cols-2 gap-6">
                   {sideArticles.map((a: any) => (
-                    <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="group/item flex flex-col bg-card/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-border/50 hover:border-primary/40 transition-all hover:shadow-xl hover:-translate-y-1">
+                    <Link key={a.id} to="/news/$slug" params={{ slug: a.slug }} className="glass-card group/item flex flex-col h-full min-h-[360px]">
                       <div className="aspect-[16/9] overflow-hidden relative">
-                         <img src={a.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-105" />
-                         <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/60 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest">{a.source}</div>
+                         <img src={a.image} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover/item:scale-110 group-hover/item:blur-[2px]" />
+                         <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/40" />
+                         <div className="absolute top-3 right-3 px-2 py-1 rounded bg-black/60 backdrop-blur-md text-[8px] font-black text-white uppercase tracking-widest border border-white/10">{a.source}</div>
                       </div>
-                      <div className="p-4 flex-1 flex flex-col">
-                        <h4 className="serif font-bold text-sm leading-snug line-clamp-2 group-hover/item:text-primary transition-colors">{a.title}</h4>
-                        <div className="mt-auto pt-3 text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">{a.publishedAt}</div>
+                      <div className="p-5 flex-1 flex flex-col relative z-20">
+                        <h4 className="serif font-black text-base leading-tight line-clamp-3 group-hover/item:text-primary transition-colors mb-2 drop-shadow-sm">{a.title}</h4>
+                        <div className="mt-auto flex items-center justify-between">
+                          <div className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/60">{a.publishedAt}</div>
+                          <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center group-hover/item:bg-primary transition-colors">
+                            <span className="text-primary group-hover:text-primary-foreground text-[10px]">→</span>
+                          </div>
+                        </div>
                       </div>
                     </Link>
                   ))}
