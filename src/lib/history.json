@@ -8,22 +8,6 @@
         "easy": "Made the 'Online' status update much faster so you can see immediately when someone leaves.",
         "medium": "Optimized the presence heartbeat and added mobile-specific lifecycle listeners for instant offline transitions.",
         "hard": "Architected a high-frequency heartbeat protocol (10s) and implemented visibilityState-aware cleanup transactions. Reduced stale-timestamp margin to 25s to achieve sub-second perceived responsiveness on mobile hardware."
-      },
-      "hardIntel": {
-        "affectedFiles": ["src/components/novario/OViiChat.tsx", "src/lib/history.json", "src/lib/changelog.json"],
-        "fileTree": [
-          "src/components/novario/OViiChat.tsx (Core Engine)",
-          "src/lib/firebase.ts (Persistence Layer)",
-          "src/lib/history.json (Knowledge Base)",
-          "src/lib/changelog.json (Audit Log)",
-          "src/styles.css (Global Visuals)",
-          "src/routes/ovii.tsx (Entry Point)"
-        ],
-        "purpose": "To eliminate the 'ghosting' effect where mobile users remain shown as online after closing the app. Prioritizes real-time social accuracy.",
-        "services": ["Firebase Firestore", "Browser Page Visibility API", "React Lifecycle Hooks"],
-        "optimizations": ["Reduced heartbeat interval to 10s", "Lowered stale threshold to 25s", "Added visibilitychange listeners"],
-        "challenges": ["Mobile browsers often suppress 'beforeunload' and 'unload' events.", "Higher frequency heartbeats increase Firestore write usage."],
-        "fixes": ["Used 'visibilitychange' to trigger cleanup during backgrounding.", "Implemented state-reconciliation on foregrounding."]
       }
     },
     {
@@ -34,19 +18,6 @@
         "easy": "Added a Pin button so you can save important messages. They stay even if you clear the chat!",
         "medium": "Implemented a message pinning system with a floating navigation bar and auto-scroll highlighting.",
         "hard": "Engineered a persistent pinning protocol. Integrated Firestore-synced Boolean states with a custom navigation layer featuring Framer Motion pulse animations and high-priority z-index toast management."
-      },
-      "hardIntel": {
-        "affectedFiles": ["src/components/novario/OViiChat.tsx", "src/styles.css"],
-        "fileTree": [
-          "src/components/novario/OViiChat.tsx (Pinning Logic)",
-          "src/styles.css (Motion Styles)",
-          "src/lib/avatars.ts (Asset Registry)"
-        ],
-        "purpose": "Allows users to preserve critical messages/media across bulk 'Clear Chat' operations, providing a persistent 'memory layer' in an ephemeral space.",
-        "services": ["Firebase Firestore", "Framer Motion", "Lucide React"],
-        "optimizations": ["Smoothed auto-scroll with ResizeObserver", "Hardware-accelerated pulse animations", "Reciprocal unpinning rights architecture"],
-        "challenges": ["Maintaining scroll alignment when the keyboard is open.", "Ensuring the pinned bar doesn't obscure the 'User Online' toasts."],
-        "fixes": ["Boosted toast z-index to 150.", "Implemented back/forward navigation for multiple pins."]
       }
     },
     {
@@ -142,10 +113,6 @@
     "intro": "OVii Chat is a React-based PWA utilizing a serverless architecture (Firebase/Cloudinary). It features a custom hardware-detection engine to throttle rendering based on client-side constraints.",
     "sections": [
       {
-        "heading": "Complete Project Architecture",
-        "content": "The system is structured as a modular PWA. Key directories include: /src/components/ui (Shadcn Base), /src/components/novario (Core Business Logic), /src/lib (Internal Logic & Documentation), /src/routes (Immersive Navigation Layer). This ensures high separation of concerns."
-      },
-      {
         "heading": "Rendering Logic & Jitter Elimination",
         "content": "We refactored the Build Book component to eliminate layout thrashing. By removing 'AnimatePresence' from large data arrays and utilizing 'display: none' for tab switching, we reduced CPU spikes from 80% to 15% during navigation."
       },
@@ -205,6 +172,7 @@
         { "name": "Cyber Blue", "value": "#3B82F6", "hex": "#3B82F6", "usage": "Technical Layer" }
       ]
     },
+    "projectTree": ".\n├── public\n│   ├── avatars\n│   │   ├── 4a19ace2c10e8dda74cb256d77eb7dd3.jpg\n│   │   ├── 551e94ae8845df9d455f221c07421dcd.jpg\n│   │   ├── 5b40bdbe8b8fe41e40eed4cb428c3f80.jpg\n│   │   ├── HAMSTER GUARDIA.jpg\n│   │   ├── Peace, Love, and Mouse Vibes.jpg\n│   │   ├── Rockstar Hamster Playing Drums 🎸🐹.jpg\n│   │   ├── SaveClip.App_491438162_17903102472155147_7443921825569870270_n.jpg\n│   │   ├── The Lovely Mouse.jpg\n│   │   ├── bhola.jpg\n│   │   ├── cat-pfp-16.png\n│   │   ├── download (1).jpg\n│   │   ├── download (2).jpg\n│   │   ├── download (4).jpg\n│   │   ├── download.jpg\n│   │   ├── hamster anyone.jpg\n│   │   └── images (1).jpg\n│   ├── favicon.svg\n│   ├── hp_dark_bg.png\n│   ├── hp_light_bg.png\n│   ├── manifest.json\n│   ├── novario-brand.png\n│   └── sw.js\n├── src\n│   ├── components\n│   │   ├── novario\n│   │   │   ├── ArticleTimeline.tsx\n│   │   │   ├── BottomNav.tsx\n│   │   │   ├── BreakingTicker.tsx\n│   │   │   ├── CategoryGrid.tsx\n│   │   │   ├── Header.tsx\n│   │   │   ├── HeroSlider.tsx\n│   │   │   ├── LanguageMenu.tsx\n│   │   │   ├── LiveCounter.tsx\n│   │   │   ├── LiveIllustration.tsx\n│   │   │   ├── OViiChat.tsx\n│   │   │   ├── PasswordModal.tsx\n│   │   │   ├── ShareCard.tsx\n│   │   │   ├── TrendingPeople.tsx\n│   │   │   ├── TrendingRow.tsx\n│   │   │   └── WeatherWidget.tsx\n│   │   └── ui\n│   │       ├── ... (40+ shadcn components)\n│   ├── hooks\n│   │   └── use-mobile.tsx\n│   ├── lib\n│   │   ├── avatars.ts\n│   │   ├── changelog.json\n│   │   ├── firebase.ts\n│   │   ├── history.json\n│   │   └── utils.ts\n│   ├── routes\n│   │   ├── about.tsx\n│   │   ├── contact.tsx\n│   │   ├── index.tsx\n│   │   ├── news.$slug.tsx\n│   │   ├── news.tsx\n│   │   ├── newsroom.tsx\n│   │   ├── ovii.tsx\n│   │   ├── privacy.tsx\n│   │   └── terms.tsx\n│   ├── server\n│   │   └── newsapi.functions.ts\n│   ├── main.tsx\n│   ├── router.tsx\n│   └── styles.css\n├── package.json\n└── vite.config.ts",
     "summary": "Technical Summary: A high-performance, hardware-aware React messaging engine with sub-second sync and automated cryptographic data purging."
   }
 }

@@ -183,27 +183,12 @@ interface HistoryTier {
     oviiAnalytics?: OviiAnalytic[];
     colorPalette?: ColorMatrixEntry[];
   };
+  projectTree?: string;
   summary: string;
 }
 
-interface HistoryEntry {
-  id: string;
-  title: string;
-  date: string;
-  difficulty: Record<string, string>;
-  hardIntel?: {
-    affectedFiles: string[];
-    fileTree: string[];
-    purpose: string;
-    services: string[];
-    optimizations: string[];
-    challenges: string[];
-    fixes: string[];
-  };
-}
-
 type HistoryDataRoot = {
-  history: HistoryEntry[];
+  history: { id: string, title: string, date: string, difficulty: Record<string, string> }[];
 } & Record<"easy" | "medium" | "hard", HistoryTier>;
 
 
@@ -3303,81 +3288,37 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   </div>
                                 )}
 
-                                {/* Hard Mode: Deep Intel Analysis */}
-                                {historyLevel === "hard" && historyData.history.find((h: any) => h.hardIntel)?.hardIntel && (
-                                  <div className="mt-12 space-y-8">
+                                {/* Hard Mode: Project Architecture Museum */}
+                                {historyLevel === "hard" && historyData.hard.projectTree && (
+                                  <div className="mt-12 space-y-6">
                                     <div className="flex items-center gap-3 opacity-50 px-1">
-                                      <ShieldOff className="w-4 h-4 text-primary" />
+                                      <FolderTree className="w-4 h-4 text-primary" />
                                       <h3 className={`text-sm font-black uppercase tracking-[0.3em] ${isDarkMode ? "text-white" : "text-black"}`}>
-                                        Hard Intelligence Analysis
+                                        Project Architecture Museum
                                       </h3>
                                     </div>
 
-                                    {historyData.history.filter((h: any) => h.hardIntel).map((h: any, idx: number) => (
-                                      <motion.div
-                                        key={idx}
-                                        initial={{ opacity: 0, y: 20 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: idx * 0.1 }}
-                                        className={`rounded-3xl border overflow-hidden shadow-2xl p-6 space-y-6 ${isDarkMode ? "bg-white/[0.02] border-white/10" : "bg-black/[0.02] border-black/10"}`}
-                                      >
-                                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
-                                          <div className="text-xs font-black text-primary uppercase tracking-widest">{h.title}</div>
-                                          <div className="text-[10px] font-bold opacity-40">{h.date}</div>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                          {/* Left: Structure & Services */}
-                                          <div className="space-y-6">
-                                            <div>
-                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Project Structure</div>
-                                              <div className="space-y-1">
-                                                {h.hardIntel.fileTree.map((f: string, i: number) => (
-                                                  <div key={i} className="flex items-center gap-2 text-[11px] font-medium opacity-80">
-                                                    <Folder className="w-3 h-3 text-primary/60" />
-                                                    {f}
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            </div>
-                                            <div>
-                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Integrations & APIs</div>
-                                              <div className="flex flex-wrap gap-2">
-                                                {h.hardIntel.services.map((s: string, i: number) => (
-                                                  <span key={i} className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter">{s}</span>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          </div>
-
-                                          {/* Right: Challenges & Fixes */}
-                                          <div className="space-y-6">
-                                            <div>
-                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Technical Optimizations</div>
-                                              <div className="space-y-2">
-                                                {h.hardIntel.optimizations.map((opt: string, i: number) => (
-                                                  <div key={i} className="flex gap-2 text-[11px] leading-relaxed">
-                                                    <span className="text-emerald-500 font-black">✓</span>
-                                                    <span className="opacity-70">{opt}</span>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            </div>
-                                            <div>
-                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Challenges & Fixes</div>
-                                              <div className="space-y-3">
-                                                {h.hardIntel.challenges.map((c: string, i: number) => (
-                                                  <div key={i} className="p-3 rounded-xl bg-orange-500/5 border border-orange-500/10">
-                                                    <div className="text-[10px] font-black text-orange-400 uppercase mb-1">Issue: {c}</div>
-                                                    <div className="text-[10px] font-medium opacity-60">Solution: {h.hardIntel.fixes[i] || "Architectural mitigation implemented."}</div>
-                                                  </div>
-                                                ))}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        </div>
-                                      </motion.div>
-                                    ))}
+                                    <motion.div
+                                      initial={{ opacity: 0, scale: 0.95 }}
+                                      animate={{ opacity: 1, scale: 1 }}
+                                      className={`rounded-3xl border overflow-hidden shadow-2xl p-6 ${isDarkMode ? "bg-black/40 border-white/10" : "bg-white border-black/10"}`}
+                                    >
+                                      <div className="flex items-center gap-2 mb-4 opacity-40">
+                                        <div className="w-2 h-2 rounded-full bg-red-500" />
+                                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                                        <div className="w-2 h-2 rounded-full bg-green-500" />
+                                        <span className="text-[10px] font-black uppercase ml-2 tracking-widest">System_File_Structure_Illustration</span>
+                                      </div>
+                                      
+                                      <div className="relative">
+                                        <pre className={`text-[10px] sm:text-[11px] font-mono leading-relaxed overflow-x-auto whitespace-pre pb-4 scrollbar-thin ${isDarkMode ? "text-emerald-500/90" : "text-emerald-700"}`}>
+                                          {historyData.hard.projectTree}
+                                        </pre>
+                                        
+                                        {/* Overlay gradient for code feel */}
+                                        <div className={`absolute inset-0 pointer-events-none ${isDarkMode ? "bg-gradient-to-t from-[#0b141a]/40 to-transparent" : "bg-gradient-to-t from-white/40 to-transparent"}`} />
+                                      </div>
+                                    </motion.div>
                                   </div>
                                 )}
                               </>
