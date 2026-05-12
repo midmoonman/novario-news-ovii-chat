@@ -41,7 +41,7 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-2xl bg-background/90 border-b border-primary/10 w-full overflow-x-hidden shadow-[0_8px_40px_rgba(245,158,11,0.15)]">
+    <header className="sticky top-0 z-40 backdrop-blur-3xl bg-background/80 border-b border-primary/20 w-full overflow-x-hidden shadow-[0_10px_50px_rgba(245,158,11,0.25)] ring-1 ring-primary/10">
       {/* Top Glow Border */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent z-50" />
       <div className="mx-auto max-w-7xl px-4 w-full">

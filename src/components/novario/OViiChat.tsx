@@ -9,7 +9,9 @@ import { AVATARS } from "@/lib/avatars";
 import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
-import historyData from "../../lib/history.json";
+import historyDataRaw from "../../lib/history.json";
+const historyData = historyDataRaw as unknown as HistoryDataRoot;
+
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
@@ -128,6 +130,59 @@ type Msg = {
   isDeleted?: boolean;
   deletedFor?: string[];
 };
+
+interface HistorySection {
+  heading: string;
+  content: string;
+}
+
+interface HistoryFAQ {
+  question: string;
+  answer: string;
+}
+
+interface HardwareMetric {
+  label: string;
+  value: number;
+  color: string;
+}
+
+interface FileDist {
+  category: string;
+  percentage: number;
+}
+
+interface OviiAnalytic {
+  metric: string;
+  value: string;
+  trend: string;
+}
+
+interface ColorMatrixEntry {
+  name: string;
+  value: string;
+  hex: string;
+  usage: string;
+}
+
+interface HistoryTier {
+  title: string;
+  intro: string;
+  sections: HistorySection[];
+  faqs: HistoryFAQ[];
+  analytics: {
+    hardwareUsage: HardwareMetric[];
+    fileDistribution: FileDist[];
+    oviiAnalytics?: OviiAnalytic[];
+    colorPalette?: ColorMatrixEntry[];
+  };
+  summary: string;
+}
+
+type HistoryDataRoot = {
+  history: { id: string, title: string, date: string, difficulty: Record<string, string> }[];
+} & Record<"easy" | "medium" | "hard", HistoryTier>;
+
 
 const ROOM = "ovii-room";
 const STOP_AUDIO_EVENT = "ovii_stop_audio";
@@ -1485,8 +1540,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
           {/* ── Header ── */}
           <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${paintTheme.headerDark
-              ? (isDarkMode ? "border-white/5 text-white" : "border-black/5 text-black")
-              : (isDarkMode ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white" : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black")
+            ? (isDarkMode ? "border-white/5 text-white" : "border-black/5 text-black")
+            : (isDarkMode ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white" : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black")
             }`}
             style={{ backgroundColor: paintTheme.headerDark ? (isDarkMode ? paintTheme.headerDark + "f2" : paintTheme.headerLight + "f2") : undefined }}
           >
@@ -1869,24 +1924,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       animate={{ opacity: 1, scale: 1 }}
                       className="relative w-40 h-40 sm:w-56 sm:h-56 flex items-center justify-center mb-8"
                     >
-                      <div className="absolute inset-0 rounded-full blur-[40px] animate-pulse bg-primary/20" />
-                      <div className="absolute inset-4 rounded-full border-2 border-primary/20 animate-[spin_10s_linear_infinite]" />
-                      <div className="absolute inset-10 rounded-full border border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
+                      <div className="absolute inset-0 rounded-full blur-[40px] animate-pulse" style={{ backgroundColor: `${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}33` }} />
+                      <div className="absolute inset-4 rounded-full border-2 animate-[spin_10s_linear_infinite]" style={{ borderColor: `${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}33` }} />
+                      <div className="absolute inset-10 rounded-full border animate-[spin_6s_linear_infinite_reverse]" style={{ borderColor: `${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}4D` }} />
 
                       <motion.div
                         animate={{
                           scale: [1, 1.05, 1],
                           boxShadow: [
-                            "0 0 20px var(--primary)",
-                            "0 0 40px var(--primary)",
-                            "0 0 20px var(--primary)"
+                            `0 0 20px ${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}`,
+                            `0 0 40px ${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}`,
+                            `0 0 20px ${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}`
                           ]
                         }}
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                        className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${isDarkMode ? "bg-primary/10 border-primary/30" : "bg-white/80 border-primary/20"
-                          }`}
+                        className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${isDarkMode ? "bg-black/10" : "bg-white/80"}`}
+                        style={{ borderColor: `${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}4D` }}
                       >
-                        <Send className="w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg] text-primary" />
+                        <Send className="w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg]" style={{ color: activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent }} />
                       </motion.div>
                     </motion.div>
 
@@ -2665,29 +2720,29 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                   {/* Header / Protocol Identity */}
                   <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-3xl transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "bg-[#202c33]/90 border-emerald-500/20" : "bg-white/90 border-emerald-500/20") :
-                      historyLevel === "easy" ? (isDarkMode ? "bg-[#202c33]/90 border-orange-500/20" : "bg-white/90 border-orange-500/20") :
-                        historyLevel === "medium" ? (isDarkMode ? "bg-[#202c33]/90 border-blue-500/20" : "bg-white/90 border-blue-500/20") :
-                          (isDarkMode ? "bg-[#202c33]/90 border-purple-500/20" : "bg-white/90 border-purple-500/20")
+                    historyLevel === "easy" ? (isDarkMode ? "bg-[#202c33]/90 border-orange-500/20" : "bg-white/90 border-orange-500/20") :
+                      historyLevel === "medium" ? (isDarkMode ? "bg-[#202c33]/90 border-blue-500/20" : "bg-white/90 border-blue-500/20") :
+                        (isDarkMode ? "bg-[#202c33]/90 border-purple-500/20" : "bg-white/90 border-purple-500/20")
                     }`}>
                     <div className="flex items-center gap-4 sm:gap-6">
                       <button onClick={() => setShowLogs(false)} className={`p-2 rounded-full transition-all active:scale-90 shadow-md ${logTab === "updates" ? (isDarkMode ? "bg-white/10 hover:bg-emerald-500/20 text-emerald-400" : "bg-black/5 hover:bg-emerald-500/10 text-emerald-600") :
-                          historyLevel === "easy" ? (isDarkMode ? "bg-white/10 hover:bg-orange-500/20 text-orange-400" : "bg-black/5 hover:bg-orange-500/10 text-orange-600") :
-                            historyLevel === "medium" ? (isDarkMode ? "bg-white/10 hover:bg-blue-500/20 text-blue-400" : "bg-black/5 hover:bg-blue-500/10 text-blue-600") :
-                              (isDarkMode ? "bg-white/10 hover:bg-purple-500/20 text-purple-400" : "bg-black/5 hover:bg-purple-500/10 text-purple-600")
+                        historyLevel === "easy" ? (isDarkMode ? "bg-white/10 hover:bg-orange-500/20 text-orange-400" : "bg-black/5 hover:bg-orange-500/10 text-orange-600") :
+                          historyLevel === "medium" ? (isDarkMode ? "bg-white/10 hover:bg-blue-500/20 text-blue-400" : "bg-black/5 hover:bg-blue-500/10 text-blue-600") :
+                            (isDarkMode ? "bg-white/10 hover:bg-purple-500/20 text-purple-400" : "bg-black/5 hover:bg-purple-500/10 text-purple-600")
                         }`}>
                         <ChevronLeft className="w-6 h-6" />
                       </button>
                       <div className="min-w-0">
                         <h2 className={`text-lg sm:text-2xl font-black tracking-tighter truncate transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") :
-                            historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
-                              historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
-                                (isDarkMode ? "text-purple-400" : "text-purple-600")
+                          historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
+                            historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
+                              (isDarkMode ? "text-purple-400" : "text-purple-600")
                           }`}>Build Book</h2>
                         <div className="flex items-center gap-2 mt-0.5">
                           <div className={`w-1.5 h-1.5 rounded-full animate-pulse transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" :
-                              historyLevel === "easy" ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]" :
-                                historyLevel === "medium" ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" :
-                                  "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"
+                            historyLevel === "easy" ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]" :
+                              historyLevel === "medium" ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" :
+                                "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"
                             }`} />
                           <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] truncate transition-colors duration-700 ${isDarkMode ? "text-white/50" : "text-black/50"}`}>Protocol Synchronization</span>
                         </div>
@@ -2695,9 +2750,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </div>
                     <div className="hidden sm:flex items-center gap-4">
                       <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" :
-                          historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
-                            historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/30 text-blue-500" :
-                              "bg-purple-500/10 border-purple-500/30 text-purple-500"
+                        historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
+                          historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/30 text-blue-500" :
+                            "bg-purple-500/10 border-purple-500/30 text-purple-500"
                         }`}>
                         v2.4.1
                       </div>
@@ -2713,21 +2768,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 blur-[80px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
                           }`} />
                         <div className={`relative inline-block p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] border-2 mb-6 sm:mb-8 transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.2)]" :
-                            historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/20 shadow-[0_0_25px_rgba(249,115,22,0.2)]" :
-                              historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.2)]" :
-                                "bg-purple-500/10 border-purple-500/20 shadow-[0_0_25px_rgba(168,85,247,0.2)]"
+                          historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/20 shadow-[0_0_25px_rgba(249,115,22,0.2)]" :
+                            historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.2)]" :
+                              "bg-purple-500/10 border-purple-500/20 shadow-[0_0_25px_rgba(168,85,247,0.2)]"
                           }`}>
                           <History className={`w-10 h-10 sm:w-12 sm:h-12 transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") :
-                              historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
-                                historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
-                                  (isDarkMode ? "text-purple-400" : "text-purple-600")
+                            historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
+                              historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
+                                (isDarkMode ? "text-purple-400" : "text-purple-600")
                             }`} />
                         </div>
                         <h1 className={`text-4xl sm:text-6xl font-black tracking-tighter mb-4 sm:mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>Build Theory</h1>
                         <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed font-semibold transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "text-emerald-100/60" : "text-emerald-900/60") :
-                            historyLevel === "easy" ? (isDarkMode ? "text-orange-100/60" : "text-orange-900/60") :
-                              historyLevel === "medium" ? (isDarkMode ? "text-blue-100/60" : "text-blue-900/60") :
-                                (isDarkMode ? "text-purple-100/60" : "text-purple-900/60")
+                          historyLevel === "easy" ? (isDarkMode ? "text-orange-100/60" : "text-orange-900/60") :
+                            historyLevel === "medium" ? (isDarkMode ? "text-blue-100/60" : "text-blue-900/60") :
+                              (isDarkMode ? "text-purple-100/60" : "text-purple-900/60")
                           }`}>
                           Real-time synchronization of code architecture and strategic evolution protocols.
                         </p>
@@ -2751,8 +2806,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           <button
                             onClick={() => setLogTab("updates")}
                             className={`relative flex-1 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${logTab === "updates"
-                                ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
-                                : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
+                              ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
+                              : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
                               }`}
                           >
                             Updates
@@ -2760,10 +2815,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           <button
                             onClick={() => setLogTab("history")}
                             className={`relative flex-1 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${logTab === "history"
-                                ? historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
-                                  historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
-                                    (isDarkMode ? "text-purple-400" : "text-purple-600")
-                                : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
+                              ? historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
+                                historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
+                                  (isDarkMode ? "text-purple-400" : "text-purple-600")
+                              : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
                               }`}
                           >
                             History
@@ -2817,8 +2872,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   >
                                     <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
                                       <span className={`px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black tracking-widest border ${update.status === "DEPLOYED" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.2)]" :
-                                          update.status === "CONCEPTUAL" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
-                                            isDarkMode ? "bg-white/5 border-white/10 text-white/50" : "bg-black/5 border-black/10 text-black/50"
+                                        update.status === "CONCEPTUAL" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
+                                          isDarkMode ? "bg-white/5 border-white/10 text-white/50" : "bg-black/5 border-black/10 text-black/50"
                                         }`}>
                                         {update.status}
                                       </span>
@@ -2858,8 +2913,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   key={level}
                                   onClick={() => setHistoryLevel(level)}
                                   className={`px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all border ${historyLevel === level
-                                      ? level === "easy" ? "bg-orange-500/20 text-orange-500 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.4)]" : level === "medium" ? "bg-blue-500/20 text-blue-500 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.4)]" : "bg-purple-500/20 text-purple-500 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
-                                      : isDarkMode ? "bg-black/20 text-white/40 border-white/5 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)]" : "bg-white/50 text-black/40 border-black/5 hover:bg-black/5 hover:shadow-[0_0_10px_rgba(0,0,0,0.05)]"
+                                    ? level === "easy" ? "bg-orange-500/20 text-orange-500 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.4)]" : level === "medium" ? "bg-blue-500/20 text-blue-500 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.4)]" : "bg-purple-500/20 text-purple-500 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
+                                    : isDarkMode ? "bg-black/20 text-white/40 border-white/5 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)]" : "bg-white/50 text-black/40 border-black/5 hover:bg-black/5 hover:shadow-[0_0_10px_rgba(0,0,0,0.05)]"
                                     }`}
                                 >
                                   {level}
@@ -2871,7 +2926,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <button
                                   onClick={() => setShowHistoryInfo(true)}
                                   className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl border transition-colors ${showHistoryInfo ? (isDarkMode ? "bg-white/20 border-white/30 text-white" : "bg-black/20 border-black/30 text-black") :
-                                      (isDarkMode ? "bg-white/5 border-white/10 hover:bg-white/10 text-white/50 hover:text-white" : "bg-black/5 border-black/10 hover:bg-black/10 text-black/50 hover:text-black")
+                                    (isDarkMode ? "bg-white/5 border-white/10 hover:bg-white/10 text-white/50 hover:text-white" : "bg-black/5 border-black/10 hover:bg-black/10 text-black/50 hover:text-black")
                                     }`}
                                 >
                                   <Info className="w-4 h-4" />
@@ -2904,7 +2959,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     d.title,
                                     d.intro,
                                     "",
-                                    ...d.sections.map((s: any) => `## ${s.heading}\n${s.content}\n`),
+                                    ...d.sections.map((s) => `## ${s.heading}\n${s.content}\n`),
                                     d.summary
                                   ].join("\n");
                                   navigator.clipboard.writeText(text);
@@ -2919,9 +2974,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           </div>
 
                           <div className={`p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden shadow-2xl ${logTab === "history" && historyLevel === "easy" ? isDarkMode ? "bg-[#0b141a] border-orange-500/20" : "bg-white border-orange-500/20" :
-                              logTab === "history" && historyLevel === "medium" ? isDarkMode ? "bg-[#0b141a] border-blue-500/20" : "bg-white border-blue-500/20" :
-                                logTab === "history" && historyLevel === "hard" ? isDarkMode ? "bg-[#0b141a] border-purple-500/20" : "bg-white border-purple-500/20" :
-                                  isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"
+                            logTab === "history" && historyLevel === "medium" ? isDarkMode ? "bg-[#0b141a] border-blue-500/20" : "bg-white border-blue-500/20" :
+                              logTab === "history" && historyLevel === "hard" ? isDarkMode ? "bg-[#0b141a] border-purple-500/20" : "bg-white border-purple-500/20" :
+                                isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"
                             }`}>
                             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-orange-400 to-orange-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : "from-purple-400 to-purple-600"}`} />
 
@@ -2946,14 +3001,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </div>
 
                             {/* Sarcastic FAQs Section */}
-                            {(historyData[historyLevel] as any).faqs && (
+                            {historyData[historyLevel].faqs && (
                               <div className="mt-16 sm:mt-24 space-y-10">
-                                <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 ${isDarkMode ? "text-white" : "text-black"}`}>
+                                <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 mb-12 ${isDarkMode ? "text-white" : "text-black"}`}>
                                   <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
-                                  Protocol Intel (FAQs)
+                                  Protocol Intel & FAQ
                                 </h3>
                                 <div className="grid gap-6">
-                                  {(historyData[historyLevel] as any).faqs.map((faq: any, idx: number) => (
+                                  {historyData[historyLevel].faqs.map((faq: any, idx: number) => (
                                     <div key={idx} className={`p-6 rounded-3xl border transition-all hover:scale-[1.01] ${isDarkMode ? "bg-white/5 border-white/5" : "bg-black/5 border-black/5"}`}>
                                       <h4 className={`text-sm sm:text-base font-black mb-3 flex items-start gap-2 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
                                         <span className="opacity-40">Q:</span> {faq.question}
@@ -2968,112 +3023,118 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             )}
 
                             {/* Hardware Analytics Dashboard (Excel Style) */}
-                            {(historyData[historyLevel] as any).analytics && (
-                              <div className="mt-16 sm:mt-24">
-                                <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 mb-10 ${isDarkMode ? "text-white" : "text-black"}`}>
-                                  <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
-                                  System Hardware Metrics
-                                </h3>
+                            {historyData[historyLevel].analytics && (
+                              <>
+                                <div className="mt-16 sm:mt-24">
+                                  <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 mb-10 ${isDarkMode ? "text-white" : "text-black"}`}>
+                                    <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
+                                    Hardware Analytics Dashboard
+                                  </h3>
 
-                                <div className={`rounded-3xl border overflow-hidden shadow-xl ${isDarkMode ? "bg-black/40 border-white/10" : "bg-white border-black/10"}`}>
-                                  {/* Header */}
-                                  <div className={`grid grid-cols-3 border-b text-[10px] font-black uppercase tracking-widest p-4 ${isDarkMode ? "bg-white/5 border-white/10 text-white/40" : "bg-black/5 border-black/10 text-black/40"}`}>
-                                    <div>Component</div>
-                                    <div className="text-center">Cloud Load</div>
-                                    <div className="text-right">HW Status</div>
-                                  </div>
+                                  <div className={`rounded-3xl border overflow-hidden shadow-xl ${isDarkMode ? "bg-[#0b141a]/60 border-white/10" : "bg-white border-black/10"}`}>
+                                    {/* Header */}
+                                    <div className={`grid grid-cols-3 border-b text-[10px] font-black uppercase tracking-widest p-4 ${isDarkMode ? "bg-white/5 border-white/10 text-white/40" : "bg-black/5 border-black/10 text-black/40"}`}>
+                                      <div>Component</div>
+                                      <div className="text-center">Cloud Load</div>
+                                      <div className="text-right">HW Status</div>
+                                    </div>
 
-                                  {/* Table Rows */}
-                                  <div className="divide-y divide-white/5">
-                                    {(historyData[historyLevel] as any).analytics.hardwareUsage.map((item: any, idx: number) => (
-                                      <div key={idx} className="p-4 grid grid-cols-3 items-center">
-                                        <div className="text-xs font-bold flex items-center gap-2">
-                                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                                          {item.label}
-                                        </div>
-                                        <div className="flex flex-col items-center gap-1.5 px-4">
-                                          <div className={`w-full h-1.5 rounded-full ${isDarkMode ? "bg-white/10" : "bg-black/10"} overflow-hidden`}>
-                                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
+                                    {/* Table Rows */}
+                                    <div className="divide-y divide-white/5">
+                                      {historyData[historyLevel].analytics.hardwareUsage.map((item: any, idx: number) => (
+                                        <div key={idx} className="p-4 grid grid-cols-3 items-center">
+                                          <div className="text-xs font-bold flex items-center gap-2">
+                                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                                            {item.label}
                                           </div>
-                                          <span className="text-[10px] font-black opacity-50">{item.value}%</span>
+                                          <div className="flex flex-col items-center gap-1.5 px-4">
+                                            <div className={`w-full h-1.5 rounded-full ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
+                                              <div className="h-full rounded-full transition-all duration-1000 shadow-[0_0_8px_currentColor]" style={{ width: `${item.value}%`, backgroundColor: item.color, color: item.color }} />
+                                            </div>
+                                          </div>
+                                          <div className="text-right text-[10px] font-black text-emerald-500 uppercase tracking-tighter">
+                                            OPTIMIZED
+                                          </div>
                                         </div>
-                                        <div className="text-right text-[10px] font-black text-emerald-500">OPTIMIZED</div>
-                                      </div>
-                                    ))}
+                                      ))}
+                                    </div>
                                   </div>
                                 </div>
-                              </div>
 
-                                   {/* Real-World OVii Analytics Table */}
-                            {(historyData[historyLevel] as any).analytics.oviiAnalytics && (
-                              <div className="mt-12 space-y-6 px-1">
-                                <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Live Intelligence Feed</h4>
-                                <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/60 border-white/5" : "bg-white border-black/5"}`}>
-                                  <div className="grid grid-cols-3 p-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest opacity-40">
-                                    <div>Metric</div>
-                                    <div className="text-center">Live Value</div>
-                                    <div className="text-right">Trend</div>
-                                  </div>
-                                  <div className="divide-y divide-white/5">
-                                    {(historyData[historyLevel] as any).analytics.oviiAnalytics.map((a: any, idx: number) => (
-                                      <div key={idx} className="p-4 grid grid-cols-3 items-center hover:bg-white/5 transition-colors">
-                                        <div className="text-[11px] font-black tracking-tight">{a.metric}</div>
-                                        <div className="text-center font-mono text-sm text-primary">{a.value}</div>
-                                        <div className={`text-right text-[10px] font-black ${a.trend.startsWith('+') || a.trend === 'STABLE' ? "text-emerald-500" : "text-orange-500"}`}>
-                                          {a.trend}
-                                        </div>
+                                {/* Intelligence Feed Section */}
+                                {historyData[historyLevel].analytics.oviiAnalytics && (
+                                  <div className="mt-12 space-y-6 px-1">
+                                    <h3 className={`text-sm font-black flex items-center gap-2 opacity-50 uppercase tracking-[0.2em] ${isDarkMode ? "text-white" : "text-black"}`}>
+                                      Live Intelligence Feed
+                                    </h3>
+                                    <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-[#0b141a]/60 border-white/10" : "bg-white border-black/10"}`}>
+                                      <div className="grid grid-cols-3 p-4 border-b border-white/5 text-[10px] font-black uppercase tracking-widest opacity-40">
+                                        <div>Metric</div>
+                                        <div className="text-center">Live Value</div>
+                                        <div className="text-right">Trend</div>
                                       </div>
-                                    ))}
+                                      <div className="divide-y divide-white/5">
+                                        {historyData[historyLevel].analytics.oviiAnalytics.map((a: any, idx: number) => (
+                                          <div key={idx} className="p-4 grid grid-cols-3 items-center hover:bg-white/5 transition-colors">
+                                            <div className="text-[11px] font-black tracking-tight">{a.metric}</div>
+                                            <div className="text-center font-mono text-sm text-primary">{a.value}</div>
+                                            <div className={`text-right text-[10px] font-black ${a.trend.startsWith("+") ? "text-emerald-500" : a.trend.startsWith("-") ? "text-orange-500" : "text-blue-500"}`}>
+                                              {a.trend}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
                                   </div>
-                                </div>
-                              </div>
+                                )}
+
+                                {/* Color Matrix Section */}
+                                {historyData[historyLevel].analytics.colorPalette && (
+                                  <div className="mt-12 space-y-6 px-1">
+                                    <h3 className={`text-sm font-black flex items-center gap-2 opacity-50 uppercase tracking-[0.2em] ${isDarkMode ? "text-white" : "text-black"}`}>
+                                      Protocol Color Matrix
+                                    </h3>
+                                    <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-[#0b141a]/60 border-white/10" : "bg-white border-black/10"}`}>
+                                      <div className="grid grid-cols-[80px_1fr_70px] p-4 border-b border-white/5 text-[10px] font-black uppercase tracking-widest opacity-40">
+                                        <div>Swatch</div>
+                                        <div>Variable / Usage</div>
+                                        <div className="text-right">Hex</div>
+                                      </div>
+                                      <div className="divide-y divide-white/5">
+                                        {historyData[historyLevel].analytics.colorPalette.map((c: any, idx: number) => (
+                                          <div key={idx} className="p-4 grid grid-cols-[80px_1fr_70px] items-center hover:bg-white/5 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                              <div className="w-10 h-6 rounded-md shadow-inner border border-white/10" style={{ backgroundColor: c.hex }} />
+                                            </div>
+                                            <div className="min-w-0 pr-4">
+                                              <div className="text-[11px] font-black truncate">{c.name}</div>
+                                              <div className="text-[9px] font-medium opacity-50 truncate">{c.usage}</div>
+                                            </div>
+                                            <div className="text-right font-mono text-[9px] font-black opacity-40">{c.hex}</div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </>
                             )}
 
-                            {/* Brand Color Matrix Table */}
-                            {(historyData[historyLevel] as any).analytics.colorPalette && (
-                              <div className="mt-12 space-y-6 px-1">
-                                <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Brand Color Matrix</h4>
-                                <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/60 border-white/5" : "bg-white border-black/5"}`}>
-                                  <div className="grid grid-cols-[80px_1fr_70px] p-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest opacity-40">
-                                    <div>Swatch</div>
-                                    <div>Variable / Usage</div>
-                                    <div className="text-right">Hex</div>
-                                  </div>
-                                  <div className="divide-y divide-white/5">
-                                    {(historyData[historyLevel] as any).analytics.colorPalette.map((c: any, idx: number) => (
-                                      <div key={idx} className="p-4 grid grid-cols-[80px_1fr_70px] items-center hover:bg-white/5 transition-colors">
-                                        <div className="flex items-center gap-3">
-                                          <div className="w-10 h-6 rounded-md shadow-inner border border-white/10" style={{ backgroundColor: c.hex }} />
-                                        </div>
-                                        <div className="min-w-0 pr-4">
-                                          <div className="text-[11px] font-black truncate">{c.name}</div>
-                                          <div className="text-[9px] font-medium opacity-50 truncate">{c.usage}</div>
-                                        </div>
-                                        <div className="text-right font-mono text-[9px] font-black opacity-40">{c.hex}</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        )}
-
-                            <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
-                              <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
-                                {historyData[historyLevel].summary}
-                              </p>
-                            </div>
+                          <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
+                            <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
+                              {historyData[historyLevel].summary}
+                            </p>
                           </div>
                         </div>
                       </div>
+                    </div>
 
-                      {/* Book Footer */}
-                      <div className="pt-24 sm:pt-40 pb-16 sm:pb-24 text-center relative">
-                        <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none" />
-                        <div className="w-16 sm:w-24 h-0.5 bg-emerald-500/30 mx-auto mb-8 sm:mb-10 relative z-10" />
-                        <p className={`text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] relative z-10 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>End of Technical Protocol</p>
-                      </div>
+                    {/* Book Footer */}
+                    <div className="pt-24 sm:pt-40 pb-16 sm:pb-24 text-center relative">
+                      <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none" />
+                      <div className="w-16 sm:w-24 h-0.5 bg-emerald-500/30 mx-auto mb-8 sm:mb-10 relative z-10" />
+                      <p className={`text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] relative z-10 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>End of Technical Protocol</p>
+                    </div>
                     </div>
                   </div>
                 </motion.div>
@@ -3108,13 +3169,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <p className="text-xs opacity-50 mb-6 font-medium">Phone Number</p>
 
                       <div className="space-y-2">
-                        <a
-                          href={`tel:${selectedPhone}`}
-                          onClick={() => setSelectedPhone(null)}
+                        <button
+                          onClick={() => {
+                            window.location.href = `tel:${selectedPhone}`;
+                            setSelectedPhone(null);
+                          }}
                           className="w-full flex items-center justify-center gap-3 py-3 rounded-2xl bg-primary text-primary-foreground font-bold text-sm transition-all active:scale-95 shadow-lg shadow-primary/20"
                         >
                           Dial the number
-                        </a>
+                        </button>
                         <button
                           onClick={() => {
                             navigator.clipboard.writeText(selectedPhone || "");
@@ -3139,9 +3202,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               )}
             </AnimatePresence>
 
-          </div>{/* end body */}
-        </motion.div>{/* end ovii-chat-frame */}
-      </motion.div>{/* end ovii-chat-root */}
-    </AnimatePresence>
-  );
+        </div>{/* end body */}
+      </motion.div>{/* end ovii-chat-frame */}
+    </motion.div>{/* end ovii-chat-root */}
+  </AnimatePresence>
+);
 }
