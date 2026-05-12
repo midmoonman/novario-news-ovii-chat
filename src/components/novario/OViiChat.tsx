@@ -1415,7 +1415,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center backdrop-blur-xl transition-colors duration-300 ${!paintTheme.bgDark ? (isDarkMode ? "bg-[#0b141a]/95" : "bg-[#efeae2]/95") : ""}`}
+        className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center lg:items-stretch lg:justify-stretch backdrop-blur-xl transition-colors duration-300 ${!paintTheme.bgDark ? (isDarkMode ? "bg-[#0b141a]/95" : "bg-[#efeae2]/95") : ""}`}
         style={rootStyle}
       >
         {/* Magical Atmosphere Layer */}
@@ -1442,7 +1442,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.5 }}
-          className="ovii-chat-frame w-full h-full md:max-w-[1200px] md:h-[92vh] md:rounded-[32px] md:shadow-2xl overflow-hidden flex flex-col relative border border-white/5"
+          className="ovii-chat-frame w-full h-full md:max-w-[1200px] md:h-[92vh] md:rounded-[32px] md:shadow-2xl lg:max-w-full lg:h-full lg:rounded-none lg:shadow-none overflow-hidden flex flex-col relative border border-white/5 lg:border-0"
           onDragOver={(e) => e.preventDefault()}
           onDrop={handleDrop}
         >
