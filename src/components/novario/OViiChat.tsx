@@ -539,8 +539,35 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
   );
 }
 
+// ─── Performance Shield (Hardware Detection) ──────────────────────────────────
+function usePerformanceShield() {
+  const [isLowEnd, setIsLowEnd] = useState(false);
+  useEffect(() => {
+    try {
+      // 1. Check RAM (Redmi 5A level has 2-3GB)
+      const ram = (navigator as any).deviceMemory || 8;
+      // 2. Check CPU Cores (Older budget phones have 4 cores)
+      const cores = navigator.hardwareConcurrency || 8;
+      // 3. Check for older Android/iOS versions in UA
+      const ua = navigator.userAgent.toLowerCase();
+      const isOldOS = /android [1-8]|iphone os [1-9]_|iphone os 10_/.test(ua);
+      
+      // If low RAM, low cores, or old OS, trigger Shield
+      if (ram <= 4 || cores <= 4 || isOldOS) {
+        setIsLowEnd(true);
+      }
+    } catch (e) {
+      // Fail silent, assume high end
+    }
+  }, []);
+  return isLowEnd;
+}
+
 export function OViiChat({ onLock }: { onLock: () => void }) {
+
+  const isLowEnd = usePerformanceShield();
   const [uid, setUid] = useState<string | null>(null);
+
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingText, setUploadingText] = useState("");
   const [inputHeight, setInputHeight] = useState(44);
@@ -2522,17 +2549,20 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   transition={{ type: "spring", damping: 30, stiffness: 300 }}
                   className={`fixed inset-0 z-[400] flex flex-col overflow-x-hidden transition-colors duration-700 ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
                 >
-                  {/* Dynamic Neon Gradient Glow */}
-                  <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-                    <div className="absolute top-0 left-0 w-full h-full will-change-transform">
-                      <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${
-                        logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
-                      }`} />
-                      <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${
-                        logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "easy" ? "bg-orange-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
-                      }`} />
+                  {/* Dynamic Neon Gradient Glow - DISABLED FOR LOW END */}
+                  {!isLowEnd && (
+                    <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
+                      <div className="absolute top-0 left-0 w-full h-full will-change-transform">
+                        <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${
+                          logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
+                        }`} />
+                        <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${
+                          logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "easy" ? "bg-orange-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
+                        }`} />
+                      </div>
                     </div>
-                  </div>
+                  )}
+
 
                   {/* Header / Protocol Identity */}
                   <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-3xl transition-colors duration-700 ${
@@ -2656,7 +2686,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       </div>
 
                       <div className="relative w-full">
-                        <div className={logTab === "updates" ? "block animate-in fade-in duration-300" : "hidden"}>
+                        <div className={logTab === "updates" ? "block" : "hidden"}>
+
                         <div className="flex justify-end mb-8 relative z-50 px-4">
                            <button
                              onClick={() => {
@@ -2675,9 +2706,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       {changelogData.map((day, idx) => (
                         <div key={day.date} className="relative pl-10 sm:pl-28">
                           {/* Intense Neon Timeline Line */}
-                          <div className={`absolute left-4 sm:left-14 top-0 bottom-0 w-0.5 ${isDarkMode ? "bg-gradient-to-b from-emerald-500/60 via-emerald-500/20 to-transparent" : "bg-gradient-to-b from-emerald-500/40 via-emerald-500/10 to-transparent"}`} />
+                          <div className={`absolute left-4 sm:left-14 top-0 bottom-0 w-0.5 ${isDarkMode ? "bg-emerald-500/20" : "bg-emerald-500/10"}`} />
                           
-                          <div className={`absolute left-0 sm:left-9 top-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.5)] z-20 ${isDarkMode ? "bg-[#0b141a]" : "bg-white"}`}>
+                          <div className={`absolute left-0 sm:left-9 top-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 border-emerald-500 ${isLowEnd ? "" : "shadow-[0_0_20px_rgba(16,185,129,0.5)]"} z-20 ${isDarkMode ? "bg-[#0b141a]" : "bg-white"}`}>
+
                              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,1)]" />
                           </div>
 
@@ -2730,7 +2762,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         </div>
                       ))}
                         </div>
-                        <div className={logTab === "history" ? "block animate-in fade-in duration-300 space-y-8 relative" : "hidden"}>
+                        <div className={logTab === "history" ? "block space-y-8 relative" : "hidden"}>
+
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-8 relative z-20">
                             <div className="flex items-center justify-center gap-3 sm:gap-4 w-full sm:w-auto">
                               {(["easy", "medium", "hard"] as const).map((level) => (
