@@ -1,6 +1,26 @@
 {
   "history": [
     {
+      "id": "protocol-125-living-museum",
+      "title": "Protocol 125: Build Book 'Living Museum' Protocol",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "Added a new 'Thumb Rule' section to the Build Book so we never forget how it should look and work.",
+        "medium": "Integrated a permanent technical manifestation of the 'Thumb Rule' into the Build Book UI for Hard mode.",
+        "hard": "Engineered a conditional rendering layer for the project's 'Thumb Rule' manifest. This section acts as a living technical summary and Museum of Intelligence, ensuring architectural integrity for future protocol deployments."
+      }
+    },
+    {
+      "id": "protocol-124-elite-avatars",
+      "title": "Protocol 124: Elite Avatar Collection Update",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "Replaced the old avatars with 16 new cute animals like hamsters, dogs, and cats!",
+        "medium": "Updated the avatar identity collection with 16 high-fidelity custom images and unique theme-color mapping.",
+        "hard": "Synchronized a new collection of 16 custom assets into the avatar library. Implemented specific ID-routing and color-coordinate logic to ensure a seamless and personalized social identity system."
+      }
+    },
+    {
       "id": "protocol-123-responsive-presence",
       "title": "Protocol 123: Responsive Presence Engine",
       "date": "2026-05-12",
