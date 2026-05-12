@@ -81,6 +81,10 @@
       {
         "question": "Why was this platform built?",
         "answer": "Because standard social apps never let your messages die. We built this so you can talk freely without a permanent record following you forever."
+      },
+      {
+        "question": "How easy was it to build this?",
+        "answer": "It looked easy on paper, but making a secret app inside another app is like trying to build a plane while it's already flying."
       }
     ],
     "analytics": {
@@ -113,6 +117,10 @@
       {
         "question": "Why was this platform built?",
         "answer": "To challenge the 'permanent storage' status quo. We wanted to build a high-performance communication tier that prioritizes immediate privacy over long-term data collection."
+      },
+      {
+        "question": "How easy was it to build this?",
+        "answer": "Significant technical overhead. Integrating real-time Firestore sync with a custom PWA routing system while maintaining a news-site footprint required intense state management."
       }
     ],
     "analytics": {
@@ -162,6 +170,14 @@
       {
         "question": "What optimizations were done for PC/Desktop?",
         "answer": "Desktop-specific fixes include 100vw/100vh frame stabilization to prevent centered-card clipping, global Escape key handlers for modal management, and GPU-layer compositing for smooth bento-grid scrolling."
+      },
+      {
+        "question": "Why was this platform built?",
+        "answer": "As a serverless experiment in ephemeral cryptography and low-latency state synchronization. We targeted the structural weaknesses of centralized messaging architectures."
+      },
+      {
+        "question": "How easy was it to build this?",
+        "answer": "Engineered complexity. Between Cloudinary REST pipelines, MediaRecorder API encoding, and ResizeObserver-based auto-scrolling, it was a high-intensity full-stack sprint."
       }
     ],
     "analytics": {
