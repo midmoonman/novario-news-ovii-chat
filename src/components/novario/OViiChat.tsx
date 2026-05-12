@@ -186,8 +186,24 @@ interface HistoryTier {
   summary: string;
 }
 
+interface HistoryEntry {
+  id: string;
+  title: string;
+  date: string;
+  difficulty: Record<string, string>;
+  hardIntel?: {
+    affectedFiles: string[];
+    fileTree: string[];
+    purpose: string;
+    services: string[];
+    optimizations: string[];
+    challenges: string[];
+    fixes: string[];
+  };
+}
+
 type HistoryDataRoot = {
-  history: { id: string, title: string, date: string, difficulty: Record<string, string> }[];
+  history: HistoryEntry[];
 } & Record<"easy" | "medium" | "hard", HistoryTier>;
 
 
