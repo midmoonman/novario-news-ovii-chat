@@ -2704,7 +2704,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                            </button>
                         </div>
                       {changelogData.map((day, idx) => (
-                        <div key={day.date} className="relative pl-10 sm:pl-28">
+                        <div key={day.date} className="relative pl-10 sm:pl-28 pb-20 sm:pb-32 last:pb-0">
+
                           {/* Intense Neon Timeline Line */}
                           <div className={`absolute left-4 sm:left-14 top-0 bottom-0 w-0.5 ${isDarkMode ? "bg-emerald-500/20" : "bg-emerald-500/10"}`} />
                           
@@ -2746,7 +2747,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   {update.description}
                                 </p>
                                 {update.rationale && (
-                                  <div className={`p-5 sm:p-8 rounded-[24px] sm:rounded-[40px] border relative overflow-hidden transition-all group-hover:border-emerald-500/30 ${isDarkMode ? "bg-black/40 border-emerald-500/10" : "bg-white border-emerald-500/10"}`}>
+                                  <div className={`p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] border relative overflow-hidden transition-all group-hover:border-emerald-500/30 ${isDarkMode ? "bg-black/40 border-emerald-500/10" : "bg-white border-emerald-500/10"}`}>
+
                                     <div className="absolute top-0 left-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-emerald-500 to-orange-500" />
                                     <span className={`block text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-2 sm:mb-4 ${isDarkMode ? "text-emerald-500" : "text-emerald-600"}`}>
                                       Build Rationale
