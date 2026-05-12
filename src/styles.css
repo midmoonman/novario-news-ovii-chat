@@ -490,3 +490,15 @@
   animation: pin-highlight 2s ease-out;
   border-radius: 12px;
 }
+
+
+@keyframes pin-bar-pulse {
+  0%, 100% { transform: scale(1); box-shadow: none; border-color: transparent; }
+  50% { transform: scale(1.02); box-shadow: 0 0 25px var(--primary); border-color: var(--primary); }
+}
+
+.animate-pin-pulse {
+  animation: pin-bar-pulse 1.5s ease-in-out infinite;
+  z-index: 60 !important;
+  position: relative;
+}

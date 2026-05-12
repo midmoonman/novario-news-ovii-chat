@@ -1154,6 +1154,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     };
   }, [msgs.length, isLoading]);
 
+  const [isPulsingPin, setIsPulsingPin] = useState(false);
+
   const scrollToMessage = (id: string) => {
     const el = document.getElementById(`msg-${id}`);
     if (el) {
@@ -1329,7 +1331,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       const toDelete = snapshot.docs.filter(d => !d.data().isPinned);
       const batch = toDelete.map(d => deleteDoc(doc(db, "ovii", ROOM, "messages", d.id)));
       await Promise.all(batch);
-      addNotification(`Chat cleared (${snapshot.docs.length - toDelete.length} pinned preserved)`, "success");
+      addNotification("Chat cleared", "success");
+      if (snapshot.docs.length > toDelete.length) {
+        setIsPulsingPin(true);
+        setTimeout(() => setIsPulsingPin(false), 5000);
+      }
       setShowMenu(false);
     } catch (e) {
       addNotification("Failed to clear chat", "error");
@@ -1964,7 +1970,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: "auto", opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className={`relative z-[40] shrink-0 border-b overflow-hidden cursor-pointer ${isDarkMode ? "bg-[#202c33]/90 border-white/5" : "bg-white/90 border-black/5"}`}
+                    className={`relative z-[40] shrink-0 border-b overflow-hidden cursor-pointer transition-all duration-500 ${isPulsingPin ? "animate-pin-pulse" : ""} ${isDarkMode ? "bg-[#202c33]/90 border-white/5" : "bg-white/90 border-black/5"}`}
                     onClick={() => scrollToMessage(currentPinned.id)}
                   >
                     <div className="px-4 py-2.5 flex items-center gap-3">
