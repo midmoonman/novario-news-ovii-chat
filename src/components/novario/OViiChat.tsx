@@ -160,14 +160,14 @@ const formatLastSeen = (timestamp: number | null | undefined) => {
   return `last seen ${dayStr} at ${timeStr}`;
 };
 
-const PAINTS_MAP: Record<string, { sent: string, received: string, bgDark: string, bgLight: string, headerDark: string, headerLight: string, nameDark: string, nameLight: string }> = {
-  default: { sent: "", received: "", bgDark: "", bgLight: "", headerDark: "", headerLight: "", nameDark: "", nameLight: "" },
-  paint1: { sent: "#f97316", received: "#3b82f6", bgDark: "#0c1b2d", bgLight: "#eaf3fa", headerDark: "#08101a", headerLight: "#ffffff", nameDark: "#fdba74", nameLight: "#c2410c" },
-  paint2: { sent: "#fdfbd4", received: "#545333", bgDark: "#1a1a14", bgLight: "#f4f4ea", headerDark: "#10100d", headerLight: "#ffffff", nameDark: "#fdfbd4", nameLight: "#3f3f26" },
-  paint3: { sent: "#355c7d", received: "#ff7582", bgDark: "#121921", bgLight: "#ffeef0", headerDark: "#0a0e12", headerLight: "#ffffff", nameDark: "#9cbcd9", nameLight: "#203a50" },
-  paint4: { sent: "#028175", received: "#92de8b", bgDark: "#012623", bgLight: "#eaf8ea", headerDark: "#011412", headerLight: "#ffffff", nameDark: "#7ae0d6", nameLight: "#014d46" },
-  paint5: { sent: "#662249", received: "#1b1931", bgDark: "#0b0a14", bgLight: "#f8eef3", headerDark: "#06060c", headerLight: "#ffffff", nameDark: "#d67ba5", nameLight: "#4d1a37" },
-  paint6: { sent: "#de5153", received: "#601e0d", bgDark: "#260b04", bgLight: "#fdeadb", headerDark: "#170602", headerLight: "#ffffff", nameDark: "#f0999a", nameLight: "#9a3536" },
+const PAINTS_MAP: Record<string, { sent: string, received: string, bgDark: string, bgLight: string, headerDark: string, headerLight: string, nameDark: string, nameLight: string, bubbleNameDark: string, bubbleNameLight: string }> = {
+  default: { sent: "", received: "", bgDark: "", bgLight: "", headerDark: "", headerLight: "", nameDark: "", nameLight: "", bubbleNameDark: "", bubbleNameLight: "" },
+  paint1: { sent: "#f97316", received: "#3b82f6", bgDark: "#0c1b2d", bgLight: "#eaf3fa", headerDark: "#08101a", headerLight: "#ffffff", nameDark: "#fdba74", nameLight: "#c2410c", bubbleNameDark: "#bfdbfe", bubbleNameLight: "#1e3a8a" },
+  paint2: { sent: "#fdfbd4", received: "#545333", bgDark: "#1a1a14", bgLight: "#f4f4ea", headerDark: "#10100d", headerLight: "#ffffff", nameDark: "#fdfbd4", nameLight: "#3f3f26", bubbleNameDark: "#fefce8", bubbleNameLight: "#fefce8" },
+  paint3: { sent: "#355c7d", received: "#ff7582", bgDark: "#121921", bgLight: "#ffeef0", headerDark: "#0a0e12", headerLight: "#ffffff", nameDark: "#9cbcd9", nameLight: "#203a50", bubbleNameDark: "#ffe4e6", bubbleNameLight: "#881337" },
+  paint4: { sent: "#028175", received: "#92de8b", bgDark: "#012623", bgLight: "#eaf8ea", headerDark: "#011412", headerLight: "#ffffff", nameDark: "#7ae0d6", nameLight: "#014d46", bubbleNameDark: "#064e3b", bubbleNameLight: "#064e3b" },
+  paint5: { sent: "#662249", received: "#1b1931", bgDark: "#0b0a14", bgLight: "#f8eef3", headerDark: "#06060c", headerLight: "#ffffff", nameDark: "#d67ba5", nameLight: "#4d1a37", bubbleNameDark: "#fbcfe8", bubbleNameLight: "#fbcfe8" },
+  paint6: { sent: "#de5153", received: "#601e0d", bgDark: "#260b04", bgLight: "#fdeadb", headerDark: "#170602", headerLight: "#ffffff", nameDark: "#f0999a", nameLight: "#9a3536", bubbleNameDark: "#fecaca", bubbleNameLight: "#fecaca" },
 };
 
 const getBubbleColor = (mine: boolean, isDarkMode: boolean, paint: string, isLastInGroup: boolean) => {
@@ -1933,7 +1933,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
                                   >
                                     <div className="relative flex flex-col">
-                                      {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: isDarkMode ? (paintTheme.nameDark || "#f28b82") : (paintTheme.nameLight || "#eb5528") }}>{m.name}</span>}
+                                      {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: isDarkMode ? (paintTheme.bubbleNameDark || paintTheme.nameDark || "#f28b82") : (paintTheme.bubbleNameLight || paintTheme.nameLight || "#eb5528") }}>{m.name}</span>}
 
 
                                       {m.type === "image" && !m.isDeleted && (
