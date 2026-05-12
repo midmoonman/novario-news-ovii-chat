@@ -479,3 +479,14 @@
 .switch input:checked ~ .slider .cloud {
   opacity: 1;
 }
+
+@keyframes pin-highlight {
+  0% { background-color: transparent; }
+  20% { background-color: var(--color-primary); opacity: 0.3; }
+  100% { background-color: transparent; }
+}
+
+.highlight-pin {
+  animation: pin-highlight 2s ease-out;
+  border-radius: 12px;
+}

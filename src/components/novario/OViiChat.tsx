@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
@@ -129,6 +129,7 @@ type Msg = {
   isEdited?: boolean;
   isDeleted?: boolean;
   deletedFor?: string[];
+  isPinned?: boolean;
 };
 
 interface HistorySection {
@@ -1147,6 +1148,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     };
   }, [msgs.length, isLoading]);
 
+  const scrollToMessage = (id: string) => {
+    const el = document.getElementById(`msg-${id}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+      const bubble = el.querySelector('.msg-bubble');
+      if (bubble) {
+        bubble.classList.add("highlight-pin");
+        setTimeout(() => bubble.classList.remove("highlight-pin"), 2000);
+      }
+    }
+  };
+
   useEffect(() => {
     if (isTyping) {
       const timer = setTimeout(() => scrollToBottom(true), 100);
@@ -1195,6 +1208,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         const deletedFor = [...(msg.deletedFor || []), uid];
         await setDoc(doc(db, "ovii", ROOM, "messages", msgId), { deletedFor }, { merge: true });
       }
+    } catch (e) {
+      addNotification("Action failed", "error");
+    }
+  };
+
+  const pinMessage = async (msgId: string, isPinned: boolean) => {
+    try {
+      await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
+        isPinned: !isPinned
+      }, { merge: true });
+      addNotification(!isPinned ? "Message pinned" : "Message unpinned", "success");
     } catch (e) {
       addNotification("Action failed", "error");
     }
@@ -1296,9 +1320,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     try {
       const q = query(collection(db, "ovii", ROOM, "messages"));
       const snapshot = await getDocs(q);
-      const batch = snapshot.docs.map(d => deleteDoc(doc(db, "ovii", ROOM, "messages", d.id)));
+      const toDelete = snapshot.docs.filter(d => !d.data().isPinned);
+      const batch = toDelete.map(d => deleteDoc(doc(db, "ovii", ROOM, "messages", d.id)));
       await Promise.all(batch);
-      addNotification("Chat cleared", "success");
+      addNotification(`Chat cleared (${snapshot.docs.length - toDelete.length} pinned preserved)`, "success");
       setShowMenu(false);
     } catch (e) {
       addNotification("Failed to clear chat", "error");
@@ -1431,6 +1456,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='440' height='440' viewBox='0 0 440 440'%3E%3Cg fill='none' stroke='${isDarkMode ? "%23ffffff" : "%23000000"}' stroke-opacity='${isDarkMode ? "0.04" : "0.03"}' stroke-width='1'%3E%3Cpath d='M200 200c0-10 10-10 10-20s-10-10-10-20 10-10 10-20-10-10-10-20 10-10 10-20-10-10-10-20 10-10 10-20'/%3E%3Cpath d='M300 100c10 10 20 10 20 20s-10 10-20 10-10-10-20-10 10-10 20-10'/%3E%3Ccircle cx='350' cy='350' r='15'/%3E%3Ccircle cx='50' cy='150' r='10'/%3E%3Cpath d='M100 300l15 15m0-15l-15 15'/%3E%3Cpath d='M50 350q10-10 20 0t20 0 20 0 20 0'/%3E%3Cpath d='M380 50l10 10m0-10l-10 10'/%3E%3Ccircle cx='180' cy='80' r='5'/%3E%3Cpath d='M20 200h20m-10-10v20'/%3E%3Cpath d='M400 250c-10 0-10 10-20 10s-10-10-20-10'/%3E%3C/g%3E%3C/svg%3E")`,
     backgroundSize: "440px 440px"
   };
+
+  const pinnedMsgs = chatMsgs.filter(m => m.isPinned);
+  const [currentPinnedIdx, setCurrentPinnedIdx] = useState(0);
+  const currentPinned = pinnedMsgs[currentPinnedIdx % pinnedMsgs.length];
 
   return (
     <AnimatePresence>
@@ -1921,6 +1950,62 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 )}
               </AnimatePresence>
 
+              {/* Pinned Messages Bar */}
+              <AnimatePresence mode="wait">
+                {pinnedMsgs.length > 0 && (
+                  <motion.div
+                    key="pinned-bar"
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: "auto", opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className={`relative z-[40] shrink-0 border-b overflow-hidden cursor-pointer ${isDarkMode ? "bg-[#202c33]/90 border-white/5" : "bg-white/90 border-black/5"}`}
+                    onClick={() => scrollToMessage(currentPinned.id)}
+                  >
+                    <div className="px-4 py-2.5 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Pin className="w-4 h-4 text-primary fill-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black text-primary uppercase tracking-widest">Pinned Message</span>
+                          {pinnedMsgs.length > 1 && (
+                            <span className="text-[9px] opacity-40 font-bold">
+                              {currentPinnedIdx + 1} of {pinnedMsgs.length}
+                            </span>
+                          )}
+                        </div>
+                        <div className={`text-xs truncate font-medium ${isDarkMode ? "text-white/70" : "text-black/70"}`}>
+                          {currentPinned.type === "text" ? currentPinned.content : 
+                           currentPinned.type === "image" ? "Photo" : 
+                           currentPinned.type === "voice" ? "Voice Note" : "File"}
+                        </div>
+                      </div>
+                      {pinnedMsgs.length > 1 && (
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setCurrentPinnedIdx(prev => (prev + 1) % pinnedMsgs.length);
+                          }}
+                          className={`p-1.5 rounded-full hover:bg-black/5 transition-colors ${isDarkMode ? "text-white/40" : "text-black/40"}`}
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                        </button>
+                      )}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          pinMessage(currentPinned.id, true);
+                        }}
+                        className={`p-1.5 rounded-full hover:bg-destructive/10 text-destructive transition-colors opacity-40 hover:opacity-100`}
+                        title="Unpin"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
               {/* Scroll area — overflow-x:hidden prevents horizontal bleed from drag */}
               <div
                 ref={scrollRef}
@@ -2043,6 +2128,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             )}
 
                             <motion.div
+                              id={`msg-${m.id}`}
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0 }}
@@ -2128,7 +2214,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     </div>
                                   ) : (
                                     <div
-                                      className={`md:rounded-[20px] ${m.type === "image" || m.type === "cluster" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent shadow-none" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px] shadow-sm md:shadow-md transition-all"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col w-fit max-w-full
+                                      className={`msg-bubble md:rounded-[20px] ${m.type === "image" || m.type === "cluster" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent shadow-none" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px] shadow-sm md:shadow-md transition-all"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col w-fit max-w-full
                                    ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
                                     >
                                       <div className="relative flex flex-col">
@@ -2239,6 +2325,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                           {/* Timestamp: absolute for image, relative for text */}
                                           <div className={`${m.type === "image" || m.type === "cluster" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
+                                            {m.isPinned && <Pin className={`w-2.5 h-2.5 fill-primary text-primary -rotate-45 mr-0.5`} />}
                                             {m.isEdited && !m.isDeleted && <span className="text-[9px] opacity-40 font-bold uppercase mr-1">Edited</span>}
                                             <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" || m.type === "cluster" ? "text-white" : ""}`}>
                                               {m.createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
@@ -2549,6 +2636,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       >
                         <Reply className="w-4 h-4 opacity-60" /> Reply
                       </button>
+
+                      {!contextMsg.isDeleted && (
+                        <button
+                          onClick={() => {
+                            pinMessage(contextMsg.id, !!contextMsg.isPinned);
+                            setContextMsg(null);
+                          }}
+                          className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                        >
+                          <Pin className={`w-4 h-4 opacity-60 ${contextMsg.isPinned ? "fill-primary text-primary" : ""}`} /> {contextMsg.isPinned ? "Unpin Message" : "Pin Message"}
+                        </button>
+                      )}
 
                       {!contextMsg.isDeleted && contextMsg.uid === uid && contextMsg.type === "text" && (
                         <button
