@@ -3289,6 +3289,42 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               </>
                             )}
 
+                            {/* Thumb Rule Section */}
+                            <div className={`mt-16 sm:mt-24 p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden transition-all duration-700 ${historyLevel === 'hard' ? (isDarkMode ? "bg-primary/5 border-primary/20" : "bg-primary/5 border-primary/20") : "hidden"}`}>
+                              <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center shadow-inner">
+                                  <Palette className="w-6 h-6 text-primary" />
+                                </div>
+                                <h3 className={`text-xl sm:text-2xl font-black ${isDarkMode ? "text-white" : "text-black"}`}>
+                                  Thumb Rule — Build Book History Tab
+                                </h3>
+                              </div>
+                              <p className={`text-sm sm:text-base leading-relaxed font-bold mb-6 ${isDarkMode ? "text-primary/80" : "text-primary/90"}`}>
+                                The Build Book History tab must always function as a complete hard technical knowledge for Hard mode and it is a technical summary of our product.
+                              </p>
+                              <div className={`grid sm:grid-cols-2 gap-4 text-xs sm:text-sm font-semibold ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+                                <ul className="space-y-2 list-disc list-inside">
+                                  <li>Recent Changes log</li>
+                                  <li>Files affected by the update</li>
+                                  <li>Complete file tree/structure</li>
+                                  <li>Purpose and usage of files</li>
+                                  <li>Services, APIs, and integrations</li>
+                                </ul>
+                                <ul className="space-y-2 list-disc list-inside">
+                                  <li>UI/UX and Architectural notes</li>
+                                  <li>Performance (Mobile & PC)</li>
+                                  <li>Development challenges</li>
+                                  <li>Fixes and workarounds</li>
+                                  <li>Scaling & Rendering FAQs</li>
+                                </ul>
+                              </div>
+                              <div className={`mt-8 pt-6 border-t ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+                                <p className={`text-xs font-black uppercase tracking-widest opacity-40 text-center`}>
+                                  The Build Book History tab acts as a living Museum of our project intelligence system.
+                                </p>
+                              </div>
+                            </div>
+
                           <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
                             <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
                               {historyData[historyLevel].summary}
