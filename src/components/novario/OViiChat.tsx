@@ -160,6 +160,16 @@ const formatLastSeen = (timestamp: number | null | undefined) => {
   return `last seen ${dayStr} at ${timeStr}`;
 };
 
+const PAINTS_MAP: Record<string, { sent: string, received: string, bgDark: string, bgLight: string }> = {
+  default: { sent: "", received: "", bgDark: "", bgLight: "" },
+  paint1: { sent: "#f97316", received: "#3b82f6", bgDark: "#0c1b2d", bgLight: "#eaf3fa" },
+  paint2: { sent: "#fdfbd4", received: "#545333", bgDark: "#1a1a14", bgLight: "#f4f4ea" },
+  paint3: { sent: "#355c7d", received: "#ff7582", bgDark: "#121921", bgLight: "#ffeef0" },
+  paint4: { sent: "#028175", received: "#92de8b", bgDark: "#012623", bgLight: "#eaf8ea" },
+  paint5: { sent: "#662249", received: "#1b1931", bgDark: "#0b0a14", bgLight: "#f8eef3" },
+  paint6: { sent: "#de5153", received: "#601e0d", bgDark: "#260b04", bgLight: "#fdeadb" },
+};
+
 const getBubbleColor = (mine: boolean, isDarkMode: boolean, paint: string, isLastInGroup: boolean) => {
   const radii = isLastInGroup ? (mine ? "rounded-br-sm md:rounded-br-none" : "rounded-bl-sm md:rounded-bl-none") : "";
   let bg = "";
@@ -1270,8 +1280,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const unreadMedia = mediaMsgs.length;
 
   // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
+  const paintTheme = PAINTS_MAP[activePaint] || PAINTS_MAP.default;
   const rootStyle: React.CSSProperties = {
     ...(isMobileDevice() && mobileKeyboardOffset > 0 ? { paddingBottom: mobileKeyboardOffset } : {}),
+    backgroundColor: paintTheme.bgDark ? (isDarkMode ? paintTheme.bgDark : paintTheme.bgLight) : undefined,
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='440' height='440' viewBox='0 0 440 440'%3E%3Cg fill='none' stroke='${isDarkMode ? "%23ffffff" : "%23000000"}' stroke-opacity='${isDarkMode ? "0.04" : "0.03"}' stroke-width='1'%3E%3Cpath d='M200 200c0-10 10-10 10-20s-10-10-10-20 10-10 10-20-10-10-10-20 10-10 10-20-10-10-10-20 10-10 10-20'/%3E%3Cpath d='M300 100c10 10 20 10 20 20s-10 10-20 10-10-10-20-10 10-10 20-10'/%3E%3Ccircle cx='350' cy='350' r='15'/%3E%3Ccircle cx='50' cy='150' r='10'/%3E%3Cpath d='M100 300l15 15m0-15l-15 15'/%3E%3Cpath d='M50 350q10-10 20 0t20 0 20 0 20 0'/%3E%3Cpath d='M380 50l10 10m0-10l-10 10'/%3E%3Ccircle cx='180' cy='80' r='5'/%3E%3Cpath d='M20 200h20m-10-10v20'/%3E%3Cpath d='M400 250c-10 0-10 10-20 10s-10-10-20-10'/%3E%3C/g%3E%3C/svg%3E")`,
     backgroundSize: "440px 440px"
   };
@@ -1283,7 +1295,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center backdrop-blur-xl transition-colors duration-300 ${isDarkMode ? "bg-[#0b141a]/95" : "bg-[#efeae2]/95"}`}
+        className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center backdrop-blur-xl transition-colors duration-300 ${!paintTheme.bgDark ? (isDarkMode ? "bg-[#0b141a]/95" : "bg-[#efeae2]/95") : ""}`}
         style={rootStyle}
       >
         {/* Magical Atmosphere Layer */}
@@ -1407,10 +1419,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
 
           {/* ── Header ── */}
-          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${isDarkMode
-              ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white"
-              : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black"
-            }`}>
+          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${
+            paintTheme.bgDark 
+              ? (isDarkMode ? "border-white/5 text-white" : "border-black/5 text-black") 
+              : (isDarkMode ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white" : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black")
+            }`}
+            style={{ backgroundColor: paintTheme.bgDark ? (isDarkMode ? paintTheme.bgDark + "f2" : paintTheme.bgLight + "f2") : undefined }}
+          >
             <div className="flex items-center gap-3">
               <div
                 className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all active:scale-95 relative"
@@ -1433,7 +1448,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 />
               </div>
               <div>
-                <div className="font-bold text-[14px] leading-tight">
+                <div className="font-bold text-[14px] leading-tight transition-colors duration-500" style={{ color: paintTheme.sent || undefined }}>
                   {otherName || (count > 1 ? "Ovii User" : "Waiting...") || "Waiting..."}
                 </div>
                 <div className="text-[10px] opacity-60 flex items-center gap-1.5 font-medium">
@@ -1642,12 +1657,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             <div className={`px-4 pb-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Select Theme</div>
                             {[
                               { label: "Default", val: "default" },
-                              { label: "Orange & Blue", val: "paint1" },
-                              { label: "Cream & Olive", val: "paint2" },
-                              { label: "Navy & Coral", val: "paint3" },
-                              { label: "Teal & Mint", val: "paint4" },
-                              { label: "Berry & Night", val: "paint5" },
-                              { label: "Rust & Red", val: "paint6" },
+                              { label: "Orange & Blue", val: "paint1", colors: ["#f97316", "#3b82f6"] },
+                              { label: "Cream & Olive", val: "paint2", colors: ["#fdfbd4", "#545333"] },
+                              { label: "Navy & Coral", val: "paint3", colors: ["#355c7d", "#ff7582"] },
+                              { label: "Teal & Mint", val: "paint4", colors: ["#028175", "#92de8b"] },
+                              { label: "Berry & Night", val: "paint5", colors: ["#662249", "#1b1931"] },
+                              { label: "Rust & Red", val: "paint6", colors: ["#de5153", "#601e0d"] },
                             ].map((p) => (
                               <button
                                 key={p.val}
@@ -1660,6 +1675,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/80" : "hover:bg-black/5 text-black/70"} ${activePaint === p.val ? "bg-primary/10 text-primary font-bold" : ""}`}
                               >
+                                {p.colors && (
+                                  <div className="flex -space-x-1.5 shrink-0">
+                                    <div className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: p.colors[0] }} />
+                                    <div className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: p.colors[1] }} />
+                                  </div>
+                                )}
                                 <span className="font-medium flex-1 text-left">{p.label}</span>
                                 {activePaint === p.val && <CheckCircle2 className="w-3.5 h-3.5" />}
                               </button>
@@ -1912,7 +1933,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
                                   >
                                     <div className="relative flex flex-col">
-                                      {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold text-[#eb5528] dark:text-[#f28b82] mb-0.5 leading-tight">{m.name}</span>}
+                                      {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: paintTheme.sent || (isDarkMode ? "#f28b82" : "#eb5528") }}>{m.name}</span>}
 
 
                                       {m.type === "image" && !m.isDeleted && (
