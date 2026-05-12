@@ -3,10 +3,10 @@
     "date": "2026-05-12",
     "updates": [
       {
-        "title": "Apple-Tier Fluidity: Sheet & Skeleton",
+        "title": "Glassmorphic Skeleton Shimmer",
         "status": "DEPLOYED",
-        "description": "Implemented 'Liquid Sheet' article overlays and 'Glass Skeleton' loading states. Replaced traditional navigation with an immersive sheet system and swapped generic spinners for shimmering, high-fidelity card placeholders.",
-        "rationale": "Elevates the hub to a native-app feel, maintaining user context during article reading and providing professional visual feedback during data fetching."
+        "description": "Replaced standard loading indicators with a high-fidelity 'Skeleton Shimmer' system. Implemented a dedicated NewsSkeleton component that mirrors the Bento Grid architecture, providing a smooth, structured 'ghost' reveal during data fetching.",
+        "rationale": "Enhances perceived performance and maintains layout stability, aligning with Apple's progressive disclosure design patterns."
       },
       {
         "title": "Premium Orange Header Aura",

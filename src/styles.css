@@ -233,26 +233,13 @@
     font-family: 'Zen Tokyo Zoo', cursive;
     letter-spacing: 0.1em;
   }
-  @keyframes glass-shimmer {
+
+  @keyframes shimmer {
     0% { transform: translateX(-100%); }
     100% { transform: translateX(100%); }
   }
-  .animate-glass-shimmer {
-    position: relative;
-    overflow: hidden;
-  }
-  .animate-glass-shimmer::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    transform: translateX(-100%);
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(255, 255, 255, 0.05),
-      transparent
-    );
-    animation: glass-shimmer 2s infinite;
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
   }
 }
 

@@ -1,13 +1,13 @@
 {
   "history": [
     {
-      "id": "protocol-120-fluidity-matrix",
-      "title": "Protocol 120: Liquid Sheet & Shimmer Skeletons",
+      "id": "protocol-120-ghost-disclosure",
+      "title": "Protocol 120: Skeleton Shimmer & Ghost Reveal",
       "date": "2026-05-12",
       "difficulty": {
-        "easy": "News articles now slide up like an app, and I added cool shimmering boxes for when things are loading.",
-        "medium": "Architected a 'Liquid Sheet' overlay system using Outlet interception and replaced global loading spinners with Glassmorphic Skeletons.",
-        "hard": "Engineered a non-linear navigation stack that maintains the News Hub state while rendering articles in a fixed Z-index overlay. Integrated a custom @keyframes shimmer engine into the bento-grid architecture to eliminate layout jump and provide premium visual feedback."
+        "easy": "Added cool shimmering loading boxes so the page doesn't look empty while loading.",
+        "medium": "Implemented a glassmorphic NewsSkeleton system in the router to provide structured layout previews during data fetching.",
+        "hard": "Engineered a high-performance CSS shimmer animation engine. Integrated pendingComponent logic into TanStack Router to manage progressive disclosure and layout stability across asynchronous data transitions."
       }
     },
     {
