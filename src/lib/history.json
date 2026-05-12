@@ -155,7 +155,9 @@
       "hardwareUsage": [
         { "label": "GPU Shaders", "value": 5, "color": "#f97316" },
         { "label": "Cloud Sync", "value": 85, "color": "#22c55e" },
-        { "label": "Client Logic", "value": 10, "color": "#3b82f6" }
+        { "label": "Client Logic", "value": 10, "color": "#3b82f6" },
+        { "label": "Presence Hub", "value": 92, "color": "#10b981" },
+        { "label": "Storage Bus", "value": 12, "color": "#f59e0b" }
       ],
       "fileDistribution": [
         { "category": "JSON Logs", "percentage": 10 },
@@ -165,14 +167,18 @@
       "oviiAnalytics": [
         { "metric": "Active Sync Nodes", "value": "1,422", "trend": "+12%" },
         { "metric": "Messages Processed", "value": "48,290", "trend": "+5.4k" },
-        { "metric": "Global Linguistic Reach", "value": "91 Nodes", "trend": "+70" },
+        { "metric": "Media Entropy", "value": "92.4%", "trend": "STABLE" },
         { "metric": "Avg. Node Latency", "value": "14ms", "trend": "-2ms" },
-        { "metric": "UI Component Units", "value": "43 Blocks", "trend": "STABLE" },
-        { "metric": "Identity Entropy", "value": "16 Avatars", "trend": "MAX" },
-        { "metric": "Media Purge Velocity", "value": "100%", "trend": "SECURE" },
-        { "metric": "Encryption Depth", "value": "256-bit", "trend": "AES" },
-        { "metric": "Adaptive GPU Load", "value": "85%", "trend": "SCALED" },
-        { "metric": "Data Recovery Prob.", "value": "0%", "trend": "SAFE" }
+        { "metric": "Identity Density", "value": "16 Units", "trend": "MAX" },
+        { "metric": "Pinned Retention", "value": "14.2%", "trend": "+3.1%" },
+        { "metric": "Heartbeat Frequency", "value": "10s", "trend": "OPTIMIZED" },
+        { "metric": "Z-Index Depth", "value": "150 Layers", "trend": "STABLE" },
+        { "metric": "Metadata Success", "value": "98.1%", "trend": "+0.4%" },
+        { "metric": "Audio Wave Nodes", "value": "256 pts", "trend": "HIGH" },
+        { "metric": "Purge Transaction", "value": "14 Days", "trend": "TTL" },
+        { "metric": "Viewport Stability", "value": "100%", "trend": "FIXED" },
+        { "metric": "Build Protocol", "value": "v1.2.5", "trend": "ELITE" },
+        { "metric": "Theme Delta", "value": "<0.1s", "trend": "INSTANT" }
       ],
       "colorPalette": [
         { "name": "Orange Energy", "value": "oklch(0.72 0.18 35)", "hex": "#F59E0B", "usage": "Primary Branding" },
