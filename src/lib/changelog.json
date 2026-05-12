@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Aesthetic & Legal Refinement",
+        "status": "DEPLOYED",
+        "description": "Integrated the 'Zen Tokyo Zoo' futuristic font for the Deep Archive section. Completely rewrote the Privacy Policy to be brand-specific for Novario News, emphasizing a login-free, zero-tracking philosophy and removing all internal OVii Chat references.",
+        "rationale": "Strengthens brand identity and ensures professional legal compliance without compromising the secrecy of the underground chat layer."
+      },
+      {
         "title": "Layout Precision & Glass Refinement",
         "status": "DEPLOYED",
         "description": "Eliminated unprofessional vertical gaps by removing rigid min-height constraints and tightening bento-grid padding. Refined Glassmorphism 2.0 values (rgba 0.01 background, 13.7px blur) for a more sophisticated, high-end look.",

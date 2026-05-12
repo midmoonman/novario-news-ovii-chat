@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;700;900&family=Zen+Tokyo+Zoo&display=swap');
 @import "tailwindcss" source(none); /* v1.1.2-premium-chat */
 @source "../src";
 @import "tw-animate-css";
@@ -228,6 +228,10 @@
   }
   .animate-float-slow {
     animation: float-slow 15s ease-in-out infinite;
+  }
+  .font-tokyo {
+    font-family: 'Zen Tokyo Zoo', cursive;
+    letter-spacing: 0.1em;
   }
 }
 

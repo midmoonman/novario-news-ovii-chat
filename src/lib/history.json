@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-117-identity-compliance",
+      "title": "Protocol 117: Identity & Privacy Manifest",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "Changed the font for the Deep Archive to look more futuristic and fixed the privacy page.",
+        "medium": "Integrated 'Zen Tokyo Zoo' Google Font and refactored the legal directory to provide a Novario-specific Privacy Policy.",
+        "hard": "Implemented aesthetic differentiation for the Archive layer using striking typography. Scrubbed all internal ephemeral chat references from the public Privacy Manifest to maintain operational security."
+      }
+    },
+    {
       "id": "protocol-116-layout-precision",
       "title": "Protocol 116: Layout Precision & Density",
       "date": "2026-05-12",

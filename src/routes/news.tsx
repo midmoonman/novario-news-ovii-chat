@@ -200,7 +200,7 @@ function NewsHome() {
         <div className="pt-10">
           <div className="flex items-center gap-4 mb-10 justify-center">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-primary/20" />
-            <h2 className="serif text-2xl font-black uppercase tracking-[0.2em] opacity-40 italic">Deep Archive</h2>
+            <h2 className="font-tokyo text-2xl md:text-4xl text-primary drop-shadow-[0_0_10px_rgba(245,158,11,0.3)]">Deep Archive</h2>
             <div className="h-px flex-1 bg-gradient-to-l from-transparent to-primary/20" />
           </div>
           <CategoryGrid initial="Top" articles={data.all} categories={CATEGORIES as unknown as string[]} />
