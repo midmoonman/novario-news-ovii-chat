@@ -3,10 +3,10 @@
     "date": "2026-05-12",
     "updates": [
       {
-        "title": "God-Tier UI/UX Overhaul",
+        "title": "Apple-Tier Fluidity: Sheet & Skeleton",
         "status": "DEPLOYED",
-        "description": "Implemented a suite of high-fidelity sensory and immersive features: 1. Organic Noise Texture for premium material depth. 2. Liquid Scroll Progress bar driven by Framer Motion. 3. Category-Adaptive background orbs (Contextual Atmosphere). 4. Haptic Feedback for mobile navigation. 5. Magnetic Pull hover effects for primary CTA buttons.",
-        "rationale": "Transitions the platform from a standard web app into a high-end, sensory-driven digital experience that rivals native boutique applications."
+        "description": "Implemented 'Liquid Sheet' article overlays and 'Glass Skeleton' loading states. Replaced traditional navigation with an immersive sheet system and swapped generic spinners for shimmering, high-fidelity card placeholders.",
+        "rationale": "Elevates the hub to a native-app feel, maintaining user context during article reading and providing professional visual feedback during data fetching."
       },
       {
         "title": "Premium Orange Header Aura",

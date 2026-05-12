@@ -1,13 +1,13 @@
 {
   "history": [
     {
-      "id": "protocol-120-god-tier-experience",
-      "title": "Protocol 120: God-Tier Sensory Design",
+      "id": "protocol-120-fluidity-matrix",
+      "title": "Protocol 120: Liquid Sheet & Shimmer Skeletons",
       "date": "2026-05-12",
       "difficulty": {
-        "easy": "Added cool features like a reading progress bar, haptic vibration on buttons, and changing background colors.",
-        "medium": "Implemented an organic noise texture overlay and category-adaptive atmospheric shaders to create an immersive, context-aware environment.",
-        "hard": "Engineered a multi-sensory UI engine integrating Framer Motion scroll-syncing, mobile haptic APIs, and runtime-dynamic OKLCH color interpolation for the background orb shaders."
+        "easy": "News articles now slide up like an app, and I added cool shimmering boxes for when things are loading.",
+        "medium": "Architected a 'Liquid Sheet' overlay system using Outlet interception and replaced global loading spinners with Glassmorphic Skeletons.",
+        "hard": "Engineered a non-linear navigation stack that maintains the News Hub state while rendering articles in a fixed Z-index overlay. Integrated a custom @keyframes shimmer engine into the bento-grid architecture to eliminate layout jump and provide premium visual feedback."
       }
     },
     {

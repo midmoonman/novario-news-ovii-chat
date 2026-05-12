@@ -4,7 +4,7 @@ import { WeatherWidget } from "./WeatherWidget";
 import { LiveCounter } from "./LiveCounter";
 import { LanguageMenu } from "./LanguageMenu";
 import { useTranslation } from "@/lib/i18n";
-import { useScroll, motion } from "framer-motion";
+import { motion } from "framer-motion";
 
 const NAV: { label: string; cat?: string }[] = [
   { label: "Home" },
@@ -35,24 +35,13 @@ export function Header() {
     return searchCat;
   };
   const activeLabel = getActiveLabel();
-  const { scrollYProgress } = useScroll();
-
-  const handleHaptic = () => {
-    if (window.navigator.vibrate) window.navigator.vibrate(10);
-  };
 
   useEffect(() => {
     setToday(new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric", year: "numeric" }));
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-2xl bg-background/90 border-b border-primary/10 w-full overflow-x-hidden shadow-[0_8px_40px_rgba(245,158,11,0.15)] noise-overlay">
-      {/* Liquid Scroll Progress Bar */}
-      <motion.div 
-        className="liquid-progress"
-        style={{ scaleX: scrollYProgress }}
-      />
-      
+    <header className="sticky top-0 z-40 backdrop-blur-2xl bg-background/90 border-b border-primary/10 w-full overflow-x-hidden shadow-[0_8px_40px_rgba(245,158,11,0.15)]">
       {/* Top Glow Border */}
       <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent z-50" />
       <div className="mx-auto max-w-7xl px-4 w-full">
@@ -95,7 +84,6 @@ export function Header() {
                   key={n.label}
                   to="/news"
                   search={{ cat: n.cat }}
-                  onClick={handleHaptic}
                   className={`relative py-1 transition-all duration-300 ${
                     isActive
                       ? "text-primary drop-shadow-[0_0_8px_rgba(245,158,11,0.3)]"
@@ -130,17 +118,12 @@ export function Header() {
                 }}
               />
             </div>
-            <motion.button
-              whileHover={{ scale: 1.05, x: -2, y: -2 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                handleHaptic();
-                alert("Subscribe feature coming soon!");
-              }}
-              className="rounded-full bg-gradient-to-br from-primary to-orange-600 px-5 py-2.5 text-[11px] font-black uppercase tracking-widest text-primary-foreground shadow-[0_4px_15px_rgba(245,158,11,0.3)] cursor-pointer"
+            <button
+              onClick={() => alert("Subscribe feature coming soon!")}
+              className="rounded-full bg-gradient-to-br from-primary to-orange-600 px-5 py-2.5 text-[11px] font-black uppercase tracking-widest text-primary-foreground hover:scale-105 active:scale-95 transition-all shadow-[0_4px_15px_rgba(245,158,11,0.3)]"
             >
               {t("Join")}
-            </motion.button>
+            </button>
           </div>
         </div>
         {/* Mobile category nav with active glow */}
@@ -152,7 +135,6 @@ export function Header() {
                 key={n.label}
                 to="/news"
                 search={{ cat: n.cat }}
-                onClick={handleHaptic}
                 className={`relative shrink-0 pb-1 transition-all duration-300 ${
                   isActive
                     ? "text-primary"
