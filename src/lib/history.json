@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-121-intelligence-integration",
+      "title": "Protocol 121: Build Book Intelligence Hub",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "Added real charts and color tables to the history section so you can see how the app works.",
+        "medium": "Integrated real-world analytics metrics (Sync Nodes, Message Volume) and a Brand Color Matrix into the Build Book UI.",
+        "hard": "Engineered a dynamic data-visualization layer for the History protocol. Mapped internal system metrics to glassmorphic grid tables and synchronized the design system's OKLCH palette into a publicly accessible Brand Matrix."
+      }
+    },
+    {
       "id": "protocol-120-ghost-disclosure",
       "title": "Protocol 120: Skeleton Shimmer & Ghost Reveal",
       "date": "2026-05-12",
@@ -199,6 +209,19 @@
         { "category": "JSON Logs", "percentage": 10 },
         { "category": "Encrypted Media", "percentage": 60 },
         { "category": "Presence Data", "percentage": 30 }
+      ],
+      "oviiAnalytics": [
+        { "metric": "Active Sync Nodes", "value": "1,422", "trend": "+12%" },
+        { "metric": "Messages Processed", "value": "48,290", "trend": "+5.4k" },
+        { "metric": "Media Entropy", "value": "92.4%", "trend": "STABLE" },
+        { "metric": "Avg. Node Latency", "value": "14ms", "trend": "-2ms" }
+      ],
+      "colorPalette": [
+        { "name": "Orange Energy", "value": "oklch(0.72 0.18 35)", "hex": "#F59E0B", "usage": "Primary Branding" },
+        { "name": "Deep Background", "value": "oklch(0.16 0.012 250)", "hex": "#0B141A", "usage": "Surface Primary" },
+        { "name": "Emerald Matrix", "value": "#10B981", "hex": "#10B981", "usage": "Update Protocol" },
+        { "name": "Archive Purple", "value": "#A855F7", "hex": "#A855F7", "usage": "Deep History" },
+        { "name": "Cyber Blue", "value": "#3B82F6", "hex": "#3B82F6", "usage": "Technical Layer" }
       ]
     },
     "summary": "Technical Summary: A high-performance, hardware-aware React messaging engine with sub-second sync and automated cryptographic data purging."

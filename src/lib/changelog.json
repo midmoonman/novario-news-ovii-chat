@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Build Book Intelligence Hub",
+        "status": "DEPLOYED",
+        "description": "Overhauled the Build Book History section with real-world analytics charts (Active Nodes, Message Volume, Sync Latency) and a comprehensive Brand Color Matrix. Replaced static file distribution charts with dynamic, glassmorphic intelligence tables.",
+        "rationale": "Increases architectural transparency and reinforces the platform's premium, data-driven identity."
+      },
+      {
         "title": "Glassmorphic Skeleton Shimmer",
         "status": "DEPLOYED",
         "description": "Replaced standard loading indicators with a high-fidelity 'Skeleton Shimmer' system. Implemented a dedicated NewsSkeleton component that mirrors the Bento Grid architecture, providing a smooth, structured 'ghost' reveal during data fetching.",

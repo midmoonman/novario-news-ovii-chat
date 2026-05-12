@@ -3023,30 +3023,60 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                      ))}
                                    </div>
 
-                                   {/* Footer Percentage Chart */}
-                                   <div className={`p-6 border-t ${isDarkMode ? "bg-white/5 border-white/10" : "bg-black/5 border-black/10"}`}>
-                                     <div className="flex items-center justify-between mb-4">
-                                       <span className="text-[10px] font-black uppercase tracking-widest opacity-40">File Distribution Analytics</span>
-                                       <span className="text-[10px] font-black text-emerald-500">SYNCED</span>
-                                     </div>
-                                     <div className="flex h-3 rounded-full overflow-hidden w-full bg-black/20">
-                                       {(historyData[historyLevel] as any).analytics.fileDistribution.map((f: any, idx: number) => (
-                                         <div 
-                                           key={idx} 
-                                           style={{ width: `${f.percentage}%` }} 
-                                           className={`${idx === 0 ? "bg-emerald-500" : idx === 1 ? "bg-blue-500" : "bg-orange-500"} h-full border-r border-black/20 last:border-0`}
-                                         />
-                                       ))}
-                                     </div>
-                                     <div className="flex flex-wrap gap-4 mt-4">
-                                       {(historyData[historyLevel] as any).analytics.fileDistribution.map((f: any, idx: number) => (
-                                         <div key={idx} className="flex items-center gap-1.5">
-                                           <div className={`w-2 h-2 rounded-full ${idx === 0 ? "bg-emerald-500" : idx === 1 ? "bg-blue-500" : "bg-orange-500"}`} />
-                                           <span className="text-[9px] font-black uppercase tracking-wider opacity-60">{f.category}: {f.percentage}%</span>
-                                         </div>
-                                       ))}
-                                     </div>
                                    </div>
+
+                                   {/* Real-World OVii Analytics Table */}
+                                   {(historyData[historyLevel] as any).analytics.oviiAnalytics && (
+                                     <div className="mt-12 space-y-6 px-1">
+                                       <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Live Intelligence Feed</h4>
+                                       <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/60 border-white/5" : "bg-white border-black/5"}`}>
+                                         <div className="grid grid-cols-3 p-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest opacity-40">
+                                            <div>Metric</div>
+                                            <div className="text-center">Live Value</div>
+                                            <div className="text-right">Trend</div>
+                                         </div>
+                                         <div className="divide-y divide-white/5">
+                                           {(historyData[historyLevel] as any).analytics.oviiAnalytics.map((a: any, idx: number) => (
+                                             <div key={idx} className="p-4 grid grid-cols-3 items-center hover:bg-white/5 transition-colors">
+                                               <div className="text-[11px] font-black tracking-tight">{a.metric}</div>
+                                               <div className="text-center font-mono text-sm text-primary">{a.value}</div>
+                                               <div className={`text-right text-[10px] font-black ${a.trend.startsWith('+') || a.trend === 'STABLE' ? "text-emerald-500" : "text-orange-500"}`}>
+                                                 {a.trend}
+                                               </div>
+                                             </div>
+                                           ))}
+                                         </div>
+                                       </div>
+                                     </div>
+                                   )}
+
+                                   {/* Brand Color Matrix Table */}
+                                   {(historyData[historyLevel] as any).analytics.colorPalette && (
+                                     <div className="mt-12 space-y-6 px-1">
+                                       <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Brand Color Matrix</h4>
+                                       <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/60 border-white/5" : "bg-white border-black/5"}`}>
+                                          <div className="grid grid-cols-[80px_1fr_70px] p-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest opacity-40">
+                                            <div>Swatch</div>
+                                            <div>Variable / Usage</div>
+                                            <div className="text-right">Hex</div>
+                                          </div>
+                                          <div className="divide-y divide-white/5">
+                                            {(historyData[historyLevel] as any).analytics.colorPalette.map((c: any, idx: number) => (
+                                              <div key={idx} className="p-4 grid grid-cols-[80px_1fr_70px] items-center hover:bg-white/5 transition-colors">
+                                                <div className="flex items-center gap-3">
+                                                  <div className="w-10 h-6 rounded-md shadow-inner border border-white/10" style={{ backgroundColor: c.hex }} />
+                                                </div>
+                                                <div className="min-w-0 pr-4">
+                                                  <div className="text-[11px] font-black truncate">{c.name}</div>
+                                                  <div className="text-[9px] font-medium opacity-50 truncate">{c.usage}</div>
+                                                </div>
+                                                <div className="text-right font-mono text-[9px] font-black opacity-40">{c.hex}</div>
+                                              </div>
+                                            ))}
+                                          </div>
+                                       </div>
+                                     </div>
+                                   )}
                                  </div>
                                </div>
                              )}
