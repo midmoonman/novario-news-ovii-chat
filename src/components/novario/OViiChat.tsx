@@ -6,18 +6,10 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Feather, MoonStar, Zap } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyData from "../../lib/history.json";
-
-const DeathlyHallows = ({ className }: { className?: string }) => (
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <polygon points="12 3 3 21 21 21" />
-    <circle cx="12" cy="15" r="6" />
-    <line x1="12" y1="3" x2="12" y2="21" />
-  </svg>
-);
 
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
@@ -176,16 +168,10 @@ const PAINTS_MAP: Record<string, { sent: string, received: string, bgDark: strin
   paint4: { sent: "#028175", received: "#92de8b", bgDark: "#012623", bgLight: "#eaf8ea", headerDark: "#011412", headerLight: "#ffffff", nameDark: "#7ae0d6", nameLight: "#014d46", bubbleNameDark: "#064e3b", bubbleNameLight: "#064e3b" },
   paint5: { sent: "#662249", received: "#1b1931", bgDark: "#0b0a14", bgLight: "#f8eef3", headerDark: "#06060c", headerLight: "#ffffff", nameDark: "#d67ba5", nameLight: "#4d1a37", bubbleNameDark: "#fbcfe8", bubbleNameLight: "#fbcfe8" },
   paint6: { sent: "#de5153", received: "#601e0d", bgDark: "#260b04", bgLight: "#fdeadb", headerDark: "#170602", headerLight: "#ffffff", nameDark: "#f0999a", nameLight: "#9a3536", bubbleNameDark: "#fecaca", bubbleNameLight: "#fecaca" },
-  hp: { sent: "transparent", received: "transparent", bgDark: "#050505", bgLight: "#f4f1ea", headerDark: "transparent", headerLight: "transparent", nameDark: "#d4af37", nameLight: "#8b5a2b", bubbleNameDark: "#e8e4d9", bubbleNameLight: "#3e2723" },
 };
 
 const getBubbleColor = (mine: boolean, isDarkMode: boolean, paint: string, isLastInGroup: boolean) => {
   const radii = isLastInGroup ? (mine ? "rounded-br-sm md:rounded-br-none" : "rounded-bl-sm md:rounded-bl-none") : "";
-  if (paint === "hp") {
-    return mine 
-      ? (isDarkMode ? "bg-black/60 border border-[#d4af37]/40 text-[#e8e4d9] rounded-md shadow-sm font-hp-serif backdrop-blur-md" : "bg-[#fdf6e3]/80 border border-[#8b5a2b]/40 text-[#3e2723] rounded-md shadow-sm font-hp-serif backdrop-blur-md")
-      : (isDarkMode ? "bg-[#1a1510]/80 border border-[#d4af37]/40 text-[#e8e4d9] rounded-md shadow-sm font-hp-serif backdrop-blur-md" : "bg-white/80 border border-[#8b5a2b]/40 text-[#3e2723] rounded-md shadow-sm font-hp-serif backdrop-blur-md");
-  }
   let bg = "";
   if (paint === "paint1") bg = mine ? "bg-[#f97316] text-[#ffffff]" : "bg-[#3b82f6] text-[#ffffff]";
   else if (paint === "paint2") bg = mine ? "bg-[#fdfbd4] text-[#545333]" : "bg-[#545333] text-[#fdfbd4]";
@@ -1312,13 +1298,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         className={`ovii-chat-root fixed inset-0 z-[150] overflow-hidden flex flex-col items-center justify-center backdrop-blur-xl transition-colors duration-300 ${!paintTheme.bgDark ? (isDarkMode ? "bg-[#0b141a]/95" : "bg-[#efeae2]/95") : ""}`}
         style={rootStyle}
       >
-        {activePaint === "hp" && (
-          <style>{`
-            @import url('https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&display=swap');
-            .font-hp-serif { font-family: 'Cormorant Garamond', serif; }
-            .font-hp-cursive { font-family: 'Great Vibes', cursive; }
-          `}</style>
-        )}
         {/* Magical Atmosphere Layer */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
           {particles.map(p => (
@@ -1348,25 +1327,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           onDrop={handleDrop}
         >
           {/* No Toaster needed anymore */}
-          
-          {/* Harry Potter Background */}
-          {activePaint === "hp" && (
-            <div className="absolute inset-0 z-0 pointer-events-none transition-all duration-1000 flex flex-col justify-start pt-24 pl-4 md:pl-12">
-              <div className="absolute inset-0 transition-all duration-1000" style={{
-                backgroundImage: `url('${isDarkMode ? "/hp_dark_bg.png" : "/hp_light_bg.png"}')`,
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                opacity: isDarkMode ? 0.4 : 0.7
-              }} />
-              <div className={`relative z-10 max-w-[300px] md:max-w-md font-hp-cursive text-xl md:text-2xl lg:text-3xl leading-relaxed opacity-60 ${isDarkMode ? "text-[#d4af37]" : "text-[#8b5a2b]"}`}>
-                <p className="mb-4">Somewhere deep within the castle that never sleeps,</p>
-                <p className="mb-4">two souls started with small conversations and accidental smiles.</p>
-                <p className="mb-4">Rain, late rides, shared silences, cleaned raincoats, towels, and tiny cares.</p>
-                <p className="mb-4">Fights. Moody days. Silent walks that fixed everything.</p>
-                <p>Not every kind of magic comes from a wand. Sometimes, it arrives on a silver Rizta and stays forever.</p>
-              </div>
-            </div>
-          )}
 
 
           {/* ── Avatar Picker Overlay ── */}
@@ -1490,7 +1450,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               <div>
                 <div className="font-bold text-[14px] leading-tight transition-colors duration-500" style={{ color: isDarkMode ? (paintTheme.nameDark || undefined) : (paintTheme.nameLight || undefined) }}>
                   {otherName || (count > 1 ? "Ovii User" : "Waiting...") || "Waiting..."}
-                  {activePaint === "hp" && <Zap className={`inline-block w-3.5 h-3.5 ml-1.5 ${isDarkMode ? "text-[#d4af37] fill-[#d4af37]" : "text-[#8b5a2b] fill-[#8b5a2b]"}`} />}
                 </div>
                 <div className="text-[10px] opacity-60 flex items-center gap-1.5 font-medium">
                   {recordingUsers.length > 0 ? (
@@ -1513,33 +1472,23 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   <span>No Lock: {Math.ceil((noLockUntil - Date.now()) / 60000)}m left</span>
                 </div>
               )}
-              {activePaint === "hp" ? (
-                <button
-                  onClick={() => setIsDarkMode(!isDarkMode)}
-                  className={`p-2 rounded-full transition-all duration-300 border shadow-sm ${isDarkMode ? "bg-black/40 border-[#d4af37]/30 hover:bg-[#d4af37]/10" : "bg-[#f4f1ea]/60 border-[#8b5a2b]/30 hover:bg-[#8b5a2b]/10"}`}
-                  title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
-                >
-                  {isDarkMode ? <MoonStar className="w-5 h-5 text-[#d4af37]" /> : <DeathlyHallows className="w-5 h-5 text-[#8b5a2b]" />}
-                </button>
-              ) : (
-                <label className="switch" title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
-                  <input
-                    type="checkbox"
-                    checked={!isDarkMode}
-                    onChange={() => setIsDarkMode(!isDarkMode)}
-                  />
-                  <span className="slider">
-                    <span className="star star_1"></span>
-                    <span className="star star_2"></span>
-                    <span className="star star_3"></span>
-                    <span className="cloud">
-                      <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" fill="white">
-                        <path d="M410.8,247c-2.3-25.6-23.7-45.6-49.8-45.6c-5.8,0-11.4,1-16.5,2.8c-12.8-31.9-43.9-54.6-80.4-54.6 c-32.2,0-60.1,17.7-74.8,44.1c-9.1-5.1-19.6-8-30.8-8c-33.8,0-61.1,27.3-61.1,61.1c0,1,0.1,2,0.2,3c-23.9,8.6-41,31.4-41,58.2 c0,33.9,27.5,61.4,61.4,61.4h276.7c33.9,0,61.4-27.5,61.4-61.4C451.8,278.4,434.7,255.6,410.8,247z" />
-                      </svg>
-                    </span>
+              <label className="switch" title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}>
+                <input
+                  type="checkbox"
+                  checked={!isDarkMode}
+                  onChange={() => setIsDarkMode(!isDarkMode)}
+                />
+                <span className="slider">
+                  <span className="star star_1"></span>
+                  <span className="star star_2"></span>
+                  <span className="star star_3"></span>
+                  <span className="cloud">
+                    <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" fill="white">
+                      <path d="M410.8,247c-2.3-25.6-23.7-45.6-49.8-45.6c-5.8,0-11.4,1-16.5,2.8c-12.8-31.9-43.9-54.6-80.4-54.6 c-32.2,0-60.1,17.7-74.8,44.1c-9.1-5.1-19.6-8-30.8-8c-33.8,0-61.1,27.3-61.1,61.1c0,1,0.1,2,0.2,3c-23.9,8.6-41,31.4-41,58.2 c0,33.9,27.5,61.4,61.4,61.4h276.7c33.9,0,61.4-27.5,61.4-61.4C451.8,278.4,434.7,255.6,410.8,247z" />
+                    </svg>
                   </span>
-                </label>
-              )}
+                </span>
+              </label>
               <button
                 onClick={() => { onLock(); window.location.href = "/news"; }}
                 className={`p-2 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"
@@ -1705,7 +1654,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             >
                               <ChevronLeft className="w-3.5 h-3.5" /> Back
                             </button>
-                            <div className={`px-4 pb-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Dual Tones</div>
+                            <div className={`px-4 pb-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Select Theme</div>
                             {[
                               { label: "Default", val: "default" },
                               { label: "Orange & Blue", val: "paint1", colors: ["#f97316", "#3b82f6"] },
@@ -1732,25 +1681,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                     <div className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: p.colors[1] }} />
                                   </div>
                                 )}
-                                <span className="font-medium flex-1 text-left">{p.label}</span>
-                                {activePaint === p.val && <CheckCircle2 className="w-3.5 h-3.5" />}
-                              </button>
-                            ))}
-                            <div className={`px-4 py-2 mt-1 border-t ${isDarkMode ? "border-white/10 text-white" : "border-black/10 text-black"} text-[10px] font-bold uppercase tracking-widest opacity-40`}>Movie Style</div>
-                            {[
-                              { label: "Harry Potter", val: "hp", isMovie: true }
-                            ].map((p) => (
-                              <button
-                                key={p.val}
-                                onClick={() => {
-                                  setActivePaint(p.val);
-                                  localStorage.setItem("ovii_paint", p.val);
-                                  setShowMenu(false);
-                                  setShowPaintsSubmenu(false);
-                                  addNotification(`Theme changed to ${p.label}`, "success");
-                                }}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/80" : "hover:bg-black/5 text-black/70"} ${activePaint === p.val ? "bg-primary/10 text-primary font-bold" : ""}`}
-                              >
                                 <span className="font-medium flex-1 text-left">{p.label}</span>
                                 {activePaint === p.val && <CheckCircle2 className="w-3.5 h-3.5" />}
                               </button>
@@ -1906,10 +1836,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <Fragment key={m.id}>
                           {showDateHeader && dateStr !== "Today" && (
                             <div className="w-full flex justify-center my-4 sticky top-2 z-10 pointer-events-none">
-                              <span className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border pointer-events-auto ${
-                                activePaint === "hp" 
-                                  ? (isDarkMode ? "bg-black/60 text-[#d4af37]/80 border-[#d4af37]/30 font-hp-serif" : "bg-[#fdf6e3]/80 text-[#8b5a2b] border-[#8b5a2b]/30 font-hp-serif")
-                                  : (isDarkMode ? "bg-[#182229] text-white/50 border-white/5" : "bg-white text-black/40 border-black/5")
+                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border pointer-events-auto ${isDarkMode ? "bg-[#182229] text-white/50 border-white/5" : "bg-white text-black/40 border-black/5"
                                 }`}>
                                 {dateStr}
                               </span>
@@ -2295,7 +2222,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       className={`shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center transition-all active:scale-90 ${isDarkMode ? "text-white/50 hover:text-white" : "text-black/40 hover:text-black"
                         }`}
                     >
-                      {activePaint === "hp" ? <Feather className="w-6 h-6 md:w-7 md:h-7" /> : <Paperclip className="w-6 h-6 md:w-7 md:h-7" />}
+                      <Paperclip className="w-6 h-6 md:w-7 md:h-7" />
                     </button>
 
                     <div className={`flex-1 flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
