@@ -13,6 +13,12 @@ import historyDataRaw from "../../lib/history.json";
 const historyData = historyDataRaw as unknown as HistoryDataRoot;
 
 
+const MaterialPin = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 24 24" className={className} fill="currentColor">
+    <path d="M16 9V4l1 0V2H7v2h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z" />
+  </svg>
+);
+
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
   const [preview, setPreview] = useState<{ title?: string; description?: string; image?: string } | null>(null);
@@ -1963,7 +1969,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   >
                     <div className="px-4 py-2.5 flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Pin className="w-4 h-4 text-primary fill-primary" />
+                        <MaterialPin className="w-4 h-4 text-primary fill-primary" />
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
@@ -2325,7 +2331,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                           {/* Timestamp: absolute for image, relative for text */}
                                           <div className={`${m.type === "image" || m.type === "cluster" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
-                                            {m.isPinned && <Pin className={`w-2.5 h-2.5 fill-primary text-primary -rotate-45 mr-0.5`} />}
+                                            {m.isPinned && <MaterialPin className={`w-2.5 h-2.5 fill-primary text-primary -rotate-45 mr-0.5`} />}
                                             {m.isEdited && !m.isDeleted && <span className="text-[9px] opacity-40 font-bold uppercase mr-1">Edited</span>}
                                             <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" || m.type === "cluster" ? "text-white" : ""}`}>
                                               {m.createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
@@ -2645,7 +2651,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           }}
                           className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                         >
-                          <Pin className={`w-4 h-4 opacity-60 ${contextMsg.isPinned ? "fill-primary text-primary" : ""}`} /> {contextMsg.isPinned ? "Unpin Message" : "Pin Message"}
+                          <MaterialPin className={`w-4 h-4 opacity-60 ${contextMsg.isPinned ? "fill-primary text-primary" : ""}`} /> {contextMsg.isPinned ? "Unpin Message" : "Pin Message"}
                         </button>
                       )}
 
