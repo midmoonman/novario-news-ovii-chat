@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Theme Contrast & UI Optimization",
+        "status": "DEPLOYED",
+        "description": "Engineered advanced contrast logic for the 'Paints' system. Separated global username styling from chat bubble styling to ensure names remain perfectly legible against any dynamic background (e.g., Light Pink names on Dark Blue bubbles). Headers now utilize deeply tinted 'dark darker' gradients for premium glassmorphism without muddying the UI.",
+        "rationale": "Adheres to the Thumb Rule of maintaining peak visual clarity and professional-grade accessibility across all color pairings and modes."
+      },
+      {
         "title": "Custom Paints and Dual-Tone Themes",
         "status": "DEPLOYED",
         "description": "Introduced the 'Paints' feature under the 3-dots menu, allowing users to customize their chat interface with 6 distinct dual-tone themes. The themes dynamically update the chat bubbles and audio players across both Light and Dark modes instantly.",
