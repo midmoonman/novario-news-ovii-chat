@@ -1504,66 +1504,93 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         }`}
                     >
                       <div className="py-2">
-                        {/* Profile Item */}
-                        <button
-                          onClick={() => { setShowAvatarPicker(true); setShowMenu(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
-                            }`}
-                        >
-                          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 shrink-0 shadow-sm">
-                            <img src={avatar} className="w-full h-full object-cover" alt="" />
-                          </div>
-                          <div className="flex-1 text-left min-w-0">
-                            <div className="font-black leading-tight truncate">{name || "Me"}</div>
-                            <div className="text-[10px] flex items-center gap-1.5 font-bold uppercase tracking-wider">
-                              <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-                              <span className="text-emerald-500/80">Online</span>
-                            </div>
-                          </div>
-                          <ChevronLeft className="w-4 h-4 rotate-180 opacity-30" />
-                        </button>
+                        {!showNoLockSubmenu && !showPaintsSubmenu && (
+                          <>
+                            {/* Profile Item */}
+                            <button
+                              onClick={() => { setShowAvatarPicker(true); setShowMenu(false); }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary/20 shrink-0 shadow-sm">
+                                <img src={avatar} className="w-full h-full object-cover" alt="" />
+                              </div>
+                              <div className="flex-1 text-left min-w-0">
+                                <div className="font-black leading-tight truncate">{name || "Me"}</div>
+                                <div className="text-[10px] flex items-center gap-1.5 font-bold uppercase tracking-wider">
+                                  <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                                  <span className="text-emerald-500/80">Online</span>
+                                </div>
+                              </div>
+                              <ChevronLeft className="w-4 h-4 rotate-180 opacity-30" />
+                            </button>
 
-                        <div className={`h-px mx-4 my-1 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+                            <div className={`h-px mx-4 my-1 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
-                        <button
-                          onClick={() => { setShowFolder(true); setShowMenu(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
-                            }`}
-                        >
-                          <Folder className="w-4 h-4 text-destructive" />
-                          <div className="flex-1 text-left font-medium">Files</div>
-                          {unreadMedia > 0 && <span className="bg-[#25d366] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadMedia}</span>}
-                        </button>
+                            <button
+                              onClick={() => { setShowFolder(true); setShowMenu(false); }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <Folder className="w-4 h-4 text-destructive" />
+                              <div className="flex-1 text-left font-medium">Files</div>
+                              {unreadMedia > 0 && <span className="bg-[#25d366] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadMedia}</span>}
+                            </button>
 
-                        <button
-                          onClick={() => { setShowLogs(true); setShowMenu(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
-                            }`}
-                        >
-                          <History className="w-4 h-4 text-primary" />
-                          <div className="flex-1 text-left font-medium">Build Book</div>
-                          <span className="text-[9px] font-bold opacity-40 uppercase">v2.4.1</span>
-                        </button>
+                            <button
+                              onClick={() => { setShowLogs(true); setShowMenu(false); }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <History className="w-4 h-4 text-primary" />
+                              <div className="flex-1 text-left font-medium">Build Book</div>
+                              <span className="text-[9px] font-bold opacity-40 uppercase">v2.4.1</span>
+                            </button>
 
-                        <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+                            <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
-                        {!showNoLockSubmenu ? (
-                          <button
-                            onClick={() => setShowNoLockSubmenu(true)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"
-                              }`}
-                          >
-                            <ShieldOff className="w-4 h-4 text-primary" />
-                            <div className="flex-1 text-left font-medium">No Lock</div>
-                            {noLockUntil && Date.now() < noLockUntil ? (
-                              <span className="text-[10px] font-bold text-primary animate-pulse uppercase tracking-widest">Active</span>
-                            ) : (
-                              <ChevronDown className="w-3.5 h-3.5 opacity-40" />
-                            )}
-                          </button>
-                        ) : (
+                            <button
+                              onClick={() => setShowNoLockSubmenu(true)}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <ShieldOff className="w-4 h-4 text-primary" />
+                              <div className="flex-1 text-left font-medium">No Lock</div>
+                              {noLockUntil && Date.now() < noLockUntil ? (
+                                <span className="text-[10px] font-bold text-primary animate-pulse uppercase tracking-widest">Active</span>
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5 opacity-40 -rotate-90" />
+                              )}
+                            </button>
+
+                            <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+
+                            <button
+                              onClick={() => setShowPaintsSubmenu(true)}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <Palette className="w-4 h-4 text-primary" />
+                              <div className="flex-1 text-left font-medium">Paints</div>
+                              <ChevronDown className="w-3.5 h-3.5 opacity-40 -rotate-90" />
+                            </button>
+
+                            <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+
+                            <button
+                              onClick={() => { setShowClearConfirm(true); setShowMenu(false); }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-destructive/10 text-destructive" : "hover:bg-destructive/5 text-destructive"}`}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <div className="flex-1 text-left font-medium">Clear Chat</div>
+                            </button>
+                          </>
+                        )}
+
+                        {showNoLockSubmenu && (
                           <div className="py-1">
-                            <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Select Duration</div>
+                            <button
+                              onClick={() => setShowNoLockSubmenu(false)}
+                              className={`w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity mb-2 ${isDarkMode ? "text-white" : "text-black"}`}
+                            >
+                              <ChevronLeft className="w-3.5 h-3.5" /> Back
+                            </button>
+                            <div className={`px-4 pb-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Select Duration</div>
                             {[
                               { label: "15 Minutes", val: 15 * 60 * 1000 },
                               { label: "1 Hour", val: 60 * 60 * 1000 },
@@ -1580,8 +1607,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   setShowNoLockSubmenu(false);
                                   addNotification(`No Lock enabled for ${d.label}`, "success");
                                 }}
-                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/80" : "hover:bg-black/5 text-black/70"
-                                  }`}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/80" : "hover:bg-black/5 text-black/70"}`}
                               >
                                 <Clock className="w-3.5 h-3.5 opacity-60" />
                                 <span className="font-medium">{d.label}</span>
@@ -1596,35 +1622,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   setShowNoLockSubmenu(false);
                                   addNotification("No Lock disabled", "info");
                                 }}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-destructive hover:bg-destructive/5 transition-colors"
+                                className="w-full flex items-center gap-3 px-4 py-2.5 text-xs text-destructive hover:bg-destructive/5 transition-colors mt-2"
                               >
                                 <XCircle className="w-3.5 h-3.5" />
                                 <span className="font-bold">Turn off No Lock</span>
                               </button>
                             )}
-                            <button
-                              onClick={() => setShowNoLockSubmenu(false)}
-                              className={`w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity ${isDarkMode ? "text-white" : "text-black"}`}
-                            >
-                              ← Back
-                            </button>
                           </div>
                         )}
 
-                        <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
-
-                        {!showPaintsSubmenu ? (
-                          <button
-                            onClick={() => setShowPaintsSubmenu(true)}
-                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
-                          >
-                            <Palette className="w-4 h-4 text-primary" />
-                            <div className="flex-1 text-left font-medium">Paints</div>
-                            <ChevronDown className="w-3.5 h-3.5 opacity-40" />
-                          </button>
-                        ) : (
+                        {showPaintsSubmenu && (
                           <div className="py-1">
-                            <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Select Theme</div>
+                            <button
+                              onClick={() => setShowPaintsSubmenu(false)}
+                              className={`w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity mb-2 ${isDarkMode ? "text-white" : "text-black"}`}
+                            >
+                              <ChevronLeft className="w-3.5 h-3.5" /> Back
+                            </button>
+                            <div className={`px-4 pb-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Select Theme</div>
                             {[
                               { label: "Default", val: "default" },
                               { label: "Orange & Blue", val: "paint1" },
@@ -1649,25 +1664,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 {activePaint === p.val && <CheckCircle2 className="w-3.5 h-3.5" />}
                               </button>
                             ))}
-                            <button
-                              onClick={() => setShowPaintsSubmenu(false)}
-                              className={`w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity ${isDarkMode ? "text-white" : "text-black"}`}
-                            >
-                              ← Back
-                            </button>
                           </div>
                         )}
-
-                        <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
-
-                        <button
-                          onClick={() => { setShowClearConfirm(true); setShowMenu(false); }}
-                          className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-destructive/10 text-destructive" : "hover:bg-destructive/5 text-destructive"
-                            }`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                          <div className="flex-1 text-left font-medium">Clear Chat</div>
-                        </button>
                       </div>
                     </motion.div>
                   )}
