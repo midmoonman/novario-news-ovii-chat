@@ -153,9 +153,9 @@ const formatLastSeen = (timestamp: number | null | undefined) => {
   const timeStr = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   const isToday = date.toDateString() === new Date().toDateString();
   const isYesterday = date.toDateString() === new Date(Date.now() - 86400000).toDateString();
-  
-  const dayStr = isToday ? "today" : isYesterday ? "yesterday" : 
-                 date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
+
+  const dayStr = isToday ? "today" : isYesterday ? "yesterday" :
+    date.toLocaleDateString(undefined, { day: "numeric", month: "short" });
 
   return `last seen ${dayStr} at ${timeStr}`;
 };
@@ -201,29 +201,29 @@ const getAudioColor = (mine: boolean, isDarkMode: boolean, paint: string) => {
 
 // ─── Sub-components ──────────────────────────────────────────────────────────
 
-function PhotoGrid({ images, isDarkMode, setSelectedImage, downloadFile }: { 
-  images: any[], 
-  isDarkMode: boolean, 
+function PhotoGrid({ images, isDarkMode, setSelectedImage, downloadFile }: {
+  images: any[],
+  isDarkMode: boolean,
   setSelectedImage: (url: string) => void,
   downloadFile: (url: string, id: string, type: string) => void
 }) {
   const count = images.length;
   const gridClass = count === 2 ? "grid-cols-2" : count === 3 ? "grid-cols-2" : "grid-cols-2";
-  
+
   return (
     <div className={`grid gap-1 rounded-[22px] overflow-hidden w-full max-w-[320px] sm:max-w-[400px] border ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
       {images.map((img, i) => {
         const isLarge = count === 3 && i === 0;
         return (
-          <div 
-            key={img.id} 
+          <div
+            key={img.id}
             className={`relative group cursor-pointer active:scale-[0.98] transition-transform aspect-square ${isLarge ? "col-span-2 aspect-[16/9]" : ""}`}
             onClick={() => setSelectedImage(img.content)}
           >
             <img src={img.content} className="w-full h-full object-cover" alt="" />
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
             <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
-              <button 
+              <button
                 onClick={(e) => { e.stopPropagation(); downloadFile(img.content, img.id, "image"); }}
                 className="p-1.5 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60"
               >
@@ -455,7 +455,7 @@ const LiveAudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
     const update = () => {
       analyser.getByteFrequencyData(dataArray);
       const step = Math.floor((analyser.frequencyBinCount * 0.5) / 15) || 1;
-      
+
       for (let i = 0; i < 15; i++) {
         if (barsRef.current[i]) {
           const val = dataArray[i * step] || 0;
@@ -470,7 +470,7 @@ const LiveAudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
     return () => {
       cancelAnimationFrame(rafId);
       source.disconnect();
-      if (audioCtx.state !== 'closed') audioCtx.close().catch(() => {});
+      if (audioCtx.state !== 'closed') audioCtx.close().catch(() => { });
     };
   }, [stream]);
 
@@ -507,8 +507,8 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
           <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
           {items.map(m => (
             <div key={m.id} className={`p-2.5 rounded-2xl flex items-center gap-4 lg:gap-6 shadow-sm transition-all group border ${isDarkMode
-                ? "bg-card/30 border-white/5 hover:bg-card/50"
-                : "bg-white border-black/5 hover:bg-black/5 shadow-md"
+              ? "bg-card/30 border-white/5 hover:bg-card/50"
+              : "bg-white border-black/5 hover:bg-black/5 shadow-md"
               }`}>
               <div className="flex-1 min-w-0">
                 {m.type === "voice" || m.type === "audio" ? (
@@ -527,10 +527,10 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
                 ) : (
                   <div className="flex items-center gap-3 p-1">
                     <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${isDarkMode ? "bg-white/5" : "bg-black/5"}`}>
-                      {m.type === "video" ? <Video className="w-6 h-6 text-primary" /> : 
-                       m.mimeType?.includes("pdf") ? <FileText className="w-6 h-6 text-red-500" /> :
-                       m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? <FileArchive className="w-6 h-6 text-orange-500" /> :
-                       <File className="w-6 h-6 text-blue-500" />}
+                      {m.type === "video" ? <Video className="w-6 h-6 text-primary" /> :
+                        m.mimeType?.includes("pdf") ? <FileText className="w-6 h-6 text-red-500" /> :
+                          m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? <FileArchive className="w-6 h-6 text-orange-500" /> :
+                            <File className="w-6 h-6 text-blue-500" />}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className={`text-[12px] font-bold truncate ${isDarkMode ? "text-white/80" : "text-black/80"}`}>{m.fileName || "Document"}</div>
@@ -589,7 +589,7 @@ function usePerformanceShield() {
       // 3. Check for older Android/iOS versions in UA
       const ua = navigator.userAgent.toLowerCase();
       const isOldOS = /android [1-8]|iphone os [1-9]_|iphone os 10_/.test(ua);
-      
+
       // If low RAM, low cores, or old OS, trigger Shield
       if (ram <= 4 || cores <= 4 || isOldOS) {
         setIsLowEnd(true);
@@ -765,7 +765,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     // Push initial state
     window.history.pushState({ modal: 'closed' }, "");
     window.addEventListener("popstate", handlePopState);
-    
+
     return () => window.removeEventListener("popstate", handlePopState);
   }, [showLogs, showAvatarPicker, showFolder, selectedImage, selectedPhone, showClearConfirm, showMenu]);
 
@@ -1041,7 +1041,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   // ── Robust Auto-Scroll: Handles images, videos, and dynamic content ─────
   useEffect(() => {
     if (!scrollRef.current) return;
-    
+
     // Initial scroll sequence to ensure we land at the bottom
     const timers = [
       setTimeout(() => scrollToBottom(true), 100),
@@ -1061,7 +1061,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     });
 
     observer.observe(scrollRef.current);
-    
+
     return () => {
       timers.forEach(clearTimeout);
       observer.disconnect();
@@ -1136,10 +1136,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const sendFile = async (type: Msg["type"], url: string, fileName: string, fileSize: number, mimeType: string, caption?: string) => {
     if (!uid || !url) return;
     lastActivity.current = Date.now();
-    const msgData: any = { 
-      uid, avatar, name, type, content: url, fileName, fileSize, mimeType, 
-      caption: caption ?? "", 
-      status: "sent", createdAt: Timestamp.now() 
+    const msgData: any = {
+      uid, avatar, name, type, content: url, fileName, fileSize, mimeType,
+      caption: caption ?? "",
+      status: "sent", createdAt: Timestamp.now()
     };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
     if (type === "image" || type === "video") {
@@ -1191,14 +1191,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   const onFile = async (file: File) => {
     if (!uid) return;
-    if (file.size > 200 * 1024 * 1024) { 
-      addNotification("File too large (max 200MB)", "error"); 
-      return; 
+    if (file.size > 200 * 1024 * 1024) {
+      addNotification("File too large (max 200MB)", "error");
+      return;
     }
 
     const type = file.type.startsWith("image/") ? "image" :
-                 file.type.startsWith("video/") ? "video" :
-                 file.type.startsWith("audio/") ? "audio" : "file";
+      file.type.startsWith("video/") ? "video" :
+        file.type.startsWith("audio/") ? "audio" : "file";
 
     setUploadingText(`Sending ${type}...`);
     setIsUploading(true);
@@ -1320,9 +1320,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       const blobUrl = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = blobUrl;
-      const ext = type === "voice" ? "webm" : 
-                  type === "audio" ? "mp3" :
-                  type === "video" ? "mp4" : "bin";
+      const ext = type === "voice" ? "webm" :
+        type === "audio" ? "mp3" :
+          type === "video" ? "mp4" : "bin";
       a.download = name.includes(".") ? name : `${type}-${name.slice(0, 8)}.${ext}`;
       document.body.appendChild(a); a.click(); document.body.removeChild(a);
       URL.revokeObjectURL(blobUrl);
@@ -1484,9 +1484,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
 
           {/* ── Header ── */}
-          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${
-            paintTheme.headerDark 
-              ? (isDarkMode ? "border-white/5 text-white" : "border-black/5 text-black") 
+          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${paintTheme.headerDark
+              ? (isDarkMode ? "border-white/5 text-white" : "border-black/5 text-black")
               : (isDarkMode ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white" : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black")
             }`}
             style={{ backgroundColor: paintTheme.headerDark ? (isDarkMode ? paintTheme.headerDark + "f2" : paintTheme.headerLight + "f2") : undefined }}
@@ -1761,7 +1760,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               </div>
             </div>
           </header>
-          
+
           {/* ── Error Toast (Up Front) ── */}
           <AnimatePresence>
             {error && (
@@ -1803,8 +1802,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.8, y: -20 }}
                       className={`px-5 py-3 rounded-[24px] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] border flex items-center gap-3 pointer-events-auto text-[13px] font-black tracking-tight transition-all ${n.type === "success" ? "bg-[#00a884] text-white border-white/20 shadow-[#00a884]/20" :
-                          n.type === "error" ? "bg-[#ea4335] text-white border-white/20 shadow-red-500/20" :
-                            "bg-[#005c4b] text-white border-white/20 shadow-primary/20"
+                        n.type === "error" ? "bg-[#ea4335] text-white border-white/20 shadow-red-500/20" :
+                          "bg-[#005c4b] text-white border-white/20 shadow-primary/20"
                         }`}
                     >
                       {n.type === "success" && <CheckCircle2 className="w-4 h-4 shrink-0" />}
@@ -1873,9 +1872,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <div className="absolute inset-0 rounded-full blur-[40px] animate-pulse bg-primary/20" />
                       <div className="absolute inset-4 rounded-full border-2 border-primary/20 animate-[spin_10s_linear_infinite]" />
                       <div className="absolute inset-10 rounded-full border border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
-                      
+
                       <motion.div
-                        animate={{ 
+                        animate={{
                           scale: [1, 1.05, 1],
                           boxShadow: [
                             "0 0 20px var(--primary)",
@@ -1884,9 +1883,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           ]
                         }}
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                        className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${
-                          isDarkMode ? "bg-primary/10 border-primary/30" : "bg-white/80 border-primary/20"
-                        }`}
+                        className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${isDarkMode ? "bg-primary/10 border-primary/30" : "bg-white/80 border-primary/20"
+                          }`}
                       >
                         <Send className="w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg] text-primary" />
                       </motion.div>
@@ -1898,11 +1896,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     <p className={`text-xs sm:text-sm max-w-[240px] leading-relaxed font-bold italic opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>
                       "Say something magical."
                     </p>
-                    
+
                     <div className="mt-8 flex gap-2">
-                       <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:0ms]" />
-                       <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:150ms]" />
-                       <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:300ms]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:0ms]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:150ms]" />
+                      <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:300ms]" />
                     </div>
                   </div>
                 )}
@@ -1918,7 +1916,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       filtered.forEach((m, idx) => {
                         const next = filtered[idx + 1];
                         const prev = filtered[idx - 1];
-                        
+
                         // Cluster images from same user
                         if (m.type === "image" && !m.isDeleted && !m.caption && !m.replyTo) {
                           currentCluster.push(m);
@@ -1949,246 +1947,247 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         const dateStr = showDateHeader ? formatMessageDate(m.createdAt?.toDate?.() || new Date()) : null;
 
 
-                      return (
-                        <Fragment key={m.id}>
-                          {showDateHeader && dateStr !== "Today" && (
-                            <div className="w-full flex justify-center my-4 sticky top-2 z-10 pointer-events-none">
-                              <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border pointer-events-auto ${isDarkMode ? "bg-[#182229] text-white/50 border-white/5" : "bg-white text-black/40 border-black/5"
-                                }`}>
-                                {dateStr}
-                              </span>
-                            </div>
-                          )}
-
-                          <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.2 }}
-                            className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
-                          >
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.95 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.2 }}
-                              drag="x"
-                              dragConstraints={{ left: 0, right: 0 }}
-                              dragElastic={0.2}
-                              onDragStart={() => {
-                                if (longPressTimer.current) clearTimeout(longPressTimer.current);
-                              }}
-                              onPointerDown={() => {
-                                if (isMobileDevice()) {
-                                  longPressTimer.current = setTimeout(() => {
-                                    setContextMsg(m);
-                                    if (window.navigator.vibrate) window.navigator.vibrate([20]);
-                                  }, 500);
-                                }
-                              }}
-                              onPointerUp={() => {
-                                if (longPressTimer.current) clearTimeout(longPressTimer.current);
-                              }}
-                              onContextMenu={(e) => {
-                                if (!isMobileDevice()) {
-                                  e.preventDefault();
-                                  setContextMsg(m);
-                                }
-                              }}
-                              onDrag={(e, info) => {
-                                const threshold = 70;
-                                const isSwipeRight = info.offset.x > threshold;
-                                const isSwipeLeft = info.offset.x < -threshold;
-
-                                // Received messages: swipe right to reply
-                                // Sent messages: swipe left to reply
-                                if ((!mine && isSwipeRight) || (mine && isSwipeLeft)) {
-                                  if (replyingTo?.id !== m.id) {
-                                    setReplyingTo(m);
-                                    if (window.navigator.vibrate) window.navigator.vibrate(10);
-                                  }
-                                }
-                              }}
-                              className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[550px] lg:max-w-[600px] ${mine ? "ml-auto" : "mr-auto"}`}
-                            >
-                              <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
-                                }`}>
-                                <Reply className="w-5 h-5 text-primary/40" />
+                        return (
+                          <Fragment key={m.id}>
+                            {showDateHeader && dateStr !== "Today" && (
+                              <div className="w-full flex justify-center my-4 sticky top-2 z-10 pointer-events-none">
+                                <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest shadow-sm border pointer-events-auto ${isDarkMode ? "bg-[#182229] text-white/50 border-white/5" : "bg-white text-black/40 border-black/5"
+                                  }`}>
+                                  {dateStr}
+                                </span>
                               </div>
+                            )}
 
-                              {!mine && (
-                                <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
-                                  {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0 }}
+                              transition={{ duration: 0.2 }}
+                              className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
+                            >
+                              <motion.div
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                transition={{ duration: 0.2 }}
+                                drag="x"
+                                dragConstraints={{ left: 0, right: 0 }}
+                                dragElastic={0.2}
+                                onDragStart={() => {
+                                  if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                                }}
+                                onPointerDown={() => {
+                                  if (isMobileDevice()) {
+                                    longPressTimer.current = setTimeout(() => {
+                                      setContextMsg(m);
+                                      if (window.navigator.vibrate) window.navigator.vibrate([20]);
+                                    }, 500);
+                                  }
+                                }}
+                                onPointerUp={() => {
+                                  if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                                }}
+                                onContextMenu={(e) => {
+                                  if (!isMobileDevice()) {
+                                    e.preventDefault();
+                                    setContextMsg(m);
+                                  }
+                                }}
+                                onDrag={(e, info) => {
+                                  const threshold = 70;
+                                  const isSwipeRight = info.offset.x > threshold;
+                                  const isSwipeLeft = info.offset.x < -threshold;
+
+                                  // Received messages: swipe right to reply
+                                  // Sent messages: swipe left to reply
+                                  if ((!mine && isSwipeRight) || (mine && isSwipeLeft)) {
+                                    if (replyingTo?.id !== m.id) {
+                                      setReplyingTo(m);
+                                      if (window.navigator.vibrate) window.navigator.vibrate(10);
+                                    }
+                                  }
+                                }}
+                                className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[550px] lg:max-w-[600px] ${mine ? "ml-auto" : "mr-auto"}`}
+                              >
+                                <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
+                                  }`}>
+                                  <Reply className="w-5 h-5 text-primary/40" />
                                 </div>
-                              )}
 
-                              <div className={`flex-1 min-w-0 ${mine ? "items-end" : "items-start"} flex flex-col gap-[2px] md:gap-0.5`}>
-                                {!mine && !isConsecutive && m.name && <span className="hidden md:inline-block text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
-
-                                {m.replyTo && (
-                                  <div className={`px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden ${isDarkMode ? "bg-m3-surface-container-high/50 text-[#e9edef]/80" : "bg-black/5 text-[#111b21]/70"
-                                    }`}>
-                                    <img src={m.replyTo.avatar} className="w-4 h-4 rounded-full border border-border/20 shrink-0" alt="" />
-                                    <div className="flex flex-col min-w-0">
-                                      {m.replyTo.name && <span className="text-[8px] font-black text-primary uppercase tracking-tighter truncate">{m.replyTo.name}</span>}
-                                      <span className="truncate italic text-[10px] leading-tight">{m.replyTo.content}</span>
-                                    </div>
+                                {!mine && (
+                                  <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                                    {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
                                   </div>
                                 )}
 
-                                {m.type === "voice" || m.type === "audio" ? (
-                                  <div className="flex flex-col gap-1 max-w-full">
-                                    <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} activePaint={activePaint} />
-                                    {m.type === "audio" && m.fileName && (
-                                      <div className={`text-[11px] px-3 py-1.5 rounded-[12px] opacity-90 font-medium break-all w-fit max-w-[280px] shadow-sm ${getAudioColor(mine, isDarkMode, activePaint)}`}>
-                                        {m.fileName}
+                                <div className={`flex-1 min-w-0 ${mine ? "items-end" : "items-start"} flex flex-col gap-[2px] md:gap-0.5`}>
+                                  {!mine && !isConsecutive && m.name && <span className="hidden md:inline-block text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
+
+                                  {m.replyTo && (
+                                    <div className={`px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden ${isDarkMode ? "bg-m3-surface-container-high/50 text-[#e9edef]/80" : "bg-black/5 text-[#111b21]/70"
+                                      }`}>
+                                      <img src={m.replyTo.avatar} className="w-4 h-4 rounded-full border border-border/20 shrink-0" alt="" />
+                                      <div className="flex flex-col min-w-0">
+                                        {m.replyTo.name && <span className="text-[8px] font-black text-primary uppercase tracking-tighter truncate">{m.replyTo.name}</span>}
+                                        <span className="truncate italic text-[10px] leading-tight">{m.replyTo.content}</span>
                                       </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div
-                                    className={`md:rounded-[20px] ${m.type === "image" || m.type === "cluster" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent shadow-none" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px] shadow-sm md:shadow-md transition-all"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col w-fit max-w-full
+                                    </div>
+                                  )}
+
+                                  {m.type === "voice" || m.type === "audio" ? (
+                                    <div className="flex flex-col gap-1 max-w-full">
+                                      <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} activePaint={activePaint} />
+                                      {m.type === "audio" && m.fileName && (
+                                        <div className={`text-[11px] px-3 py-1.5 rounded-[12px] opacity-90 font-medium break-all w-fit max-w-[280px] shadow-sm ${getAudioColor(mine, isDarkMode, activePaint)}`}>
+                                          {m.fileName}
+                                        </div>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <div
+                                      className={`md:rounded-[20px] ${m.type === "image" || m.type === "cluster" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent shadow-none" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px] shadow-sm md:shadow-md transition-all"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col w-fit max-w-full
                                    ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
-                                  >
-                                    <div className="relative flex flex-col">
-                                      {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: isDarkMode ? (paintTheme.bubbleNameDark || paintTheme.nameDark || "#f28b82") : (paintTheme.bubbleNameLight || paintTheme.nameLight || "#eb5528") }}>{m.name}</span>}
+                                    >
+                                      <div className="relative flex flex-col">
+                                        {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: isDarkMode ? (paintTheme.bubbleNameDark || paintTheme.nameDark || "#f28b82") : (paintTheme.bubbleNameLight || paintTheme.nameLight || "#eb5528") }}>{m.name}</span>}
 
 
-                                      {m.type === "image" && !m.isDeleted && (
-                                        <div className="mb-0 overflow-hidden rounded-[18px] relative group/img cursor-pointer active:scale-[0.99] transition-transform" onClick={() => setSelectedImage(m.content)}>
-                                          <img 
-                                            src={m.content} 
-                                            alt="" 
-                                            onContextMenu={(e) => e.preventDefault()}
-                                            style={{ WebkitTouchCallout: 'none' }}
-                                            className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]" 
-                                          />
+                                        {m.type === "image" && !m.isDeleted && (
+                                          <div className="mb-0 overflow-hidden rounded-[18px] relative group/img cursor-pointer active:scale-[0.99] transition-transform" onClick={() => setSelectedImage(m.content)}>
+                                            <img
+                                              src={m.content}
+                                              alt=""
+                                              onContextMenu={(e) => e.preventDefault()}
+                                              style={{ WebkitTouchCallout: 'none' }}
+                                              className="w-full max-w-[320px] md:max-w-[500px] max-h-[250px] object-cover shadow-sm block transition-transform group-hover/img:scale-[1.02]"
+                                            />
 
-                                          {/* Photo overlay actions */}
-                                          <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
-                                            <button
-                                              onClick={(e) => { e.stopPropagation(); setSelectedImage(m.content); }}
-                                              className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
-                                            >
-                                              <ImageIcon className="w-4 h-4" />
-                                            </button>
-                                            <button
-                                              onClick={(e) => { e.stopPropagation(); downloadFile(m.content, m.id, "image"); }}
-                                              className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
-                                            >
-                                              <Download className="w-4 h-4" />
-                                            </button>
-                                          </div>
-
-                                          {m.caption && (
-                                            <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
-                                              {m.caption}
+                                            {/* Photo overlay actions */}
+                                            <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover/img:opacity-100 transition-opacity">
+                                              <button
+                                                onClick={(e) => { e.stopPropagation(); setSelectedImage(m.content); }}
+                                                className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
+                                              >
+                                                <ImageIcon className="w-4 h-4" />
+                                              </button>
+                                              <button
+                                                onClick={(e) => { e.stopPropagation(); downloadFile(m.content, m.id, "image"); }}
+                                                className="p-2 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60 transition-colors"
+                                              >
+                                                <Download className="w-4 h-4" />
+                                              </button>
                                             </div>
-                                          )}
-                                        </div>
-                                      )}
 
-                                      {m.type === "cluster" && (
-                                        <PhotoGrid images={m.images} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} downloadFile={downloadFile} />
-                                      )}
-
-                                      {m.type === "video" && !m.isDeleted && (
-                                        <div className="mb-0 overflow-hidden rounded-[18px] relative group/vid cursor-pointer active:scale-[0.99] transition-transform bg-black/10">
-                                          <video 
-                                            src={m.content} 
-                                            controls
-                                            className="w-full max-w-[320px] md:max-w-[500px] max-h-[300px] object-cover shadow-sm block" 
-                                          />
-                                          {m.caption && (
-                                            <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
-                                              {m.caption}
-                                            </div>
-                                          )}
-                                        </div>
-                                      )}
-                                      {m.type === "file" && !m.isDeleted && (
-                                        <div 
-                                          className={`flex flex-col gap-2 p-3 pb-6 rounded-xl cursor-pointer hover:brightness-95 transition-all ${isDarkMode ? "bg-black/20" : "bg-black/5"}`}
-                                          onClick={() => downloadFile(m.content, m.fileName || m.id, "file")}
-                                        >
-                                          <div className="flex items-center gap-3">
-                                            <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isDarkMode ? "bg-white/10" : "bg-black/10"}`}>
-                                              {m.mimeType?.includes("pdf") ? <FileText className="w-5 h-5 text-red-500" /> :
-                                               m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? <FileArchive className="w-5 h-5 text-orange-500" /> :
-                                               <File className="w-5 h-5 text-blue-500" />}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                              <div className="text-[13px] font-bold break-all leading-tight">{m.fileName || "File"}</div>
-                                              <div className="text-[10px] opacity-50 uppercase font-bold">
-                                                {m.fileSize ? `${(m.fileSize / (1024 * 1024)).toFixed(1)} MB` : "File"}
+                                            {m.caption && (
+                                              <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
+                                                {m.caption}
                                               </div>
-                                            </div>
-                                            <Download className="w-4 h-4 opacity-40 shrink-0" />
+                                            )}
                                           </div>
-                                        </div>
-                                      )}
-
-                                      <div className="relative min-w-[60px]">
-                                        {m.type === "text" && (
-                                          <>
-                                            <span className={`block break-words whitespace-pre-wrap leading-relaxed text-[14px] ${m.isDeleted ? "text-[12px]" : ""}`}>
-                                              {m.isDeleted ? (
-                                                <span className="flex items-center gap-1.5">
-                                                  <ShieldOff className="w-3.5 h-3.5" /> This message was deleted
-                                                </span>
-                                              ) : renderMessageContent(m.content)}
-                                              {/* Spacer to reserve room for absolute timestamp on the same line */}
-                                              <span className={`inline-block h-[1px] ${mine ? "w-[85px]" : "w-[65px]"} ${m.isEdited ? "ml-8" : "ml-2"}`} />
-                                            </span>
-                                            {(() => {
-                                              const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                              const match = m.content.match(urlRegex);
-                                              if (match && !m.isDeleted) {
-                                                return (
-                                                  <>
-                                                    <div className="mt-1"><LinkPreview url={match[0]} isDarkMode={isDarkMode} /></div>
-                                                    <div className="h-5 w-full" /> {/* Space for timestamp below preview */}
-                                                  </>
-                                                );
-                                              }
-                                              return null;
-                                            })()}
-                                          </>
                                         )}
 
-                                        {/* Timestamp: absolute for image, relative for text */}
-                                        <div className={`${m.type === "image" || m.type === "cluster" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
-                                          {m.isEdited && !m.isDeleted && <span className="text-[9px] opacity-40 font-bold uppercase mr-1">Edited</span>}
-                                          <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" || m.type === "cluster" ? "text-white" : ""}`}>
-                                            {m.createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
-                                          </span>
-                                          {mine && <div className={`shrink-0 scale-95 ${m.type === "image" || m.type === "cluster" ? "text-[#53bdeb]" : ""}`}><MsgTick status={m.status} /></div>}
+                                        {m.type === "cluster" && (
+                                          <PhotoGrid images={m.images} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} downloadFile={downloadFile} />
+                                        )}
+
+                                        {m.type === "video" && !m.isDeleted && (
+                                          <div className="mb-0 overflow-hidden rounded-[18px] relative group/vid cursor-pointer active:scale-[0.99] transition-transform bg-black/10">
+                                            <video
+                                              src={m.content}
+                                              controls
+                                              className="w-full max-w-[320px] md:max-w-[500px] max-h-[300px] object-cover shadow-sm block"
+                                            />
+                                            {m.caption && (
+                                              <div className={`px-3 py-2 text-[13px] leading-tight font-medium ${isDarkMode ? "bg-black/20 text-white/90" : "bg-black/5 text-black/80"}`}>
+                                                {m.caption}
+                                              </div>
+                                            )}
+                                          </div>
+                                        )}
+                                        {m.type === "file" && !m.isDeleted && (
+                                          <div
+                                            className={`flex flex-col gap-2 p-3 pb-6 rounded-xl cursor-pointer hover:brightness-95 transition-all ${isDarkMode ? "bg-black/20" : "bg-black/5"}`}
+                                            onClick={() => downloadFile(m.content, m.fileName || m.id, "file")}
+                                          >
+                                            <div className="flex items-center gap-3">
+                                              <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${isDarkMode ? "bg-white/10" : "bg-black/10"}`}>
+                                                {m.mimeType?.includes("pdf") ? <FileText className="w-5 h-5 text-red-500" /> :
+                                                  m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? <FileArchive className="w-5 h-5 text-orange-500" /> :
+                                                    <File className="w-5 h-5 text-blue-500" />}
+                                              </div>
+                                              <div className="flex-1 min-w-0">
+                                                <div className="text-[13px] font-bold break-all leading-tight">{m.fileName || "File"}</div>
+                                                <div className="text-[10px] opacity-50 uppercase font-bold">
+                                                  {m.fileSize ? `${(m.fileSize / (1024 * 1024)).toFixed(1)} MB` : "File"}
+                                                </div>
+                                              </div>
+                                              <Download className="w-4 h-4 opacity-40 shrink-0" />
+                                            </div>
+                                          </div>
+                                        )}
+
+                                        <div className="relative min-w-[60px]">
+                                          {m.type === "text" && (
+                                            <>
+                                              <span className={`block break-words whitespace-pre-wrap leading-relaxed text-[14px] ${m.isDeleted ? "text-[12px]" : ""}`}>
+                                                {m.isDeleted ? (
+                                                  <span className="flex items-center gap-1.5">
+                                                    <ShieldOff className="w-3.5 h-3.5" /> This message was deleted
+                                                  </span>
+                                                ) : renderMessageContent(m.content)}
+                                                {/* Spacer to reserve room for absolute timestamp on the same line */}
+                                                <span className={`inline-block h-[1px] ${mine ? "w-[85px]" : "w-[65px]"} ${m.isEdited ? "ml-8" : "ml-2"}`} />
+                                              </span>
+                                              {(() => {
+                                                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                const match = m.content.match(urlRegex);
+                                                if (match && !m.isDeleted) {
+                                                  return (
+                                                    <>
+                                                      <div className="mt-1"><LinkPreview url={match[0]} isDarkMode={isDarkMode} /></div>
+                                                      <div className="h-5 w-full" /> {/* Space for timestamp below preview */}
+                                                    </>
+                                                  );
+                                                }
+                                                return null;
+                                              })()}
+                                            </>
+                                          )}
+
+                                          {/* Timestamp: absolute for image, relative for text */}
+                                          <div className={`${m.type === "image" || m.type === "cluster" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
+                                            {m.isEdited && !m.isDeleted && <span className="text-[9px] opacity-40 font-bold uppercase mr-1">Edited</span>}
+                                            <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" || m.type === "cluster" ? "text-white" : ""}`}>
+                                              {m.createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
+                                            </span>
+                                            {mine && <div className={`shrink-0 scale-95 ${m.type === "image" || m.type === "cluster" ? "text-[#53bdeb]" : ""}`}><MsgTick status={m.status} /></div>}
+                                          </div>
                                         </div>
+
+
+                                        {/* Reactions Display */}
                                       </div>
 
-
-                                      {/* Reactions Display */}
+                                      {/* Desktop hover reply button */}
+                                      <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
+                                        <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
+                                          <Reply className="w-4 h-4" />
+                                        </button>
+                                      </div>
                                     </div>
+                                  )}
+                                </div>
 
-                                    {/* Desktop hover reply button */}
-                                    <div className={`hidden md:flex absolute top-1/2 -translate-y-1/2 ${mine ? "-left-10" : "-right-10"} items-center opacity-0 group-hover:opacity-100 transition-opacity`}>
-                                      <button onClick={() => setReplyingTo(m)} className="p-2 rounded-full bg-background/60 hover:bg-background shadow-elegant border border-border/40 text-muted-foreground hover:text-primary">
-                                        <Reply className="w-4 h-4" />
-                                      </button>
-                                    </div>
+                                {mine && (
+                                  <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
+                                    {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
                                   </div>
                                 )}
-                              </div>
-
-                              {mine && (
-                                <div className="hidden md:flex flex-col items-center mt-auto gap-1 w-8 shrink-0">
-                                  {isLastInGroup && <img src={m.avatar} className="h-8 w-8 rounded-full bg-muted object-cover border border-border/40 shadow-sm" alt="" />}
-                                </div>
-                              )}
+                              </motion.div>
                             </motion.div>
-                          </motion.div>
-                        </Fragment>
-                      );
-                    })})()}
+                          </Fragment>
+                        );
+                      })
+                    })()}
                   </AnimatePresence>
 
 
@@ -2275,9 +2274,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     initial={{ opacity: 0, y: 20, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                    className={`mx-4 mb-3 p-3 rounded-2xl flex items-center gap-4 border-l-4 border-primary shadow-[0_10px_30px_rgba(0,0,0,0.1)] relative overflow-hidden backdrop-blur-xl ${
-                      isDarkMode ? "bg-[#1f2c33]/90 border-primary" : "bg-white/90 border-primary"
-                    }`}
+                    className={`mx-4 mb-3 p-3 rounded-2xl flex items-center gap-4 border-l-4 border-primary shadow-[0_10px_30px_rgba(0,0,0,0.1)] relative overflow-hidden backdrop-blur-xl ${isDarkMode ? "bg-[#1f2c33]/90 border-primary" : "bg-white/90 border-primary"
+                      }`}
                   >
                     <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
                     <div className="p-2.5 bg-primary/10 rounded-xl text-primary relative z-10">
@@ -2322,8 +2320,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <LiveAudioVisualizer stream={recStreamRef.current} />
                       </div>
                     </div>
-                    
-                    <motion.div 
+
+                    <motion.div
                       drag="x"
                       dragConstraints={{ right: 0, left: -100 }}
                       dragElastic={0.1}
@@ -2656,94 +2654,83 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   {!isLowEnd && (
                     <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
                       <div className="absolute top-0 left-0 w-full h-full will-change-transform">
-                        <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${
-                          logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
-                        }`} />
-                        <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${
-                          logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "easy" ? "bg-orange-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
-                        }`} />
+                        <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
+                          }`} />
+                        <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "easy" ? "bg-orange-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
+                          }`} />
                       </div>
                     </div>
                   )}
 
 
                   {/* Header / Protocol Identity */}
-                  <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-3xl transition-colors duration-700 ${
-                    logTab === "updates" ? (isDarkMode ? "bg-[#202c33]/90 border-emerald-500/20" : "bg-white/90 border-emerald-500/20") :
-                    historyLevel === "easy" ? (isDarkMode ? "bg-[#202c33]/90 border-orange-500/20" : "bg-white/90 border-orange-500/20") :
-                    historyLevel === "medium" ? (isDarkMode ? "bg-[#202c33]/90 border-blue-500/20" : "bg-white/90 border-blue-500/20") :
-                    (isDarkMode ? "bg-[#202c33]/90 border-purple-500/20" : "bg-white/90 border-purple-500/20")
-                  }`}>
+                  <div className={`px-4 sm:px-6 py-5 flex items-center justify-between border-b relative z-10 backdrop-blur-3xl transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "bg-[#202c33]/90 border-emerald-500/20" : "bg-white/90 border-emerald-500/20") :
+                      historyLevel === "easy" ? (isDarkMode ? "bg-[#202c33]/90 border-orange-500/20" : "bg-white/90 border-orange-500/20") :
+                        historyLevel === "medium" ? (isDarkMode ? "bg-[#202c33]/90 border-blue-500/20" : "bg-white/90 border-blue-500/20") :
+                          (isDarkMode ? "bg-[#202c33]/90 border-purple-500/20" : "bg-white/90 border-purple-500/20")
+                    }`}>
                     <div className="flex items-center gap-4 sm:gap-6">
-                      <button onClick={() => setShowLogs(false)} className={`p-2 rounded-full transition-all active:scale-90 shadow-md ${
-                        logTab === "updates" ? (isDarkMode ? "bg-white/10 hover:bg-emerald-500/20 text-emerald-400" : "bg-black/5 hover:bg-emerald-500/10 text-emerald-600") :
-                        historyLevel === "easy" ? (isDarkMode ? "bg-white/10 hover:bg-orange-500/20 text-orange-400" : "bg-black/5 hover:bg-orange-500/10 text-orange-600") :
-                        historyLevel === "medium" ? (isDarkMode ? "bg-white/10 hover:bg-blue-500/20 text-blue-400" : "bg-black/5 hover:bg-blue-500/10 text-blue-600") :
-                        (isDarkMode ? "bg-white/10 hover:bg-purple-500/20 text-purple-400" : "bg-black/5 hover:bg-purple-500/10 text-purple-600")
-                      }`}>
+                      <button onClick={() => setShowLogs(false)} className={`p-2 rounded-full transition-all active:scale-90 shadow-md ${logTab === "updates" ? (isDarkMode ? "bg-white/10 hover:bg-emerald-500/20 text-emerald-400" : "bg-black/5 hover:bg-emerald-500/10 text-emerald-600") :
+                          historyLevel === "easy" ? (isDarkMode ? "bg-white/10 hover:bg-orange-500/20 text-orange-400" : "bg-black/5 hover:bg-orange-500/10 text-orange-600") :
+                            historyLevel === "medium" ? (isDarkMode ? "bg-white/10 hover:bg-blue-500/20 text-blue-400" : "bg-black/5 hover:bg-blue-500/10 text-blue-600") :
+                              (isDarkMode ? "bg-white/10 hover:bg-purple-500/20 text-purple-400" : "bg-black/5 hover:bg-purple-500/10 text-purple-600")
+                        }`}>
                         <ChevronLeft className="w-6 h-6" />
                       </button>
                       <div className="min-w-0">
-                        <h2 className={`text-lg sm:text-2xl font-black tracking-tighter truncate transition-colors duration-700 ${
-                          logTab === "updates" ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") :
-                          historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
-                          historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
-                          (isDarkMode ? "text-purple-400" : "text-purple-600")
-                        }`}>Build Book</h2>
+                        <h2 className={`text-lg sm:text-2xl font-black tracking-tighter truncate transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") :
+                            historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
+                              historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
+                                (isDarkMode ? "text-purple-400" : "text-purple-600")
+                          }`}>Build Book</h2>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <div className={`w-1.5 h-1.5 rounded-full animate-pulse transition-colors duration-700 ${
-                            logTab === "updates" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" :
-                            historyLevel === "easy" ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]" :
-                            historyLevel === "medium" ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" :
-                            "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"
-                          }`} />
+                          <div className={`w-1.5 h-1.5 rounded-full animate-pulse transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" :
+                              historyLevel === "easy" ? "bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.8)]" :
+                                historyLevel === "medium" ? "bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.8)]" :
+                                  "bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.8)]"
+                            }`} />
                           <span className={`text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] truncate transition-colors duration-700 ${isDarkMode ? "text-white/50" : "text-black/50"}`}>Protocol Synchronization</span>
                         </div>
                       </div>
                     </div>
                     <div className="hidden sm:flex items-center gap-4">
-                       <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest transition-colors duration-700 ${
-                         logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" :
-                         historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
-                         historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/30 text-blue-500" :
-                         "bg-purple-500/10 border-purple-500/30 text-purple-500"
-                       }`}>
-                         v2.4.1
-                       </div>
+                      <div className={`px-3 py-1 rounded-full border text-[9px] font-black uppercase tracking-widest transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" :
+                          historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
+                            historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/30 text-blue-500" :
+                              "bg-purple-500/10 border-purple-500/30 text-purple-500"
+                        }`}>
+                        v2.4.1
+                      </div>
                     </div>
                   </div>
 
                   {/* Content / Book Body */}
                   <div className="flex-1 overflow-y-auto overflow-x-hidden relative z-10 scroll-smooth scrollbar-hide">
                     <div className="max-w-4xl mx-auto px-6 sm:px-8 py-12 sm:py-20 space-y-16 sm:space-y-24">
-                      
+
                       {/* Genesis Header with Optimized Glow */}
                       <div className="text-center mb-24 sm:mb-40 relative px-4">
-                         <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 blur-[80px] rounded-full pointer-events-none transition-colors duration-700 ${
-                           logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
-                         }`} />
-                         <div className={`relative inline-block p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] border-2 mb-6 sm:mb-8 transition-colors duration-700 ${
-                           logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.2)]" :
-                           historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/20 shadow-[0_0_25px_rgba(249,115,22,0.2)]" :
-                           historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.2)]" :
-                           "bg-purple-500/10 border-purple-500/20 shadow-[0_0_25px_rgba(168,85,247,0.2)]"
-                         }`}>
-                            <History className={`w-10 h-10 sm:w-12 sm:h-12 transition-colors duration-700 ${
-                              logTab === "updates" ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") :
+                        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 sm:w-64 h-48 sm:h-64 blur-[80px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
+                          }`} />
+                        <div className={`relative inline-block p-5 sm:p-6 rounded-[28px] sm:rounded-[32px] border-2 mb-6 sm:mb-8 transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/10 border-emerald-500/20 shadow-[0_0_25px_rgba(16,185,129,0.2)]" :
+                            historyLevel === "easy" ? "bg-orange-500/10 border-orange-500/20 shadow-[0_0_25px_rgba(249,115,22,0.2)]" :
+                              historyLevel === "medium" ? "bg-blue-500/10 border-blue-500/20 shadow-[0_0_25px_rgba(59,130,246,0.2)]" :
+                                "bg-purple-500/10 border-purple-500/20 shadow-[0_0_25px_rgba(168,85,247,0.2)]"
+                          }`}>
+                          <History className={`w-10 h-10 sm:w-12 sm:h-12 transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "text-emerald-400" : "text-emerald-600") :
                               historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
-                              historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
-                              (isDarkMode ? "text-purple-400" : "text-purple-600")
+                                historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
+                                  (isDarkMode ? "text-purple-400" : "text-purple-600")
                             }`} />
-                         </div>
-                         <h1 className={`text-4xl sm:text-6xl font-black tracking-tighter mb-4 sm:mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>Build Theory</h1>
-                         <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed font-semibold transition-colors duration-700 ${
-                           logTab === "updates" ? (isDarkMode ? "text-emerald-100/60" : "text-emerald-900/60") :
-                           historyLevel === "easy" ? (isDarkMode ? "text-orange-100/60" : "text-orange-900/60") :
-                           historyLevel === "medium" ? (isDarkMode ? "text-blue-100/60" : "text-blue-900/60") :
-                           (isDarkMode ? "text-purple-100/60" : "text-purple-900/60")
-                         }`}>
-                           Real-time synchronization of code architecture and strategic evolution protocols.
-                         </p>
+                        </div>
+                        <h1 className={`text-4xl sm:text-6xl font-black tracking-tighter mb-4 sm:mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>Build Theory</h1>
+                        <p className={`text-sm sm:text-base max-w-md mx-auto leading-relaxed font-semibold transition-colors duration-700 ${logTab === "updates" ? (isDarkMode ? "text-emerald-100/60" : "text-emerald-900/60") :
+                            historyLevel === "easy" ? (isDarkMode ? "text-orange-100/60" : "text-orange-900/60") :
+                              historyLevel === "medium" ? (isDarkMode ? "text-blue-100/60" : "text-blue-900/60") :
+                                (isDarkMode ? "text-purple-100/60" : "text-purple-900/60")
+                          }`}>
+                          Real-time synchronization of code architecture and strategic evolution protocols.
+                        </p>
                       </div>
 
                       {/* Tabs */}
@@ -2751,37 +2738,33 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <div className={`relative flex p-1 rounded-full border shadow-inner w-64 ${isDarkMode ? "bg-black/30 border-white/5" : "bg-black/5 border-black/5"}`}>
                           <div className="absolute inset-y-1 left-1 right-1 pointer-events-none">
                             <div className="relative w-full h-full flex">
-                              <div 
-                                className={`absolute top-0 bottom-0 w-[50%] rounded-full border transition-all duration-300 ease-out ${
-                                  logTab === "history" ? "translate-x-full" : "translate-x-0"
-                                } ${
-                                  logTab === "updates" ? "bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)] border-emerald-500/30" : 
-                                  historyLevel === "easy" ? "bg-orange-500/20 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.3)]" :
-                                  historyLevel === "medium" ? "bg-blue-500/20 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.3)]" :
-                                  "bg-purple-500/20 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                                }`}
+                              <div
+                                className={`absolute top-0 bottom-0 w-[50%] rounded-full border transition-all duration-300 ease-out ${logTab === "history" ? "translate-x-full" : "translate-x-0"
+                                  } ${logTab === "updates" ? "bg-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.3)] border-emerald-500/30" :
+                                    historyLevel === "easy" ? "bg-orange-500/20 border-orange-500/30 shadow-[0_0_15px_rgba(249,115,22,0.3)]" :
+                                      historyLevel === "medium" ? "bg-blue-500/20 border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.3)]" :
+                                        "bg-purple-500/20 border-purple-500/30 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                                  }`}
                               />
                             </div>
                           </div>
                           <button
                             onClick={() => setLogTab("updates")}
-                            className={`relative flex-1 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${
-                              logTab === "updates"
+                            className={`relative flex-1 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${logTab === "updates"
                                 ? isDarkMode ? "text-emerald-400" : "text-emerald-600"
                                 : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
-                            }`}
+                              }`}
                           >
                             Updates
                           </button>
                           <button
                             onClick={() => setLogTab("history")}
-                            className={`relative flex-1 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${
-                              logTab === "history"
+                            className={`relative flex-1 py-2.5 text-xs sm:text-sm font-bold tracking-wide transition-colors ${logTab === "history"
                                 ? historyLevel === "easy" ? (isDarkMode ? "text-orange-400" : "text-orange-600") :
                                   historyLevel === "medium" ? (isDarkMode ? "text-blue-400" : "text-blue-600") :
-                                  (isDarkMode ? "text-purple-400" : "text-purple-600")
+                                    (isDarkMode ? "text-purple-400" : "text-purple-600")
                                 : isDarkMode ? "text-white/40 hover:text-white/60" : "text-black/40 hover:text-black/60"
-                            }`}
+                              }`}
                           >
                             History
                           </button>
@@ -2791,81 +2774,80 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <div className="relative w-full">
                         <div className={logTab === "updates" ? "block" : "hidden"}>
 
-                        <div className="flex justify-end mb-8 relative z-50 px-4">
-                           <button
-                             onClick={() => {
-                               const text = changelogData.map((day: any) => 
-                                 `Date: ${day.date}\n` + day.updates.map((u: any) => `[${u.status}] ${u.title}\n${u.description}\n${u.rationale ? `Rationale: ${u.rationale}` : ''}`).join('\n\n')
-                               ).join('\n\n---\n\n');
-                               navigator.clipboard.writeText(text);
-                               addNotification("Updates Copied!", "success");
-                             }}
-                             className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all active:scale-95 border ${isDarkMode ? "bg-white/5 text-white hover:bg-white/10 border-white/10" : "bg-black/5 text-black hover:bg-black/10 border-black/10"}`}
-                           >
-                             <Copy className="w-3.5 h-3.5" />
-                             Copy Updates
-                           </button>
-                        </div>
-                      {changelogData.map((day, idx) => (
-                        <div key={day.date} className="relative pl-10 sm:pl-28 pb-20 sm:pb-32 last:pb-0">
-
-                          {/* Intense Neon Timeline Line */}
-                          <div className={`absolute left-4 sm:left-14 top-0 bottom-0 w-0.5 ${isDarkMode ? "bg-emerald-500/20" : "bg-emerald-500/10"}`} />
-                          
-                          <div className={`absolute left-0 sm:left-9 top-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 border-emerald-500 ${isLowEnd ? "" : "shadow-[0_0_20px_rgba(16,185,129,0.5)]"} z-20 ${isDarkMode ? "bg-[#0b141a]" : "bg-white"}`}>
-
-                             <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,1)]" />
+                          <div className="flex justify-end mb-8 relative z-50 px-4">
+                            <button
+                              onClick={() => {
+                                const text = changelogData.map((day: any) =>
+                                  `Date: ${day.date}\n` + day.updates.map((u: any) => `[${u.status}] ${u.title}\n${u.description}\n${u.rationale ? `Rationale: ${u.rationale}` : ''}`).join('\n\n')
+                                ).join('\n\n---\n\n');
+                                navigator.clipboard.writeText(text);
+                                addNotification("Updates Copied!", "success");
+                              }}
+                              className={`flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all active:scale-95 border ${isDarkMode ? "bg-white/5 text-white hover:bg-white/10 border-white/10" : "bg-black/5 text-black hover:bg-black/10 border-black/10"}`}
+                            >
+                              <Copy className="w-3.5 h-3.5" />
+                              Copy Updates
+                            </button>
                           </div>
+                          {changelogData.map((day, idx) => (
+                            <div key={day.date} className="relative pl-10 sm:pl-28 pb-20 sm:pb-32 last:pb-0">
 
-                          <div className="mb-10 sm:mb-16">
-                            <div className={`text-[9px] sm:text-[11px] font-black uppercase tracking-[0.4em] mb-2 sm:mb-3 ${isDarkMode ? "text-emerald-400/40" : "text-emerald-600/40"}`}>
-                              Sector: {day.date}
-                            </div>
-                            <h3 className={`text-3xl sm:text-5xl font-black tracking-tighter ${isDarkMode ? "text-white" : "text-black"}`}>
-                              {day.date === new Date().toISOString().split('T')[0] ? "Active Build" : new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
-                            </h3>
-                          </div>
+                              {/* Intense Neon Timeline Line */}
+                              <div className={`absolute left-4 sm:left-14 top-0 bottom-0 w-0.5 ${isDarkMode ? "bg-emerald-500/20" : "bg-emerald-500/10"}`} />
 
-                          <div className="space-y-12 sm:space-y-20">
-                            {day.updates.map((update, uIdx) => (
-                              <div 
-                                key={uIdx}
-                                className="group relative"
-                              >
-                                <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
-                                  <span className={`px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black tracking-widest border ${
-                                    update.status === "DEPLOYED" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.2)]" :
-                                    update.status === "CONCEPTUAL" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
-                                    isDarkMode ? "bg-white/5 border-white/10 text-white/50" : "bg-black/5 border-black/10 text-black/50"
-                                  }`}>
-                                    {update.status}
-                                  </span>
-                                  <div className="flex-1 h-px bg-emerald-500/5" />
-                                </div>
+                              <div className={`absolute left-0 sm:left-9 top-0 w-8 h-8 sm:w-10 sm:h-10 rounded-xl sm:rounded-2xl flex items-center justify-center border-2 border-emerald-500 ${isLowEnd ? "" : "shadow-[0_0_20px_rgba(16,185,129,0.5)]"} z-20 ${isDarkMode ? "bg-[#0b141a]" : "bg-white"}`}>
 
-                                <h4 className={`text-lg sm:text-2xl font-black mb-3 sm:mb-5 tracking-tight group-hover:text-emerald-400 transition-colors ${isDarkMode ? "text-emerald-50" : "text-black"}`}>
-                                  {update.title}
-                                </h4>
-                                <p className={`text-xs sm:text-base leading-relaxed font-medium mb-6 sm:mb-8 ${isDarkMode ? "text-white/50" : "text-black/60"}`}>
-                                  {update.description}
-                                </p>
-                                {update.rationale && (
-                                  <div className={`p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] border relative overflow-hidden transition-all group-hover:border-emerald-500/30 ${isDarkMode ? "bg-black/40 border-emerald-500/10" : "bg-white border-emerald-500/10"}`}>
-
-                                    <div className="absolute top-0 left-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-emerald-500 to-orange-500" />
-                                    <span className={`block text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-2 sm:mb-4 ${isDarkMode ? "text-emerald-500" : "text-emerald-600"}`}>
-                                      Build Rationale
-                                    </span>
-                                    <p className={`text-[12px] sm:text-[15px] italic leading-relaxed font-medium ${isDarkMode ? "text-white/40" : "text-black/50"}`}>
-                                      {update.rationale}
-                                    </p>
-                                  </div>
-                                )}
+                                <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,1)]" />
                               </div>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
+
+                              <div className="mb-10 sm:mb-16">
+                                <div className={`text-[9px] sm:text-[11px] font-black uppercase tracking-[0.4em] mb-2 sm:mb-3 ${isDarkMode ? "text-emerald-400/40" : "text-emerald-600/40"}`}>
+                                  Sector: {day.date}
+                                </div>
+                                <h3 className={`text-3xl sm:text-5xl font-black tracking-tighter ${isDarkMode ? "text-white" : "text-black"}`}>
+                                  {day.date === new Date().toISOString().split('T')[0] ? "Active Build" : new Date(day.date).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                                </h3>
+                              </div>
+
+                              <div className="space-y-12 sm:space-y-20">
+                                {day.updates.map((update, uIdx) => (
+                                  <div
+                                    key={uIdx}
+                                    className="group relative"
+                                  >
+                                    <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
+                                      <span className={`px-2 py-0.5 rounded-md text-[8px] sm:text-[9px] font-black tracking-widest border ${update.status === "DEPLOYED" ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.2)]" :
+                                          update.status === "CONCEPTUAL" ? "bg-orange-500/10 border-orange-500/30 text-orange-500" :
+                                            isDarkMode ? "bg-white/5 border-white/10 text-white/50" : "bg-black/5 border-black/10 text-black/50"
+                                        }`}>
+                                        {update.status}
+                                      </span>
+                                      <div className="flex-1 h-px bg-emerald-500/5" />
+                                    </div>
+
+                                    <h4 className={`text-lg sm:text-2xl font-black mb-3 sm:mb-5 tracking-tight group-hover:text-emerald-400 transition-colors ${isDarkMode ? "text-emerald-50" : "text-black"}`}>
+                                      {update.title}
+                                    </h4>
+                                    <p className={`text-xs sm:text-base leading-relaxed font-medium mb-6 sm:mb-8 ${isDarkMode ? "text-white/50" : "text-black/60"}`}>
+                                      {update.description}
+                                    </p>
+                                    {update.rationale && (
+                                      <div className={`p-4 sm:p-6 rounded-[20px] sm:rounded-[24px] border relative overflow-hidden transition-all group-hover:border-emerald-500/30 ${isDarkMode ? "bg-black/40 border-emerald-500/10" : "bg-white border-emerald-500/10"}`}>
+
+                                        <div className="absolute top-0 left-0 bottom-0 w-1 sm:w-1.5 bg-gradient-to-b from-emerald-500 to-orange-500" />
+                                        <span className={`block text-[8px] sm:text-[10px] font-black uppercase tracking-[0.2em] mb-2 sm:mb-4 ${isDarkMode ? "text-emerald-500" : "text-emerald-600"}`}>
+                                          Build Rationale
+                                        </span>
+                                        <p className={`text-[12px] sm:text-[15px] italic leading-relaxed font-medium ${isDarkMode ? "text-white/40" : "text-black/50"}`}>
+                                          {update.rationale}
+                                        </p>
+                                      </div>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
                         </div>
                         <div className={logTab === "history" ? "block space-y-8 relative" : "hidden"}>
 
@@ -2875,11 +2857,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <button
                                   key={level}
                                   onClick={() => setHistoryLevel(level)}
-                                  className={`px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all border ${
-                                    historyLevel === level
+                                  className={`px-5 py-2.5 rounded-xl text-[10px] sm:text-xs font-black uppercase tracking-widest transition-all border ${historyLevel === level
                                       ? level === "easy" ? "bg-orange-500/20 text-orange-500 border-orange-500/50 shadow-[0_0_15px_rgba(249,115,22,0.4)]" : level === "medium" ? "bg-blue-500/20 text-blue-500 border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.4)]" : "bg-purple-500/20 text-purple-500 border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.4)]"
                                       : isDarkMode ? "bg-black/20 text-white/40 border-white/5 hover:bg-white/10 hover:shadow-[0_0_10px_rgba(255,255,255,0.1)]" : "bg-white/50 text-black/40 border-black/5 hover:bg-black/5 hover:shadow-[0_0_10px_rgba(0,0,0,0.05)]"
-                                  }`}
+                                    }`}
                                 >
                                   {level}
                                 </button>
@@ -2887,19 +2868,18 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </div>
                             <div className="flex items-center gap-2 relative z-50">
                               <div className="relative flex items-center justify-center">
-                                <button 
+                                <button
                                   onClick={() => setShowHistoryInfo(true)}
-                                  className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl border transition-colors ${
-                                    showHistoryInfo ? (isDarkMode ? "bg-white/20 border-white/30 text-white" : "bg-black/20 border-black/30 text-black") :
-                                    (isDarkMode ? "bg-white/5 border-white/10 hover:bg-white/10 text-white/50 hover:text-white" : "bg-black/5 border-black/10 hover:bg-black/10 text-black/50 hover:text-black")
-                                  }`}
+                                  className={`flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-xl border transition-colors ${showHistoryInfo ? (isDarkMode ? "bg-white/20 border-white/30 text-white" : "bg-black/20 border-black/30 text-black") :
+                                      (isDarkMode ? "bg-white/5 border-white/10 hover:bg-white/10 text-white/50 hover:text-white" : "bg-black/5 border-black/10 hover:bg-black/10 text-black/50 hover:text-black")
+                                    }`}
                                 >
                                   <Info className="w-4 h-4" />
                                 </button>
                                 <AnimatePresence>
                                   {showHistoryInfo && (
                                     <div className="fixed inset-0 z-[500] flex items-center justify-center px-4 pointer-events-auto bg-black/40 backdrop-blur-sm">
-                                      <motion.div 
+                                      <motion.div
                                         initial={{ opacity: 0, scale: 0.95, y: 20 }}
                                         animate={{ opacity: 1, scale: 1, y: 0 }}
                                         exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -2938,14 +2918,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             </div>
                           </div>
 
-                          <div className={`p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden shadow-2xl ${
-                            logTab === "history" && historyLevel === "easy" ? isDarkMode ? "bg-[#0b141a] border-orange-500/20" : "bg-white border-orange-500/20" :
-                            logTab === "history" && historyLevel === "medium" ? isDarkMode ? "bg-[#0b141a] border-blue-500/20" : "bg-white border-blue-500/20" :
-                            logTab === "history" && historyLevel === "hard" ? isDarkMode ? "bg-[#0b141a] border-purple-500/20" : "bg-white border-purple-500/20" :
-                            isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"
-                          }`}>
+                          <div className={`p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden shadow-2xl ${logTab === "history" && historyLevel === "easy" ? isDarkMode ? "bg-[#0b141a] border-orange-500/20" : "bg-white border-orange-500/20" :
+                              logTab === "history" && historyLevel === "medium" ? isDarkMode ? "bg-[#0b141a] border-blue-500/20" : "bg-white border-blue-500/20" :
+                                logTab === "history" && historyLevel === "hard" ? isDarkMode ? "bg-[#0b141a] border-purple-500/20" : "bg-white border-purple-500/20" :
+                                  isDarkMode ? "bg-[#0b141a] border-white/10" : "bg-white border-black/10"
+                            }`}>
                             <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${historyLevel === "easy" ? "from-orange-400 to-orange-600" : historyLevel === "medium" ? "from-blue-400 to-blue-600" : "from-purple-400 to-purple-600"}`} />
-                            
+
                             <h2 className={`text-2xl sm:text-4xl font-black tracking-tighter mb-6 ${isDarkMode ? "text-white" : "text-black"}`}>
                               {historyData[historyLevel].title}
                             </h2>
@@ -2953,146 +2932,147 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               {historyData[historyLevel].intro}
                             </p>
 
-                             <div className="space-y-8 sm:space-y-12">
-                               {historyData[historyLevel].sections.map((section: any, idx: number) => (
-                                 <div key={idx} className="relative">
-                                   <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
-                                     {section.heading}
-                                   </h3>
-                                   <p className={`text-sm sm:text-base leading-relaxed break-words whitespace-pre-wrap ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
-                                     {section.content}
-                                   </p>
-                                 </div>
-                               ))}
-                             </div>
+                            <div className="space-y-8 sm:space-y-12">
+                              {historyData[historyLevel].sections.map((section: any, idx: number) => (
+                                <div key={idx} className="relative">
+                                  <h3 className={`text-lg sm:text-xl font-black mb-3 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
+                                    {section.heading}
+                                  </h3>
+                                  <p className={`text-sm sm:text-base leading-relaxed break-words whitespace-pre-wrap ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
+                                    {section.content}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
 
-                             {/* Sarcastic FAQs Section */}
-                             {(historyData[historyLevel] as any).faqs && (
-                               <div className="mt-16 sm:mt-24 space-y-10">
-                                 <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 ${isDarkMode ? "text-white" : "text-black"}`}>
-                                   <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
-                                   Protocol Intel (FAQs)
-                                 </h3>
-                                 <div className="grid gap-6">
-                                   {(historyData[historyLevel] as any).faqs.map((faq: any, idx: number) => (
-                                     <div key={idx} className={`p-6 rounded-3xl border transition-all hover:scale-[1.01] ${isDarkMode ? "bg-white/5 border-white/5" : "bg-black/5 border-black/5"}`}>
-                                       <h4 className={`text-sm sm:text-base font-black mb-3 flex items-start gap-2 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
-                                         <span className="opacity-40">Q:</span> {faq.question}
-                                       </h4>
-                                       <p className={`text-xs sm:text-sm font-semibold italic leading-relaxed ${isDarkMode ? "text-white/50" : "text-black/50"}`}>
-                                         {faq.answer}
-                                       </p>
-                                     </div>
-                                   ))}
-                                 </div>
-                               </div>
-                             )}
+                            {/* Sarcastic FAQs Section */}
+                            {(historyData[historyLevel] as any).faqs && (
+                              <div className="mt-16 sm:mt-24 space-y-10">
+                                <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 ${isDarkMode ? "text-white" : "text-black"}`}>
+                                  <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
+                                  Protocol Intel (FAQs)
+                                </h3>
+                                <div className="grid gap-6">
+                                  {(historyData[historyLevel] as any).faqs.map((faq: any, idx: number) => (
+                                    <div key={idx} className={`p-6 rounded-3xl border transition-all hover:scale-[1.01] ${isDarkMode ? "bg-white/5 border-white/5" : "bg-black/5 border-black/5"}`}>
+                                      <h4 className={`text-sm sm:text-base font-black mb-3 flex items-start gap-2 ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`}>
+                                        <span className="opacity-40">Q:</span> {faq.question}
+                                      </h4>
+                                      <p className={`text-xs sm:text-sm font-semibold italic leading-relaxed ${isDarkMode ? "text-white/50" : "text-black/50"}`}>
+                                        {faq.answer}
+                                      </p>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
 
-                             {/* Hardware Analytics Dashboard (Excel Style) */}
-                             {(historyData[historyLevel] as any).analytics && (
-                               <div className="mt-16 sm:mt-24">
-                                 <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 mb-10 ${isDarkMode ? "text-white" : "text-black"}`}>
-                                   <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
-                                   System Hardware Metrics
-                                 </h3>
-                                 
-                                 <div className={`rounded-3xl border overflow-hidden shadow-xl ${isDarkMode ? "bg-black/40 border-white/10" : "bg-white border-black/10"}`}>
-                                   {/* Header */}
-                                   <div className={`grid grid-cols-3 border-b text-[10px] font-black uppercase tracking-widest p-4 ${isDarkMode ? "bg-white/5 border-white/10 text-white/40" : "bg-black/5 border-black/10 text-black/40"}`}>
-                                     <div>Component</div>
-                                     <div className="text-center">Cloud Load</div>
-                                     <div className="text-right">HW Status</div>
-                                   </div>
-                                   
-                                   {/* Table Rows */}
-                                   <div className="divide-y divide-white/5">
-                                     {(historyData[historyLevel] as any).analytics.hardwareUsage.map((item: any, idx: number) => (
-                                       <div key={idx} className="p-4 grid grid-cols-3 items-center">
-                                         <div className="text-xs font-bold flex items-center gap-2">
-                                           <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
-                                           {item.label}
-                                         </div>
-                                         <div className="flex flex-col items-center gap-1.5 px-4">
-                                           <div className={`w-full h-1.5 rounded-full ${isDarkMode ? "bg-white/10" : "bg-black/10"} overflow-hidden`}>
-                                             <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
-                                           </div>
-                                           <span className="text-[10px] font-black opacity-50">{item.value}%</span>
-                                         </div>
-                                         <div className="text-right text-[10px] font-black text-emerald-500">OPTIMIZED</div>
-                                       </div>
-                                     ))}
-                                   </div>
-                                     </div>
-                                   </div>
+                            {/* Hardware Analytics Dashboard (Excel Style) */}
+                            {(historyData[historyLevel] as any).analytics && (
+                              <div className="mt-16 sm:mt-24">
+                                <h3 className={`text-xl sm:text-2xl font-black flex items-center gap-3 mb-10 ${isDarkMode ? "text-white" : "text-black"}`}>
+                                  <div className="w-1.5 h-8 bg-emerald-500 rounded-full" />
+                                  System Hardware Metrics
+                                </h3>
+
+                                <div className={`rounded-3xl border overflow-hidden shadow-xl ${isDarkMode ? "bg-black/40 border-white/10" : "bg-white border-black/10"}`}>
+                                  {/* Header */}
+                                  <div className={`grid grid-cols-3 border-b text-[10px] font-black uppercase tracking-widest p-4 ${isDarkMode ? "bg-white/5 border-white/10 text-white/40" : "bg-black/5 border-black/10 text-black/40"}`}>
+                                    <div>Component</div>
+                                    <div className="text-center">Cloud Load</div>
+                                    <div className="text-right">HW Status</div>
+                                  </div>
+
+                                  {/* Table Rows */}
+                                  <div className="divide-y divide-white/5">
+                                    {(historyData[historyLevel] as any).analytics.hardwareUsage.map((item: any, idx: number) => (
+                                      <div key={idx} className="p-4 grid grid-cols-3 items-center">
+                                        <div className="text-xs font-bold flex items-center gap-2">
+                                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: item.color }} />
+                                          {item.label}
+                                        </div>
+                                        <div className="flex flex-col items-center gap-1.5 px-4">
+                                          <div className={`w-full h-1.5 rounded-full ${isDarkMode ? "bg-white/10" : "bg-black/10"} overflow-hidden`}>
+                                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${item.value}%`, backgroundColor: item.color }} />
+                                          </div>
+                                          <span className="text-[10px] font-black opacity-50">{item.value}%</span>
+                                        </div>
+                                        <div className="text-right text-[10px] font-black text-emerald-500">OPTIMIZED</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
 
                                    {/* Real-World OVii Analytics Table */}
-                                   {(historyData[historyLevel] as any).analytics.oviiAnalytics && (
-                                     <div className="mt-12 space-y-6 px-1">
-                                       <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Live Intelligence Feed</h4>
-                                       <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/60 border-white/5" : "bg-white border-black/5"}`}>
-                                         <div className="grid grid-cols-3 p-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest opacity-40">
-                                            <div>Metric</div>
-                                            <div className="text-center">Live Value</div>
-                                            <div className="text-right">Trend</div>
-                                         </div>
-                                         <div className="divide-y divide-white/5">
-                                           {(historyData[historyLevel] as any).analytics.oviiAnalytics.map((a: any, idx: number) => (
-                                             <div key={idx} className="p-4 grid grid-cols-3 items-center hover:bg-white/5 transition-colors">
-                                               <div className="text-[11px] font-black tracking-tight">{a.metric}</div>
-                                               <div className="text-center font-mono text-sm text-primary">{a.value}</div>
-                                               <div className={`text-right text-[10px] font-black ${a.trend.startsWith('+') || a.trend === 'STABLE' ? "text-emerald-500" : "text-orange-500"}`}>
-                                                 {a.trend}
-                                               </div>
-                                             </div>
-                                           ))}
-                                         </div>
-                                       </div>
-                                     </div>
-                                   )}
+                            {(historyData[historyLevel] as any).analytics.oviiAnalytics && (
+                              <div className="mt-12 space-y-6 px-1">
+                                <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Live Intelligence Feed</h4>
+                                <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/60 border-white/5" : "bg-white border-black/5"}`}>
+                                  <div className="grid grid-cols-3 p-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest opacity-40">
+                                    <div>Metric</div>
+                                    <div className="text-center">Live Value</div>
+                                    <div className="text-right">Trend</div>
+                                  </div>
+                                  <div className="divide-y divide-white/5">
+                                    {(historyData[historyLevel] as any).analytics.oviiAnalytics.map((a: any, idx: number) => (
+                                      <div key={idx} className="p-4 grid grid-cols-3 items-center hover:bg-white/5 transition-colors">
+                                        <div className="text-[11px] font-black tracking-tight">{a.metric}</div>
+                                        <div className="text-center font-mono text-sm text-primary">{a.value}</div>
+                                        <div className={`text-right text-[10px] font-black ${a.trend.startsWith('+') || a.trend === 'STABLE' ? "text-emerald-500" : "text-orange-500"}`}>
+                                          {a.trend}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
 
-                                   {/* Brand Color Matrix Table */}
-                                   {(historyData[historyLevel] as any).analytics.colorPalette && (
-                                     <div className="mt-12 space-y-6 px-1">
-                                       <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Brand Color Matrix</h4>
-                                       <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/60 border-white/5" : "bg-white border-black/5"}`}>
-                                          <div className="grid grid-cols-[80px_1fr_70px] p-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest opacity-40">
-                                            <div>Swatch</div>
-                                            <div>Variable / Usage</div>
-                                            <div className="text-right">Hex</div>
-                                          </div>
-                                          <div className="divide-y divide-white/5">
-                                            {(historyData[historyLevel] as any).analytics.colorPalette.map((c: any, idx: number) => (
-                                              <div key={idx} className="p-4 grid grid-cols-[80px_1fr_70px] items-center hover:bg-white/5 transition-colors">
-                                                <div className="flex items-center gap-3">
-                                                  <div className="w-10 h-6 rounded-md shadow-inner border border-white/10" style={{ backgroundColor: c.hex }} />
-                                                </div>
-                                                <div className="min-w-0 pr-4">
-                                                  <div className="text-[11px] font-black truncate">{c.name}</div>
-                                                  <div className="text-[9px] font-medium opacity-50 truncate">{c.usage}</div>
-                                                </div>
-                                                <div className="text-right font-mono text-[9px] font-black opacity-40">{c.hex}</div>
-                                              </div>
-                                            ))}
-                                          </div>
-                                       </div>
-                                     </div>
-                                   )}
-                                 )}
+                            {/* Brand Color Matrix Table */}
+                            {(historyData[historyLevel] as any).analytics.colorPalette && (
+                              <div className="mt-12 space-y-6 px-1">
+                                <h4 className={`text-[10px] font-black uppercase tracking-[0.2em] opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Brand Color Matrix</h4>
+                                <div className={`rounded-3xl border overflow-hidden shadow-2xl ${isDarkMode ? "bg-black/60 border-white/5" : "bg-white border-black/5"}`}>
+                                  <div className="grid grid-cols-[80px_1fr_70px] p-4 border-b border-white/5 text-[9px] font-black uppercase tracking-widest opacity-40">
+                                    <div>Swatch</div>
+                                    <div>Variable / Usage</div>
+                                    <div className="text-right">Hex</div>
+                                  </div>
+                                  <div className="divide-y divide-white/5">
+                                    {(historyData[historyLevel] as any).analytics.colorPalette.map((c: any, idx: number) => (
+                                      <div key={idx} className="p-4 grid grid-cols-[80px_1fr_70px] items-center hover:bg-white/5 transition-colors">
+                                        <div className="flex items-center gap-3">
+                                          <div className="w-10 h-6 rounded-md shadow-inner border border-white/10" style={{ backgroundColor: c.hex }} />
+                                        </div>
+                                        <div className="min-w-0 pr-4">
+                                          <div className="text-[11px] font-black truncate">{c.name}</div>
+                                          <div className="text-[9px] font-medium opacity-50 truncate">{c.usage}</div>
+                                        </div>
+                                        <div className="text-right font-mono text-[9px] font-black opacity-40">{c.hex}</div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
 
-                             <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
-                                <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
-                                  {historyData[historyLevel].summary}
-                                </p>
-                             </div>
+                            <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
+                              <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
+                                {historyData[historyLevel].summary}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
 
                       {/* Book Footer */}
                       <div className="pt-24 sm:pt-40 pb-16 sm:pb-24 text-center relative">
-                         <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none" />
-                         <div className="w-16 sm:w-24 h-0.5 bg-emerald-500/30 mx-auto mb-8 sm:mb-10 relative z-10" />
-                         <p className={`text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] relative z-10 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>End of Technical Protocol</p>
+                        <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none" />
+                        <div className="w-16 sm:w-24 h-0.5 bg-emerald-500/30 mx-auto mb-8 sm:mb-10 relative z-10" />
+                        <p className={`text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] relative z-10 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>End of Technical Protocol</p>
                       </div>
                     </div>
                   </div>
