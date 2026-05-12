@@ -199,6 +199,44 @@ const getAudioColor = (mine: boolean, isDarkMode: boolean, paint: string) => {
   return bg;
 };
 
+// ─── Sub-components ──────────────────────────────────────────────────────────
+
+function PhotoGrid({ images, isDarkMode, setSelectedImage, downloadFile }: { 
+  images: any[], 
+  isDarkMode: boolean, 
+  setSelectedImage: (url: string) => void,
+  downloadFile: (url: string, id: string, type: string) => void
+}) {
+  const count = images.length;
+  const gridClass = count === 2 ? "grid-cols-2" : count === 3 ? "grid-cols-2" : "grid-cols-2";
+  
+  return (
+    <div className={`grid gap-1 rounded-[22px] overflow-hidden w-full max-w-[320px] sm:max-w-[400px] border ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+      {images.map((img, i) => {
+        const isLarge = count === 3 && i === 0;
+        return (
+          <div 
+            key={img.id} 
+            className={`relative group cursor-pointer active:scale-[0.98] transition-transform aspect-square ${isLarge ? "col-span-2 aspect-[16/9]" : ""}`}
+            onClick={() => setSelectedImage(img.content)}
+          >
+            <img src={img.content} className="w-full h-full object-cover" alt="" />
+            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors" />
+            <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1">
+              <button 
+                onClick={(e) => { e.stopPropagation(); downloadFile(img.content, img.id, "image"); }}
+                className="p-1.5 bg-black/40 backdrop-blur-md rounded-full text-white hover:bg-black/60"
+              >
+                <Download className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── AudioPlayer ─────────────────────────────────────────────────────────────
 const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode, activePaint = "default" }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any, isDarkMode: boolean, activePaint?: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -1825,39 +1863,89 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </div>
                 )}
                 {!error && !isLoading && chatMsgs.length === 0 && (
-                  <div className="h-full flex flex-col items-center justify-center text-center p-8 my-auto">
+                  <div className="h-full flex flex-col items-center justify-center text-center p-8 my-auto relative overflow-hidden">
+                    {/* The OVii Orb - Pulsing Empty State */}
                     <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      className="w-24 h-24 mb-6 relative"
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="relative w-40 h-40 sm:w-56 sm:h-56 flex items-center justify-center mb-8"
                     >
-                      <div className={`absolute inset-0 rounded-full animate-ping ${isDarkMode ? "bg-primary/10" : "bg-primary/5"}`} />
-                      <div className={`absolute inset-4 rounded-full animate-pulse ${isDarkMode ? "bg-primary/20" : "bg-primary/10"}`} />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Send className={`w-10 h-10 rotate-[-20deg] ${isDarkMode ? "text-primary/40" : "text-primary/60"}`} />
-                      </div>
+                      <div className={`absolute inset-0 rounded-full blur-[40px] animate-pulse ${isDarkMode ? "bg-emerald-500/20" : "bg-emerald-500/10"}`} />
+                      <div className={`absolute inset-4 rounded-full border-2 ${isDarkMode ? "border-emerald-500/20" : "border-emerald-500/10"} animate-[spin_10s_linear_infinite]`} />
+                      <div className={`absolute inset-10 rounded-full border border-emerald-500/30 animate-[spin_6s_linear_infinite_reverse]`} />
+                      
+                      <motion.div
+                        animate={{ 
+                          scale: [1, 1.05, 1],
+                          boxShadow: isDarkMode 
+                            ? ["0 0 20px rgba(16,185,129,0.2)", "0 0 40px rgba(16,185,129,0.4)", "0 0 20px rgba(16,185,129,0.2)"]
+                            : ["0 0 20px rgba(16,185,129,0.1)", "0 0 30px rgba(16,185,129,0.2)", "0 0 20px rgba(16,185,129,0.1)"]
+                        }}
+                        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                        className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${
+                          isDarkMode ? "bg-emerald-500/10 border-emerald-500/30 shadow-emerald-500/20" : "bg-white/80 border-emerald-500/20 shadow-emerald-500/10"
+                        }`}
+                      >
+                        <Send className={`w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg] ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`} />
+                      </motion.div>
                     </motion.div>
-                    <h3 className={`text-lg font-bold mb-2 ${isDarkMode ? "text-white opacity-80" : "text-black opacity-70"}`}>Start a Magical Conversation</h3>
-                    <p className={`text-[11px] max-w-[200px] leading-relaxed font-medium ${isDarkMode ? "text-white opacity-50" : "text-black opacity-40"}`}>
-                      Your messages are private and will disappear like stardust after a few days.
+
+                    <h3 className={`text-xl sm:text-2xl font-black mb-3 tracking-tight ${isDarkMode ? "text-white" : "text-black"}`}>
+                      The room is quiet...
+                    </h3>
+                    <p className={`text-xs sm:text-sm max-w-[240px] leading-relaxed font-bold italic opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>
+                      "Say something magical."
                     </p>
+                    
+                    <div className="mt-8 flex gap-2">
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30 animate-bounce [animation-delay:0ms]" />
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30 animate-bounce [animation-delay:150ms]" />
+                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30 animate-bounce [animation-delay:300ms]" />
+                    </div>
                   </div>
                 )}
 
+
                 <div className="w-full space-y-1 flex flex-col justify-end items-stretch shrink-0 relative px-3.5 sm:px-6">
                   <AnimatePresence initial={false}>
-                    {chatMsgs.filter(m => !m.deletedFor?.includes(uid || "")).map((m, i) => {
-                      const mine = m.uid === uid;
-                      const prevMsg = chatMsgs[i - 1];
-                      const isConsecutive = prevMsg && prevMsg.uid === m.uid;
-                      const nextMsg = chatMsgs[i + 1];
-                      const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
+                    {(() => {
+                      const filtered = chatMsgs.filter(m => !m.deletedFor?.includes(uid || ""));
+                      const grouped: any[] = [];
+                      let currentCluster: any[] = [];
 
-                      // Date grouping logic
-                      const showDateHeader = !prevMsg ||
-                        m.createdAt?.toDate().toDateString() !== prevMsg.createdAt?.toDate().toDateString();
+                      filtered.forEach((m, idx) => {
+                        const next = filtered[idx + 1];
+                        const prev = filtered[idx - 1];
+                        
+                        // Cluster images from same user
+                        if (m.type === "image" && !m.isDeleted && !m.caption && !m.replyTo) {
+                          currentCluster.push(m);
+                          if (!next || next.uid !== m.uid || next.type !== "image" || next.isDeleted || next.caption || next.replyTo || currentCluster.length >= 4) {
+                            if (currentCluster.length > 1) {
+                              grouped.push({ type: "cluster", images: [...currentCluster], uid: m.uid, avatar: m.avatar, name: m.name, createdAt: m.createdAt, status: m.status });
+                            } else {
+                              grouped.push(currentCluster[0]);
+                            }
+                            currentCluster = [];
+                          }
+                        } else {
+                          grouped.push(m);
+                        }
+                      });
 
-                      const dateStr = showDateHeader ? formatMessageDate(m.createdAt?.toDate() || new Date()) : null;
+                      return grouped.map((m, i) => {
+                        const mine = m.uid === uid;
+                        const prevMsg = grouped[i - 1];
+                        const isConsecutive = prevMsg && prevMsg.uid === m.uid;
+                        const nextMsg = grouped[i + 1];
+                        const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
+
+                        // Date grouping logic
+                        const showDateHeader = !prevMsg ||
+                          (m.createdAt?.toDate?.()?.toDateString() !== prevMsg.createdAt?.toDate?.()?.toDateString());
+
+                        const dateStr = showDateHeader ? formatMessageDate(m.createdAt?.toDate?.() || new Date()) : null;
+
 
                       return (
                         <Fragment key={m.id}>
@@ -1956,8 +2044,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   </div>
                                 ) : (
                                   <div
-                                    className={`md:rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px]" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px]"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col shadow-sm md:shadow-md transition-all w-fit max-w-full
-                                  ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
+                                    className={`md:rounded-[20px] ${m.type === "image" || m.type === "cluster" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px] bg-transparent shadow-none" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px] shadow-sm md:shadow-md transition-all"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col w-fit max-w-full
+                                   ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
                                   >
                                     <div className="relative flex flex-col">
                                       {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: isDarkMode ? (paintTheme.bubbleNameDark || paintTheme.nameDark || "#f28b82") : (paintTheme.bubbleNameLight || paintTheme.nameLight || "#eb5528") }}>{m.name}</span>}
@@ -1997,6 +2085,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                         </div>
                                       )}
 
+                                      {m.type === "cluster" && (
+                                        <PhotoGrid images={m.images} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} downloadFile={downloadFile} />
+                                      )}
+
                                       {m.type === "video" && !m.isDeleted && (
                                         <div className="mb-0 overflow-hidden rounded-[18px] relative group/vid cursor-pointer active:scale-[0.99] transition-transform bg-black/10">
                                           <video 
@@ -2011,7 +2103,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                           )}
                                         </div>
                                       )}
-
                                       {m.type === "file" && !m.isDeleted && (
                                         <div 
                                           className={`flex flex-col gap-2 p-3 pb-6 rounded-xl cursor-pointer hover:brightness-95 transition-all ${isDarkMode ? "bg-black/20" : "bg-black/5"}`}
@@ -2063,14 +2154,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                         )}
 
                                         {/* Timestamp: absolute for image, relative for text */}
-                                        <div className={`${m.type === "image" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
+                                        <div className={`${m.type === "image" || m.type === "cluster" ? "absolute bottom-2 right-2 bg-black/40 backdrop-blur-md px-1.5 py-0.5 rounded-md" : "absolute bottom-0 right-0"} flex items-center gap-1.5 opacity-90 pointer-events-none select-none`}>
                                           {m.isEdited && !m.isDeleted && <span className="text-[9px] opacity-40 font-bold uppercase mr-1">Edited</span>}
-                                          <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" ? "text-white" : ""}`}>
-                                            {m.createdAt?.toDate()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
+                                          <span className={`text-[11px] tabular-nums font-['Inter'] font-extralight tracking-tight ${m.type === "image" || m.type === "cluster" ? "text-white" : ""}`}>
+                                            {m.createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || ""}
                                           </span>
-                                          {mine && <div className={`shrink-0 scale-95 ${m.type === "image" ? "text-[#53bdeb]" : ""}`}><MsgTick status={m.status} /></div>}
+                                          {mine && <div className={`shrink-0 scale-95 ${m.type === "image" || m.type === "cluster" ? "text-[#53bdeb]" : ""}`}><MsgTick status={m.status} /></div>}
                                         </div>
                                       </div>
+
 
                                       {/* Reactions Display */}
                                     </div>
@@ -2094,8 +2186,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           </motion.div>
                         </Fragment>
                       );
-                    })}
+                    })()}
                   </AnimatePresence>
+
 
                   {typingUsers.length > 0 && (
                     <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
@@ -2177,25 +2270,33 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               <AnimatePresence>
                 {replyingTo && (
                   <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 10 }}
-                    className={`mx-4 mb-2 p-3 rounded-2xl flex items-center gap-3 border-l-4 border-primary shadow-lg ${isDarkMode ? "bg-[#1f2c33]" : "bg-white"
-                      }`}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 20, scale: 0.95 }}
+                    className={`mx-4 mb-3 p-3 rounded-2xl flex items-center gap-4 border-l-4 border-primary shadow-[0_10px_30px_rgba(0,0,0,0.1)] relative overflow-hidden backdrop-blur-xl ${
+                      isDarkMode ? "bg-[#1f2c33]/90 border-primary" : "bg-white/90 border-primary"
+                    }`}
                   >
-                    <div className="p-2 bg-primary/10 rounded-lg text-primary">
+                    <div className="absolute inset-0 bg-primary/5 pointer-events-none" />
+                    <div className="p-2.5 bg-primary/10 rounded-xl text-primary relative z-10">
                       <Reply className="w-4 h-4" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-[10px] font-bold text-primary uppercase tracking-tighter">Replying to {replyingTo.name || "User"}</div>
-                      <div className={`text-xs truncate ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
-                        {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note")}
+                    <div className="flex-1 min-w-0 relative z-10">
+                      <div className="text-[10px] font-black text-primary uppercase tracking-[0.1em] mb-0.5">Replying to {replyingTo.name || "User"}</div>
+                      <div className={`text-xs font-semibold truncate ${isDarkMode ? "text-white/70" : "text-black/70"}`}>
+                        {replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo Asset" : replyingTo.type === "voice" ? "Voice Note" : "Shared File")}
                       </div>
                     </div>
-                    <button onClick={() => setReplyingTo(null)} className={`p-2 transition-opacity ${isDarkMode ? "text-white/40 hover:text-white" : "text-black/40 hover:text-black"}`}>
+                    {replyingTo.type === "image" && (
+                      <div className="w-10 h-10 rounded-lg overflow-hidden border border-white/10 shrink-0 shadow-sm">
+                        <img src={replyingTo.content} className="w-full h-full object-cover" alt="" />
+                      </div>
+                    )}
+                    <button onClick={() => setReplyingTo(null)} className={`p-2 rounded-full transition-colors relative z-10 ${isDarkMode ? "hover:bg-white/10 text-white/40 hover:text-white" : "hover:bg-black/5 text-black/40 hover:text-black"}`}>
                       <X className="w-4 h-4" />
                     </button>
                   </motion.div>
+
                 )}
               </AnimatePresence>
 
