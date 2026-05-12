@@ -1751,12 +1751,6 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 }}
                                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/80" : "hover:bg-black/5 text-black/70"} ${activePaint === p.val ? "bg-primary/10 text-primary font-bold" : ""}`}
                               >
-                                {p.colors && (
-                                  <div className="flex -space-x-1.5 shrink-0">
-                                    <div className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: p.colors[0] }} />
-                                    <div className="w-4 h-4 rounded-full border border-white/20 shadow-sm" style={{ backgroundColor: p.colors[1] }} />
-                                  </div>
-                                )}
                                 <span className="font-medium flex-1 text-left">{p.label}</span>
                                 {activePaint === p.val && <CheckCircle2 className="w-3.5 h-3.5" />}
                               </button>
