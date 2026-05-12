@@ -4,7 +4,7 @@ import { WeatherWidget } from "./WeatherWidget";
 import { LiveCounter } from "./LiveCounter";
 import { LanguageMenu } from "./LanguageMenu";
 import { useTranslation } from "@/lib/i18n";
-import { motion } from "framer-motion";
+import { useScroll, motion } from "framer-motion";
 
 const NAV: { label: string; cat?: string }[] = [
   { label: "Home" },
@@ -35,7 +35,7 @@ export function Header() {
     return searchCat;
   };
   const activeLabel = getActiveLabel();
-  const { scrollYProgress } = motion.useScroll();
+  const { scrollYProgress } = useScroll();
 
   const handleHaptic = () => {
     if (window.navigator.vibrate) window.navigator.vibrate(10);
