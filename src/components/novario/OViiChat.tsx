@@ -160,14 +160,14 @@ const formatLastSeen = (timestamp: number | null | undefined) => {
   return `last seen ${dayStr} at ${timeStr}`;
 };
 
-const PAINTS_MAP: Record<string, { sent: string, received: string, bgDark: string, bgLight: string }> = {
-  default: { sent: "", received: "", bgDark: "", bgLight: "" },
-  paint1: { sent: "#f97316", received: "#3b82f6", bgDark: "#0c1b2d", bgLight: "#eaf3fa" },
-  paint2: { sent: "#fdfbd4", received: "#545333", bgDark: "#1a1a14", bgLight: "#f4f4ea" },
-  paint3: { sent: "#355c7d", received: "#ff7582", bgDark: "#121921", bgLight: "#ffeef0" },
-  paint4: { sent: "#028175", received: "#92de8b", bgDark: "#012623", bgLight: "#eaf8ea" },
-  paint5: { sent: "#662249", received: "#1b1931", bgDark: "#0b0a14", bgLight: "#f8eef3" },
-  paint6: { sent: "#de5153", received: "#601e0d", bgDark: "#260b04", bgLight: "#fdeadb" },
+const PAINTS_MAP: Record<string, { sent: string, received: string, bgDark: string, bgLight: string, headerDark: string, headerLight: string, nameDark: string, nameLight: string }> = {
+  default: { sent: "", received: "", bgDark: "", bgLight: "", headerDark: "", headerLight: "", nameDark: "", nameLight: "" },
+  paint1: { sent: "#f97316", received: "#3b82f6", bgDark: "#0c1b2d", bgLight: "#eaf3fa", headerDark: "#08101a", headerLight: "#ffffff", nameDark: "#fdba74", nameLight: "#c2410c" },
+  paint2: { sent: "#fdfbd4", received: "#545333", bgDark: "#1a1a14", bgLight: "#f4f4ea", headerDark: "#10100d", headerLight: "#ffffff", nameDark: "#fdfbd4", nameLight: "#3f3f26" },
+  paint3: { sent: "#355c7d", received: "#ff7582", bgDark: "#121921", bgLight: "#ffeef0", headerDark: "#0a0e12", headerLight: "#ffffff", nameDark: "#9cbcd9", nameLight: "#203a50" },
+  paint4: { sent: "#028175", received: "#92de8b", bgDark: "#012623", bgLight: "#eaf8ea", headerDark: "#011412", headerLight: "#ffffff", nameDark: "#7ae0d6", nameLight: "#014d46" },
+  paint5: { sent: "#662249", received: "#1b1931", bgDark: "#0b0a14", bgLight: "#f8eef3", headerDark: "#06060c", headerLight: "#ffffff", nameDark: "#d67ba5", nameLight: "#4d1a37" },
+  paint6: { sent: "#de5153", received: "#601e0d", bgDark: "#260b04", bgLight: "#fdeadb", headerDark: "#170602", headerLight: "#ffffff", nameDark: "#f0999a", nameLight: "#9a3536" },
 };
 
 const getBubbleColor = (mine: boolean, isDarkMode: boolean, paint: string, isLastInGroup: boolean) => {
@@ -1420,11 +1420,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
           {/* ── Header ── */}
           <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${
-            paintTheme.bgDark 
+            paintTheme.headerDark 
               ? (isDarkMode ? "border-white/5 text-white" : "border-black/5 text-black") 
               : (isDarkMode ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white" : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black")
             }`}
-            style={{ backgroundColor: paintTheme.bgDark ? (isDarkMode ? paintTheme.bgDark + "f2" : paintTheme.bgLight + "f2") : undefined }}
+            style={{ backgroundColor: paintTheme.headerDark ? (isDarkMode ? paintTheme.headerDark + "f2" : paintTheme.headerLight + "f2") : undefined }}
           >
             <div className="flex items-center gap-3">
               <div
@@ -1448,7 +1448,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 />
               </div>
               <div>
-                <div className="font-bold text-[14px] leading-tight transition-colors duration-500" style={{ color: paintTheme.sent || undefined }}>
+                <div className="font-bold text-[14px] leading-tight transition-colors duration-500" style={{ color: isDarkMode ? (paintTheme.nameDark || undefined) : (paintTheme.nameLight || undefined) }}>
                   {otherName || (count > 1 ? "Ovii User" : "Waiting...") || "Waiting..."}
                 </div>
                 <div className="text-[10px] opacity-60 flex items-center gap-1.5 font-medium">
@@ -1530,7 +1530,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <img src={avatar} className="w-full h-full object-cover" alt="" />
                               </div>
                               <div className="flex-1 text-left min-w-0">
-                                <div className="font-black leading-tight truncate">{name || "Me"}</div>
+                                <div className="font-black leading-tight truncate transition-colors duration-500" style={{ color: isDarkMode ? (paintTheme.nameDark || undefined) : (paintTheme.nameLight || undefined) }}>{name || "Me"}</div>
                                 <div className="text-[10px] flex items-center gap-1.5 font-bold uppercase tracking-wider">
                                   <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                                   <span className="text-emerald-500/80">Online</span>
@@ -1933,7 +1933,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                   ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
                                   >
                                     <div className="relative flex flex-col">
-                                      {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: paintTheme.sent || (isDarkMode ? "#f28b82" : "#eb5528") }}>{m.name}</span>}
+                                      {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: isDarkMode ? (paintTheme.nameDark || "#f28b82") : (paintTheme.nameLight || "#eb5528") }}>{m.name}</span>}
 
 
                                       {m.type === "image" && !m.isDeleted && (
