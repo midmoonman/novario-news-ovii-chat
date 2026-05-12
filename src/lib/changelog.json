@@ -1,5 +1,16 @@
 [
   {
+    "date": "2026-05-12",
+    "updates": [
+      {
+        "title": "Custom Paints and Dual-Tone Themes",
+        "status": "DEPLOYED",
+        "description": "Introduced the 'Paints' feature under the 3-dots menu, allowing users to customize their chat interface with 6 distinct dual-tone themes. The themes dynamically update the chat bubbles and audio players across both Light and Dark modes instantly.",
+        "rationale": "Follows the thumb rule to enhance user personalization and visual appeal, offering diverse aesthetic options beyond the default."
+      }
+    ]
+  },
+  {
     "date": "2026-05-11",
     "updates": [
       {

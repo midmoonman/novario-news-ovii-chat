@@ -6,7 +6,7 @@ import {
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyData from "../../lib/history.json";
@@ -160,8 +160,37 @@ const formatLastSeen = (timestamp: number | null | undefined) => {
   return `last seen ${dayStr} at ${timeStr}`;
 };
 
+const getBubbleColor = (mine: boolean, isDarkMode: boolean, paint: string, isLastInGroup: boolean) => {
+  const radii = isLastInGroup ? (mine ? "rounded-br-sm md:rounded-br-none" : "rounded-bl-sm md:rounded-bl-none") : "";
+  let bg = "";
+  if (paint === "paint1") bg = mine ? "bg-[#f97316] text-[#ffffff]" : "bg-[#3b82f6] text-[#ffffff]";
+  else if (paint === "paint2") bg = mine ? "bg-[#fdfbd4] text-[#545333]" : "bg-[#545333] text-[#fdfbd4]";
+  else if (paint === "paint3") bg = mine ? "bg-[#355c7d] text-[#ffffff]" : "bg-[#ff7582] text-[#ffffff]";
+  else if (paint === "paint4") bg = mine ? "bg-[#028175] text-[#ffffff]" : "bg-[#92de8b] text-[#028175]";
+  else if (paint === "paint5") bg = mine ? "bg-[#662249] text-[#ffffff]" : "bg-[#1b1931] text-[#ffffff]";
+  else if (paint === "paint6") bg = mine ? "bg-[#de5153] text-[#ffffff]" : "bg-[#601e0d] text-[#ffffff]";
+  else bg = mine
+    ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef]" : "bg-[#dcf8c6] text-[#111b21]")
+    : (isDarkMode ? "bg-[#202c33] text-[#e9edef]" : "bg-white text-[#111b21]");
+  return `${bg} ${radii}`;
+};
+
+const getAudioColor = (mine: boolean, isDarkMode: boolean, paint: string) => {
+  let bg = "";
+  if (paint === "paint1") bg = mine ? "bg-[#f97316] text-[#ffffff]" : "bg-[#3b82f6] text-[#ffffff]";
+  else if (paint === "paint2") bg = mine ? "bg-[#fdfbd4] text-[#545333]" : "bg-[#545333] text-[#fdfbd4]";
+  else if (paint === "paint3") bg = mine ? "bg-[#355c7d] text-[#ffffff]" : "bg-[#ff7582] text-[#ffffff]";
+  else if (paint === "paint4") bg = mine ? "bg-[#028175] text-[#ffffff]" : "bg-[#92de8b] text-[#028175]";
+  else if (paint === "paint5") bg = mine ? "bg-[#662249] text-[#ffffff]" : "bg-[#1b1931] text-[#ffffff]";
+  else if (paint === "paint6") bg = mine ? "bg-[#de5153] text-[#ffffff]" : "bg-[#601e0d] text-[#ffffff]";
+  else bg = mine
+    ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black")
+    : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black");
+  return bg;
+};
+
 // ─── AudioPlayer ─────────────────────────────────────────────────────────────
-const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any, isDarkMode: boolean }) => {
+const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode, activePaint = "default" }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any, isDarkMode: boolean, activePaint?: string }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveRef = useRef<WaveSurfer | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -260,10 +289,7 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode }: { src: st
   const timeStr = createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
 
   return (
-    <div className={`flex items-center gap-3 w-full p-3.5 rounded-[22px] overflow-hidden transition-all min-w-[280px] ${mine
-      ? (isDarkMode ? "bg-[#005c4b] text-white" : "bg-[#dcf8c6] text-black")
-      : (isDarkMode ? "bg-[#202c33] text-white" : "bg-white text-black")
-      }`}>
+    <div className={`flex items-center gap-3 w-full p-3.5 rounded-[22px] overflow-hidden transition-all min-w-[280px] ${getAudioColor(mine, isDarkMode, activePaint)}`}>
       <div className="relative shrink-0">
         <button
           onClick={toggle}
@@ -415,7 +441,7 @@ const LiveAudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
 };
 
 // ─── MediaList (formerly FilesList) ───────────────────────────────────────────
-function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void }) {
+function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, activePaint = "default" }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void, activePaint?: string }) {
   const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
   if (mediaMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs font-medium opacity-50">No files saved yet.</p>;
 
@@ -439,7 +465,7 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage }: { 
               <div className="flex-1 min-w-0">
                 {m.type === "voice" || m.type === "audio" ? (
                   <div className="flex-1">
-                    <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                    <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} activePaint={activePaint} />
                     {m.fileName && <div className={`text-[10px] mt-1 truncate px-2 opacity-50 ${isDarkMode ? "text-white" : "text-black"}`}>{m.fileName}</div>}
                   </div>
                 ) : m.type === "image" ? (
@@ -654,6 +680,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         setSelectedPhone(null);
         setShowClearConfirm(false);
         setShowMenu(false);
+        setShowPaintsSubmenu(false);
+        setShowNoLockSubmenu(false);
         // Push state back to prevent exit
         window.history.pushState({ modal: 'closed' }, "");
       }
@@ -692,6 +720,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
         setShowMenu(false);
         setShowNoLockSubmenu(false);
+        setShowPaintsSubmenu(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -702,6 +731,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     return saved ? parseInt(saved) : null;
   });
   const [showNoLockSubmenu, setShowNoLockSubmenu] = useState(false);
+  const [activePaint, setActivePaint] = useState(() => localStorage.getItem("ovii_paint") || "default");
+  const [showPaintsSubmenu, setShowPaintsSubmenu] = useState(false);
   const prevOnlineRef = useRef<Map<string, string>>(new Map());
 
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
@@ -1367,7 +1398,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                  <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} />
+                  <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
                 </div>
               </motion.div>
             )}
@@ -1573,6 +1604,53 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             )}
                             <button
                               onClick={() => setShowNoLockSubmenu(false)}
+                              className={`w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity ${isDarkMode ? "text-white" : "text-black"}`}
+                            >
+                              ← Back
+                            </button>
+                          </div>
+                        )}
+
+                        <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+
+                        {!showPaintsSubmenu ? (
+                          <button
+                            onClick={() => setShowPaintsSubmenu(true)}
+                            className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                          >
+                            <Palette className="w-4 h-4 text-primary" />
+                            <div className="flex-1 text-left font-medium">Paints</div>
+                            <ChevronDown className="w-3.5 h-3.5 opacity-40" />
+                          </button>
+                        ) : (
+                          <div className="py-1">
+                            <div className={`px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 ${isDarkMode ? "text-white" : "text-black"}`}>Select Theme</div>
+                            {[
+                              { label: "Default", val: "default" },
+                              { label: "Orange & Blue", val: "paint1" },
+                              { label: "Cream & Olive", val: "paint2" },
+                              { label: "Navy & Coral", val: "paint3" },
+                              { label: "Teal & Mint", val: "paint4" },
+                              { label: "Berry & Night", val: "paint5" },
+                              { label: "Rust & Red", val: "paint6" },
+                            ].map((p) => (
+                              <button
+                                key={p.val}
+                                onClick={() => {
+                                  setActivePaint(p.val);
+                                  localStorage.setItem("ovii_paint", p.val);
+                                  setShowMenu(false);
+                                  setShowPaintsSubmenu(false);
+                                  addNotification(`Theme changed to ${p.label}`, "success");
+                                }}
+                                className={`w-full flex items-center gap-3 px-4 py-2.5 text-xs transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/80" : "hover:bg-black/5 text-black/70"} ${activePaint === p.val ? "bg-primary/10 text-primary font-bold" : ""}`}
+                              >
+                                <span className="font-medium flex-1 text-left">{p.label}</span>
+                                {activePaint === p.val && <CheckCircle2 className="w-3.5 h-3.5" />}
+                              </button>
+                            ))}
+                            <button
+                              onClick={() => setShowPaintsSubmenu(false)}
                               className={`w-full flex items-center gap-3 px-4 py-2 text-[10px] font-bold uppercase tracking-widest opacity-40 hover:opacity-100 transition-opacity ${isDarkMode ? "text-white" : "text-black"}`}
                             >
                               ← Back
@@ -1823,9 +1901,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                 {m.type === "voice" || m.type === "audio" ? (
                                   <div className="flex flex-col gap-1 max-w-full">
-                                    <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} />
+                                    <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} activePaint={activePaint} />
                                     {m.type === "audio" && m.fileName && (
-                                      <div className={`text-[11px] px-3 py-1.5 rounded-[12px] opacity-90 font-medium break-all w-fit max-w-[280px] shadow-sm ${mine ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef]" : "bg-[#dcf8c6] text-[#111b21]") : (isDarkMode ? "bg-[#202c33] text-[#e9edef]" : "bg-white text-[#111b21]")}`}>
+                                      <div className={`text-[11px] px-3 py-1.5 rounded-[12px] opacity-90 font-medium break-all w-fit max-w-[280px] shadow-sm ${getAudioColor(mine, isDarkMode, activePaint)}`}>
                                         {m.fileName}
                                       </div>
                                     )}
@@ -1833,10 +1911,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 ) : (
                                   <div
                                     className={`md:rounded-[20px] ${m.type === "image" ? "p-0 overflow-hidden rounded-[12px] md:rounded-[20px]" : "px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 md:sm:px-5 md:sm:py-2.5 min-w-[65px] md:min-w-[80px] md:sm:min-w-[140px] rounded-[10px]"} text-[14.5px] md:text-[14px] leading-[1.35] md:leading-relaxed break-words relative flex flex-col shadow-sm md:shadow-md transition-all w-fit max-w-full
-                                  ${mine
-                                        ? (isDarkMode ? "bg-[#005c4b] text-[#e9edef] " : "bg-[#dcf8c6] text-[#111b21] ") + (isLastInGroup ? "rounded-br-sm md:rounded-br-none" : "")
-                                        : (isDarkMode ? "bg-[#202c33] text-[#e9edef] " : "bg-white text-[#111b21] ") + (isLastInGroup ? "rounded-bl-sm md:rounded-bl-none" : "")
-                                      } ${m.isDeleted ? "opacity-60 italic" : ""}`}
+                                  ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
                                   >
                                     <div className="relative flex flex-col">
                                       {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold text-[#eb5528] dark:text-[#f28b82] mb-0.5 leading-tight">{m.name}</span>}
@@ -2315,7 +2390,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
-                    <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} />
+                    <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
                   </div>
                 </motion.div>
               )}

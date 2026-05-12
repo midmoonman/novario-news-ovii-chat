@@ -17,7 +17,7 @@
       },
       {
         "heading": "Cool Features",
-        "content": "You can see when the other person is typing or recording a voice note in real-time. If you want to reply to a specific message, just swipe on it! Plus, there's a dark mode that makes the app look like a glowing, hacker-style neon screen."
+        "content": "You can see when the other person is typing or recording a voice note in real-time. If you want to reply to a specific message, just swipe on it! Plus, there's a dark mode and 6 custom 'Paints' dual-tone themes to personalize your chat bubbles however you like."
       }
     ],
     "summary": "In short: OVii Chat is a fun, private, hidden messaging app inside Novario News where you can chat, share media, and know that everything will safely disappear after a while."
@@ -40,7 +40,7 @@
       },
       {
         "heading": "User Experience Highlights",
-        "content": "The interface is optimized for a premium, app-like feel on both mobile and desktop. It features a custom 'Build Book' to view development history, real-time typing indicators, a 'No Lock' feature to keep the session active, and a sleek Dark Mode for comfortable viewing."
+        "content": "The interface is optimized for a premium, app-like feel on both mobile and desktop. It features a custom 'Build Book' to view development history, real-time typing indicators, a 'No Lock' feature to keep the session active, a sleek Dark Mode, and a new 'Paints' menu for selecting distinct dual-tone UI themes."
       }
     ],
     "summary": "Summary: OVii Chat provides a hidden, secure, and user-friendly messaging experience with a strict auto-deletion policy, designed for seamless and private one-on-one communication."
@@ -59,7 +59,7 @@
       },
       {
         "heading": "Core UI Component",
-        "content": "The heart of the application is src/components/novario/OViiChat.tsx. It manages all sub-states: real-time messaging, file uploading, media previews, audio playback (wavesurfer.js), presence tracking, and the custom Build Book (changelog viewer). It employs Framer Motion for high-fidelity animations, a ResizeObserver for robust mobile-first auto-scrolling, and visual viewport metrics to compensate for software keyboards on iOS/Android."
+        "content": "The heart of the application is src/components/novario/OViiChat.tsx. It manages all sub-states: real-time messaging, file uploading, media previews, audio playback (wavesurfer.js), presence tracking, dynamic custom 'Paints' theming via local storage, and the custom Build Book (changelog viewer). It employs Framer Motion for high-fidelity animations, a ResizeObserver for robust mobile-first auto-scrolling, and visual viewport metrics to compensate for software keyboards on iOS/Android."
       },
       {
         "heading": "Media Pipeline and Storage",
