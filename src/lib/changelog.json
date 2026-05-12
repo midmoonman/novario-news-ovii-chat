@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Premium Orange Header Aura",
+        "status": "DEPLOYED",
+        "description": "Enhanced the site header with a premium 'Orange Glow' aura. Integrated a high-fidelity amber shadow, a razor-thin glowing top border, and a subtle 'Logo Bloom' background effect to elevate the hub's cinematic aesthetic.",
+        "rationale": "Increases visual premiumness and creates a stronger brand presence through high-contrast orange energy."
+      },
+      {
         "title": "Dynamic OVii Orb Architecture",
         "status": "DEPLOYED",
         "description": "Refactored the OVii Orb (Empty State) to be fully theme-responsive. Replaced hardcoded emerald values with dynamic CSS variables (var(--primary)), allowing the orb's pulse, glow, and iconography to adapt to any active theme or mode.",

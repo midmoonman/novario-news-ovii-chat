@@ -41,7 +41,9 @@ export function Header() {
   }, []);
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-xl bg-background/80 border-b border-primary/10 w-full overflow-x-hidden">
+    <header className="sticky top-0 z-40 backdrop-blur-2xl bg-background/90 border-b border-primary/10 w-full overflow-x-hidden shadow-[0_8px_40px_rgba(245,158,11,0.15)]">
+      {/* Top Glow Border */}
+      <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-primary/60 to-transparent z-50" />
       <div className="mx-auto max-w-7xl px-4 w-full">
         <div className="flex items-center justify-between gap-4 py-2.5 text-[10px] font-bold uppercase tracking-widest text-muted-foreground/60 border-b border-primary/5 min-w-0">
           <div suppressHydrationWarning className="truncate">{today || "\u00A0"}</div>
@@ -61,8 +63,11 @@ export function Header() {
           </div>
         )}
 
-        <div className="flex items-center justify-between py-5 min-w-0 gap-2">
-          <Link to="/news" className="flex items-baseline gap-2.5 shrink-0 group">
+        <div className="flex items-center justify-between py-5 min-w-0 gap-2 relative">
+          {/* Logo Bloom */}
+          <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-40 h-20 bg-primary/10 blur-[50px] rounded-full pointer-events-none" />
+          
+          <Link to="/news" className="flex items-baseline gap-2.5 shrink-0 group relative z-10">
             <span className="serif text-3xl md:text-5xl font-black tracking-tighter transition-all group-hover:tracking-normal">
               Nov<span className="text-primary relative">a<span className="absolute -inset-1 bg-primary/20 blur-md rounded-full opacity-0 group-hover:opacity-100 transition-opacity" /></span>rio
             </span>
