@@ -1870,23 +1870,25 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       animate={{ opacity: 1, scale: 1 }}
                       className="relative w-40 h-40 sm:w-56 sm:h-56 flex items-center justify-center mb-8"
                     >
-                      <div className={`absolute inset-0 rounded-full blur-[40px] animate-pulse ${isDarkMode ? "bg-emerald-500/20" : "bg-emerald-500/10"}`} />
-                      <div className={`absolute inset-4 rounded-full border-2 ${isDarkMode ? "border-emerald-500/20" : "border-emerald-500/10"} animate-[spin_10s_linear_infinite]`} />
-                      <div className={`absolute inset-10 rounded-full border border-emerald-500/30 animate-[spin_6s_linear_infinite_reverse]`} />
+                      <div className="absolute inset-0 rounded-full blur-[40px] animate-pulse bg-primary/20" />
+                      <div className="absolute inset-4 rounded-full border-2 border-primary/20 animate-[spin_10s_linear_infinite]" />
+                      <div className="absolute inset-10 rounded-full border border-primary/30 animate-[spin_6s_linear_infinite_reverse]" />
                       
                       <motion.div
                         animate={{ 
                           scale: [1, 1.05, 1],
-                          boxShadow: isDarkMode 
-                            ? ["0 0 20px rgba(16,185,129,0.2)", "0 0 40px rgba(16,185,129,0.4)", "0 0 20px rgba(16,185,129,0.2)"]
-                            : ["0 0 20px rgba(16,185,129,0.1)", "0 0 30px rgba(16,185,129,0.2)", "0 0 20px rgba(16,185,129,0.1)"]
+                          boxShadow: [
+                            "0 0 20px var(--primary)",
+                            "0 0 40px var(--primary)",
+                            "0 0 20px var(--primary)"
+                          ]
                         }}
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                         className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${
-                          isDarkMode ? "bg-emerald-500/10 border-emerald-500/30 shadow-emerald-500/20" : "bg-white/80 border-emerald-500/20 shadow-emerald-500/10"
+                          isDarkMode ? "bg-primary/10 border-primary/30" : "bg-white/80 border-primary/20"
                         }`}
                       >
-                        <Send className={`w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg] ${isDarkMode ? "text-emerald-400" : "text-emerald-600"}`} />
+                        <Send className="w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg] text-primary" />
                       </motion.div>
                     </motion.div>
 
@@ -1898,9 +1900,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     </p>
                     
                     <div className="mt-8 flex gap-2">
-                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30 animate-bounce [animation-delay:0ms]" />
-                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30 animate-bounce [animation-delay:150ms]" />
-                       <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/30 animate-bounce [animation-delay:300ms]" />
+                       <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:0ms]" />
+                       <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:150ms]" />
+                       <div className="w-1.5 h-1.5 rounded-full bg-primary/30 animate-bounce [animation-delay:300ms]" />
                     </div>
                   </div>
                 )}

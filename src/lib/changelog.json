@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Dynamic OVii Orb Architecture",
+        "status": "DEPLOYED",
+        "description": "Refactored the OVii Orb (Empty State) to be fully theme-responsive. Replaced hardcoded emerald values with dynamic CSS variables (var(--primary)), allowing the orb's pulse, glow, and iconography to adapt to any active theme or mode.",
+        "rationale": "Ensures visual consistency across custom themes and eliminates the 'static green' bottleneck in light/dark mode transitions."
+      },
+      {
         "title": "Aesthetic & Legal Refinement",
         "status": "DEPLOYED",
         "description": "Integrated the 'Zen Tokyo Zoo' futuristic font for the Deep Archive section. Completely rewrote the Privacy Policy to be brand-specific for Novario News, emphasizing a login-free, zero-tracking philosophy and removing all internal OVii Chat references.",

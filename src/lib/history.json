@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-118-adaptive-energy",
+      "title": "Protocol 118: Adaptive Energy State",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "The pulsing orb now changes color to match whatever theme you pick.",
+        "medium": "Refactored the Empty State UI to use dynamic CSS primary variables instead of hardcoded tailwind emerald classes.",
+        "hard": "Engineered a theme-reactive SVG animation engine for the OVii Orb. Injected var(--primary) into Framer Motion boxShadow arrays and SVG stroke paths to ensure sub-second visual adaptation to runtime theme changes."
+      }
+    },
+    {
       "id": "protocol-117-identity-compliance",
       "title": "Protocol 117: Identity & Privacy Manifest",
       "date": "2026-05-12",
