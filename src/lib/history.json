@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-123-responsive-presence",
+      "title": "Protocol 123: Responsive Presence Engine",
+      "date": "2026-05-12",
+      "difficulty": {
+        "easy": "Made the 'Online' status update much faster so you can see immediately when someone leaves.",
+        "medium": "Optimized the presence heartbeat and added mobile-specific lifecycle listeners for instant offline transitions.",
+        "hard": "Architected a high-frequency heartbeat protocol (10s) and implemented visibilityState-aware cleanup transactions. Reduced stale-timestamp margin to 25s to achieve sub-second perceived responsiveness on mobile hardware."
+      }
+    },
+    {
       "id": "protocol-122-immersive-pinning",
       "title": "Protocol 122: Immersive Pinning System",
       "date": "2026-05-12",

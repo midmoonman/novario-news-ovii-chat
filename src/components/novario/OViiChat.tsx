@@ -934,6 +934,20 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       if (!currentUid) return;
       deleteDoc(doc(db, "ovii", ROOM, "presence", currentUid)).catch(() => { });
     };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        cleanupPresence();
+      } else {
+        // Re-establish presence if they come back
+        if (currentUid && avatar) {
+          setDoc(doc(db, "ovii", ROOM, "presence", currentUid), {
+            uid: currentUid, avatar, name, lastSeen: serverTimestamp(), typing: false, recording: false
+          }, { merge: true }).catch(() => { });
+        }
+      }
+    };
+
     const handleBeforeUnload = () => cleanupPresence();
     const handlePageHide = () => cleanupPresence();
 
@@ -948,7 +962,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         const now = Date.now();
         for (const d of snap.docs) {
           const ts = (d.data().lastSeen as Timestamp | undefined)?.toMillis() ?? 0;
-          if (now - ts > 30_000 && d.id !== u.uid) await deleteDoc(d.ref).catch(() => { });
+          if (now - ts > 25_000 && d.id !== u.uid) await deleteDoc(d.ref).catch(() => { });
         }
         const fresh = await getDocs(presCol);
         const others = fresh.docs.filter((d) => d.id !== u.uid).length;
@@ -965,12 +979,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
         window.addEventListener("beforeunload", handleBeforeUnload);
         window.addEventListener("pagehide", handlePageHide);
+        window.addEventListener("visibilitychange", handleVisibilityChange);
 
         heartbeatId = setInterval(() => {
           setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
             uid: u.uid, avatar, name, lastSeen: serverTimestamp(),
           }, { merge: true }).catch(() => { });
-        }, 15_000);
+        }, 10_000);
 
         unsubPresence = onSnapshot(presCol, (s) => {
           const t: string[] = [];
@@ -982,9 +997,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           s.forEach((d) => {
             const data = d.data();
             const lastSeen = (data.lastSeen as Timestamp | undefined)?.toMillis() ?? 0;
-            const isOnline = lastSeen > 0 && (now - lastSeen < 45_000); // 45s margin for heartbeat
+            const isOnline = lastSeen > 0 && (now - lastSeen < 25_000); // 25s margin for heartbeat
 
-            if (lastSeen > 0 && now - lastSeen > 60_000 && d.id !== u.uid) {
+            if (lastSeen > 0 && now - lastSeen > 40_000 && d.id !== u.uid) {
               deleteDoc(d.ref).catch(() => { });
               return;
             }
@@ -1078,6 +1093,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       if (heartbeatId) clearInterval(heartbeatId);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handlePageHide);
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
       cleanupPresence();
     };
   }, [avatar]);

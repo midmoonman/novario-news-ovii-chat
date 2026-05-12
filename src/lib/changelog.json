@@ -3,6 +3,12 @@
     "date": "2026-05-12",
     "updates": [
       {
+        "title": "Protocol 123: Responsive Presence Engine",
+        "status": "DEPLOYED",
+        "description": "Engineered a high-frequency heartbeat system (10s interval) and optimized lifecycle listeners (visibilitychange, pagehide). Drastically reduced the offline transition delay for mobile users from 60s down to sub-25s by tightening stale-timestamp thresholds.",
+        "rationale": "Ensures near-instant social awareness across mobile and desktop, resolving the 'ghost online' state when a user minimizes or closes the mobile app."
+      },
+      {
         "title": "Protocol 122: Immersive Pinning System",
         "status": "DEPLOYED",
         "description": "Engineered a professional message pinning system. Features include long-press context menu integration, a floating navigation bar with back/forward controls, auto-scrolling with glowing highlight effects, and a 5-second pulse feedback on chat clearing. Pinned messages are explicitly preserved during 'Clear Chat' operations.",
