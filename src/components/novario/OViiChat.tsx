@@ -741,7 +741,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             href={part}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline text-[#25d366] hover:brightness-110 break-all"
+            className="underline hover:brightness-110 break-all transition-colors duration-500"
+            style={{ color: activePaint !== "default" ? (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) : "#25d366" }}
             onClick={(e) => e.stopPropagation()}
           >
             {part}
@@ -752,7 +753,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         return (
           <span
             key={i}
-            className="underline font-bold cursor-pointer text-[#25d366] hover:brightness-110"
+            className="underline font-bold cursor-pointer hover:brightness-110 transition-colors duration-500"
+            style={{ color: activePaint !== "default" ? (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) : "#25d366" }}
             onClick={(e) => {
               e.stopPropagation();
               setSelectedPhone(part);
@@ -855,6 +857,28 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  // -- ESC key support for PC --
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowLogs(false);
+        setShowAvatarPicker(false);
+        setShowFolder(false);
+        setSelectedImage(null);
+        setSelectedPhone(null);
+        setShowClearConfirm(false);
+        setShowMenu(false);
+        setShowNoLockSubmenu(false);
+        setShowPaintsSubmenu(false);
+        setReplyingTo(null);
+        setContextMsg(null);
+        setIsEditing(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
   const [noLockUntil, setNoLockUntil] = useState<number | null>(() => {
     const saved = localStorage.getItem("ovii_no_lock_until");
@@ -1625,7 +1649,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   title="Menu"
                 >
                   <MoreVertical className="w-5 h-5" />
-                  {unreadMedia > 0 && <span className="absolute top-1 right-1 bg-[#25d366] text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm">{unreadMedia}</span>}
+                  {unreadMedia > 0 && <span className="absolute top-1 right-1 text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm" style={{ backgroundColor: activePaint !== "default" ? paintTheme.sent : "#25d366" }}>{unreadMedia}</span>}
                 </button>
 
                 <AnimatePresence>
@@ -1666,7 +1690,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             >
                               <Folder className="w-4 h-4 text-destructive" />
                               <div className="flex-1 text-left font-medium">Files</div>
-                              {unreadMedia > 0 && <span className="bg-[#25d366] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">{unreadMedia}</span>}
+                              {unreadMedia > 0 && <span className="text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full" style={{ backgroundColor: activePaint !== "default" ? paintTheme.sent : "#25d366" }}>{unreadMedia}</span>}
                             </button>
 
                             <button
@@ -1856,10 +1880,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       initial={{ opacity: 0, scale: 0.8, y: -20 }}
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                      className={`px-5 py-3 rounded-[24px] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] border flex items-center gap-3 pointer-events-auto text-[13px] font-black tracking-tight transition-all ${n.type === "success" ? "bg-[#00a884] text-white border-white/20 shadow-[#00a884]/20" :
+                      className={`px-5 py-3 rounded-[24px] backdrop-blur-2xl shadow-[0_12px_40px_rgba(0,0,0,0.4)] border flex items-center gap-3 pointer-events-auto text-[13px] font-black tracking-tight transition-all ${n.type === "success" ? "" :
                         n.type === "error" ? "bg-[#ea4335] text-white border-white/20 shadow-red-500/20" :
-                          "bg-[#005c4b] text-white border-white/20 shadow-primary/20"
+                          ""
                         }`}
+                      style={{
+                        backgroundColor: n.type === "success" ? (activePaint !== "default" ? paintTheme.sent : "#00a884") : (n.type === "info" ? (activePaint !== "default" ? paintTheme.sent : "#005c4b") : undefined),
+                        color: "white",
+                        borderColor: "rgba(255,255,255,0.2)"
+                      }}
                     >
                       {n.type === "success" && <CheckCircle2 className="w-4 h-4 shrink-0" />}
                       {n.type === "error" && <AlertCircle className="w-4 h-4 shrink-0" />}
@@ -2269,10 +2298,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                       <motion.div
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
-                        className="bg-[#dcf8c6] dark:bg-[#005c4b] p-3 rounded-[20px] rounded-br-none shadow-sm flex items-center gap-3 min-w-[140px]"
+                        className={`p-3 rounded-[20px] rounded-br-none shadow-sm flex items-center gap-3 min-w-[140px] ${getBubbleColor(true, isDarkMode, activePaint, false)}`}
+                        style={{
+                          backgroundColor: activePaint !== "default" ? (isDarkMode ? paintTheme.sent : paintTheme.sent) : undefined,
+                          color: activePaint !== "default" ? (isDarkMode ? "#ffffff" : "#ffffff") : undefined
+                        }}
                       >
-                        <div className="w-8 h-8 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
-                        <span className="text-[12px] font-bold opacity-70">{uploadingText}</span>
+                        <div className={`w-8 h-8 rounded-full border-2 animate-spin ${activePaint === "default" ? "border-primary/30 border-t-primary" : "border-white/30 border-t-white"}`} />
+                        <span className="text-[12px] font-bold opacity-90">{uploadingText}</span>
                       </motion.div>
                     </div>
                   )}
