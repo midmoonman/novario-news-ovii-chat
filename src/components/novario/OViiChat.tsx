@@ -1942,7 +1942,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -20 }}
-                    className="absolute top-[10px] left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1 pointer-events-none"
+                    className="absolute top-[10px] left-1/2 -translate-x-1/2 z-[150] flex flex-col items-center gap-1 pointer-events-none"
                   >
                     {systemMsgs.slice(-1).map(sm => (
                       <div key={sm.id} className={`text-[11px] font-bold px-4 py-1.5 rounded-full backdrop-blur-xl shadow-elegant border ${sm.type === "join"
