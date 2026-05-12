@@ -1457,7 +1457,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     backgroundSize: "440px 440px"
   };
 
-  const pinnedMsgs = chatMsgs.filter(m => m.isPinned);
+  const pinnedMsgs = msgs.filter(m => m.isPinned);
   const [currentPinnedIdx, setCurrentPinnedIdx] = useState(0);
   const currentPinned = pinnedMsgs[currentPinnedIdx % pinnedMsgs.length];
 
