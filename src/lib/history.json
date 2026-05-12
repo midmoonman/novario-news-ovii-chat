@@ -1,26 +1,6 @@
 {
   "history": [
     {
-      "id": "protocol-125-living-museum",
-      "title": "Protocol 125: Build Book 'Living Museum' Protocol",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "Added a new 'Thumb Rule' section to the Build Book so we never forget how it should look and work.",
-        "medium": "Integrated a permanent technical manifestation of the 'Thumb Rule' into the Build Book UI for Hard mode.",
-        "hard": "Engineered a conditional rendering layer for the project's 'Thumb Rule' manifest. This section acts as a living technical summary and Museum of Intelligence, ensuring architectural integrity for future protocol deployments."
-      }
-    },
-    {
-      "id": "protocol-124-elite-avatars",
-      "title": "Protocol 124: Elite Avatar Collection Update",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "Replaced the old avatars with 16 new cute animals like hamsters, dogs, and cats!",
-        "medium": "Updated the avatar identity collection with 16 high-fidelity custom images and unique theme-color mapping.",
-        "hard": "Synchronized a new collection of 16 custom assets into the avatar library. Implemented specific ID-routing and color-coordinate logic to ensure a seamless and personalized social identity system."
-      }
-    },
-    {
       "id": "protocol-123-responsive-presence",
       "title": "Protocol 123: Responsive Presence Engine",
       "date": "2026-05-12",
@@ -28,6 +8,20 @@
         "easy": "Made the 'Online' status update much faster so you can see immediately when someone leaves.",
         "medium": "Optimized the presence heartbeat and added mobile-specific lifecycle listeners for instant offline transitions.",
         "hard": "Architected a high-frequency heartbeat protocol (10s) and implemented visibilityState-aware cleanup transactions. Reduced stale-timestamp margin to 25s to achieve sub-second perceived responsiveness on mobile hardware."
+      },
+      "hardIntel": {
+        "affectedFiles": ["src/components/novario/OViiChat.tsx", "src/lib/history.json", "src/lib/changelog.json"],
+        "fileTree": [
+          "src/components/novario/OViiChat.tsx (Main Logic)",
+          "src/lib/firebase.ts (Auth/DB Config)",
+          "src/lib/history.json (Documentation)",
+          "src/lib/changelog.json (Audit Log)"
+        ],
+        "purpose": "To eliminate the 'ghosting' effect where mobile users remain shown as online after closing the app. Prioritizes real-time social accuracy.",
+        "services": ["Firebase Firestore", "Browser Page Visibility API", "React Lifecycle Hooks"],
+        "optimizations": ["Reduced heartbeat interval to 10s", "Lowered stale threshold to 25s", "Added visibilitychange listeners"],
+        "challenges": ["Mobile browsers often suppress 'beforeunload' and 'unload' events.", "Higher frequency heartbeats increase Firestore write usage."],
+        "fixes": ["Used 'visibilitychange' to trigger cleanup during backgrounding.", "Implemented state-reconciliation on foregrounding."]
       }
     },
     {
@@ -38,6 +32,19 @@
         "easy": "Added a Pin button so you can save important messages. They stay even if you clear the chat!",
         "medium": "Implemented a message pinning system with a floating navigation bar and auto-scroll highlighting.",
         "hard": "Engineered a persistent pinning protocol. Integrated Firestore-synced Boolean states with a custom navigation layer featuring Framer Motion pulse animations and high-priority z-index toast management."
+      },
+      "hardIntel": {
+        "affectedFiles": ["src/components/novario/OViiChat.tsx", "src/styles.css"],
+        "fileTree": [
+          "src/components/novario/OViiChat.tsx (Pinning Engine)",
+          "src/styles.css (Highlight Animations)",
+          "src/lib/avatars.ts (Identity Assets)"
+        ],
+        "purpose": "Allows users to preserve critical messages/media across bulk 'Clear Chat' operations, providing a persistent 'memory layer' in an ephemeral space.",
+        "services": ["Firebase Firestore", "Framer Motion (Animations)", "Lucide React (Icons)"],
+        "optimizations": ["Smoothed auto-scroll with ResizeObserver", "Hardware-accelerated pulse animations", "Reciprocal unpinning rights architecture"],
+        "challenges": ["Maintaining scroll alignment when the keyboard is open.", "Ensuring the pinned bar doesn't obscure the 'User Online' toasts."],
+        "fixes": ["Boosted toast z-index to 150.", "Implemented back/forward navigation for multiple pins."]
       }
     },
     {
@@ -48,86 +55,6 @@
         "easy": "Added real charts and color tables to the history section so you can see how the app works.",
         "medium": "Integrated real-world analytics metrics (Sync Nodes, Message Volume) and a Brand Color Matrix into the Build Book UI.",
         "hard": "Engineered a dynamic data-visualization layer for the History protocol. Mapped internal system metrics to glassmorphic grid tables and synchronized the design system's OKLCH palette into a publicly accessible Brand Matrix."
-      }
-    },
-    {
-      "id": "protocol-120-ghost-disclosure",
-      "title": "Protocol 120: Skeleton Shimmer & Ghost Reveal",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "Added cool shimmering loading boxes so the page doesn't look empty while loading.",
-        "medium": "Implemented a glassmorphic NewsSkeleton system in the router to provide structured layout previews during data fetching.",
-        "hard": "Engineered a high-performance CSS shimmer animation engine. Integrated pendingComponent logic into TanStack Router to manage progressive disclosure and layout stability across asynchronous data transitions."
-      }
-    },
-    {
-      "id": "protocol-119-the-amber-protocol",
-      "title": "Protocol 119: The Amber Header Aura",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "Added a glowing orange light to the top of the website to make it look fancy.",
-        "medium": "Implemented a high-fidelity 'Amber Shadow' and 'Logo Bloom' effect in the sticky header for a cinematic brand presence.",
-        "hard": "Injected a multi-layered CSS shadow architecture into the header. Integrated a gradient-based 'Neon Bloom' behind the brand identity layer to enhance depth and contrast against the backdrop-blur container."
-      }
-    },
-    {
-      "id": "protocol-118-adaptive-energy",
-      "title": "Protocol 118: Adaptive Energy State",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "The pulsing orb now changes color to match whatever theme you pick.",
-        "medium": "Refactored the Empty State UI to use dynamic CSS primary variables instead of hardcoded tailwind emerald classes.",
-        "hard": "Engineered a theme-reactive SVG animation engine for the OVii Orb. Injected var(--primary) into Framer Motion boxShadow arrays and SVG stroke paths to ensure sub-second visual adaptation to runtime theme changes."
-      }
-    },
-    {
-      "id": "protocol-117-identity-compliance",
-      "title": "Protocol 117: Identity & Privacy Manifest",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "Changed the font for the Deep Archive to look more futuristic and fixed the privacy page.",
-        "medium": "Integrated 'Zen Tokyo Zoo' Google Font and refactored the legal directory to provide a Novario-specific Privacy Policy.",
-        "hard": "Implemented aesthetic differentiation for the Archive layer using striking typography. Scrubbed all internal ephemeral chat references from the public Privacy Manifest to maintain operational security."
-      }
-    },
-    {
-      "id": "protocol-116-layout-precision",
-      "title": "Protocol 116: Layout Precision & Density",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "Made the cards smaller and tighter so there isn't so much empty space.",
-        "medium": "De-jittered the layout by removing hardcoded min-heights and reducing bento-grid gap volumes. Applied subtle 13.7px blur glassmorphism.",
-        "hard": "Eliminated layout thrashing and unprofessional vertical overflows by transitioning to content-driven height constraints. Refined the glass architecture to use 1% opacity backgrounds for maximum professional clarity."
-      }
-    },
-    {
-      "id": "protocol-115-glass-matrix",
-      "title": "Protocol 115: Glassmorphism 2.0 Matrix",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "News stories now float in beautiful glass cards that glow when you touch them.",
-        "medium": "Implemented a custom Glassmorphism 2.0 CSS engine with multi-layered inner shadows and backdrop blurs for all news cards.",
-        "hard": "Engineered a complex CSS glass architecture using ::before/::after border gradients and inset shadows. Integrated dynamic image blur-filters that activate on hover to enhance textual legibility."
-      }
-    },
-    {
-      "id": "protocol-114-cinematic-news",
-      "title": "Protocol 114: Cinematic News Matrix",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "The news page now looks like a cool magazine with glowing backgrounds.",
-        "medium": "Replaced standard vertical lists with a Bento Grid architecture and added animated background shaders (Glow Orbs).",
-        "hard": "Implemented a modular Bento Box grid system for section rendering. Integrated high-performance Framer Motion shaders for background depth and real-time 'Live' pulse telemetry."
-      }
-    },
-    {
-      "id": "protocol-113-high-fidelity-ux",
-      "title": "Protocol 113: High-Fidelity UX Refinement",
-      "date": "2026-05-12",
-      "difficulty": {
-        "easy": "Added cool animations like a glowing orb for new chats and better photo grids.",
-        "medium": "Implemented 'OVii Orb' empty states and a smart PhotoGrid clustering engine to group consecutive images.",
-        "hard": "Refactored message rendering loop with cluster-detection logic. Injected CSS-filter based pulse animations for emotional empty-state feedback."
       }
     }
   ],
@@ -152,10 +79,6 @@
       {
         "question": "Why was this platform built?",
         "answer": "Because standard social apps never let your messages die. We built this so you can talk freely without a permanent record following you forever."
-      },
-      {
-        "question": "How easy was it to build this?",
-        "answer": "It looked easy on paper, but making a secret app inside another app is like trying to build a plane while it's already flying."
       }
     ],
     "analytics": {
@@ -182,20 +105,12 @@
       {
         "heading": "Tradeoffs: Speed vs. Polish",
         "content": "To maintain a 120Hz feel, we reduced complex glassmorphism filters on older phones. This means better battery life and zero lag, even if the 'blur' effect is slightly simpler."
-      },
-      {
-        "heading": "Security & Retention",
-        "content": "We use a 14-day purge cycle. By decoupling media from the database, we can scale faster while ensuring that when a message is 'deleted,' it is truly gone from all servers."
       }
     ],
     "faqs": [
       {
         "question": "Why was this platform built?",
         "answer": "To challenge the 'permanent storage' status quo. We wanted to build a high-performance communication tier that prioritizes immediate privacy over long-term data collection."
-      },
-      {
-        "question": "How easy was it to build this?",
-        "answer": "Significant technical overhead. Integrating real-time Firestore sync with a custom PWA routing system while maintaining a news-site footprint required intense state management."
       }
     ],
     "analytics": {

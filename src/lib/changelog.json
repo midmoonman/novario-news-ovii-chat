@@ -3,12 +3,6 @@
     "date": "2026-05-12",
     "updates": [
       {
-        "title": "Protocol 125: Build Book 'Living Museum' Protocol",
-        "status": "DEPLOYED",
-        "description": "Integrated the project's foundational 'Thumb Rule' manifest into the Build Book UI. This ensures that every future update adheres to strict technical, architectural, and UI/UX documentation standards, turning the History tab into a true technical summary and project museum.",
-        "rationale": "Solidifies the intelligence system's core principles and ensures long-term architectural transparency for the hard-mode technical summary."
-      },
-      {
         "title": "Protocol 123: Responsive Presence Engine",
         "status": "DEPLOYED",
         "description": "Engineered a high-frequency heartbeat system (10s interval) and optimized lifecycle listeners (visibilitychange, pagehide). Drastically reduced the offline transition delay for mobile users from 60s down to sub-25s by tightening stale-timestamp thresholds.",

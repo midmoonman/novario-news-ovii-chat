@@ -3285,45 +3285,87 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       </div>
                                     </div>
                                   </div>
+                                 )}
+
+                                {/* Hard Mode: Deep Intel Analysis */}
+                                {historyLevel === "hard" && historyData.history.find((h: any) => h.hardIntel)?.hardIntel && (
+                                  <div className="mt-12 space-y-8">
+                                    <div className="flex items-center gap-3 opacity-50 px-1">
+                                      <ShieldOff className="w-4 h-4 text-primary" />
+                                      <h3 className={`text-sm font-black uppercase tracking-[0.3em] ${isDarkMode ? "text-white" : "text-black"}`}>
+                                        Hard Intelligence Analysis
+                                      </h3>
+                                    </div>
+
+                                    {historyData.history.filter((h: any) => h.hardIntel).map((h: any, idx: number) => (
+                                      <motion.div
+                                        key={idx}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: idx * 0.1 }}
+                                        className={`rounded-3xl border overflow-hidden shadow-2xl p-6 space-y-6 ${isDarkMode ? "bg-white/[0.02] border-white/10" : "bg-black/[0.02] border-black/10"}`}
+                                      >
+                                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                          <div className="text-xs font-black text-primary uppercase tracking-widest">{h.title}</div>
+                                          <div className="text-[10px] font-bold opacity-40">{h.date}</div>
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                          {/* Left: Structure & Services */}
+                                          <div className="space-y-6">
+                                            <div>
+                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Project Structure</div>
+                                              <div className="space-y-1">
+                                                {h.hardIntel.fileTree.map((f: string, i: number) => (
+                                                  <div key={i} className="flex items-center gap-2 text-[11px] font-medium opacity-80">
+                                                    <Folder className="w-3 h-3 text-primary/60" />
+                                                    {f}
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </div>
+                                            <div>
+                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Integrations & APIs</div>
+                                              <div className="flex flex-wrap gap-2">
+                                                {h.hardIntel.services.map((s: string, i: number) => (
+                                                  <span key={i} className="px-2 py-1 rounded-md bg-primary/10 text-primary text-[9px] font-black uppercase tracking-tighter">{s}</span>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          </div>
+
+                                          {/* Right: Challenges & Fixes */}
+                                          <div className="space-y-6">
+                                            <div>
+                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Technical Optimizations</div>
+                                              <div className="space-y-2">
+                                                {h.hardIntel.optimizations.map((opt: string, i: number) => (
+                                                  <div key={i} className="flex gap-2 text-[11px] leading-relaxed">
+                                                    <span className="text-emerald-500 font-black">✓</span>
+                                                    <span className="opacity-70">{opt}</span>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </div>
+                                            <div>
+                                              <div className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-3">Challenges & Fixes</div>
+                                              <div className="space-y-3">
+                                                {h.hardIntel.challenges.map((c: string, i: number) => (
+                                                  <div key={i} className="p-3 rounded-xl bg-orange-500/5 border border-orange-500/10">
+                                                    <div className="text-[10px] font-black text-orange-400 uppercase mb-1">Issue: {c}</div>
+                                                    <div className="text-[10px] font-medium opacity-60">Solution: {h.hardIntel.fixes[i] || "Architectural mitigation implemented."}</div>
+                                                  </div>
+                                                ))}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </motion.div>
+                                    ))}
+                                  </div>
                                 )}
                               </>
                             )}
-
-                            {/* Thumb Rule Section */}
-                            <div className={`mt-16 sm:mt-24 p-6 sm:p-10 rounded-[32px] border-2 relative overflow-hidden transition-all duration-700 ${historyLevel === 'hard' ? (isDarkMode ? "bg-primary/5 border-primary/20" : "bg-primary/5 border-primary/20") : "hidden"}`}>
-                              <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center shadow-inner">
-                                  <Palette className="w-6 h-6 text-primary" />
-                                </div>
-                                <h3 className={`text-xl sm:text-2xl font-black ${isDarkMode ? "text-white" : "text-black"}`}>
-                                  Thumb Rule — Build Book History Tab
-                                </h3>
-                              </div>
-                              <p className={`text-sm sm:text-base leading-relaxed font-bold mb-6 ${isDarkMode ? "text-primary/80" : "text-primary/90"}`}>
-                                The Build Book History tab must always function as a complete hard technical knowledge for Hard mode and it is a technical summary of our product.
-                              </p>
-                              <div className={`grid sm:grid-cols-2 gap-4 text-xs sm:text-sm font-semibold ${isDarkMode ? "text-white/60" : "text-black/60"}`}>
-                                <ul className="space-y-2 list-disc list-inside">
-                                  <li>Recent Changes log</li>
-                                  <li>Files affected by the update</li>
-                                  <li>Complete file tree/structure</li>
-                                  <li>Purpose and usage of files</li>
-                                  <li>Services, APIs, and integrations</li>
-                                </ul>
-                                <ul className="space-y-2 list-disc list-inside">
-                                  <li>UI/UX and Architectural notes</li>
-                                  <li>Performance (Mobile & PC)</li>
-                                  <li>Development challenges</li>
-                                  <li>Fixes and workarounds</li>
-                                  <li>Scaling & Rendering FAQs</li>
-                                </ul>
-                              </div>
-                              <div className={`mt-8 pt-6 border-t ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-                                <p className={`text-xs font-black uppercase tracking-widest opacity-40 text-center`}>
-                                  The Build Book History tab acts as a living Museum of our project intelligence system.
-                                </p>
-                              </div>
-                            </div>
 
                           <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
                             <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
