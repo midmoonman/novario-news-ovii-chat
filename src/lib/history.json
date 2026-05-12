@@ -12,10 +12,12 @@
       "hardIntel": {
         "affectedFiles": ["src/components/novario/OViiChat.tsx", "src/lib/history.json", "src/lib/changelog.json"],
         "fileTree": [
-          "src/components/novario/OViiChat.tsx (Main Logic)",
-          "src/lib/firebase.ts (Auth/DB Config)",
-          "src/lib/history.json (Documentation)",
-          "src/lib/changelog.json (Audit Log)"
+          "src/components/novario/OViiChat.tsx (Core Engine)",
+          "src/lib/firebase.ts (Persistence Layer)",
+          "src/lib/history.json (Knowledge Base)",
+          "src/lib/changelog.json (Audit Log)",
+          "src/styles.css (Global Visuals)",
+          "src/routes/ovii.tsx (Entry Point)"
         ],
         "purpose": "To eliminate the 'ghosting' effect where mobile users remain shown as online after closing the app. Prioritizes real-time social accuracy.",
         "services": ["Firebase Firestore", "Browser Page Visibility API", "React Lifecycle Hooks"],
@@ -36,12 +38,12 @@
       "hardIntel": {
         "affectedFiles": ["src/components/novario/OViiChat.tsx", "src/styles.css"],
         "fileTree": [
-          "src/components/novario/OViiChat.tsx (Pinning Engine)",
-          "src/styles.css (Highlight Animations)",
-          "src/lib/avatars.ts (Identity Assets)"
+          "src/components/novario/OViiChat.tsx (Pinning Logic)",
+          "src/styles.css (Motion Styles)",
+          "src/lib/avatars.ts (Asset Registry)"
         ],
         "purpose": "Allows users to preserve critical messages/media across bulk 'Clear Chat' operations, providing a persistent 'memory layer' in an ephemeral space.",
-        "services": ["Firebase Firestore", "Framer Motion (Animations)", "Lucide React (Icons)"],
+        "services": ["Firebase Firestore", "Framer Motion", "Lucide React"],
         "optimizations": ["Smoothed auto-scroll with ResizeObserver", "Hardware-accelerated pulse animations", "Reciprocal unpinning rights architecture"],
         "challenges": ["Maintaining scroll alignment when the keyboard is open.", "Ensuring the pinned bar doesn't obscure the 'User Online' toasts."],
         "fixes": ["Boosted toast z-index to 150.", "Implemented back/forward navigation for multiple pins."]
@@ -132,26 +134,34 @@
     "intro": "OVii Chat is a React-based PWA utilizing a serverless architecture (Firebase/Cloudinary). It features a custom hardware-detection engine to throttle rendering based on client-side constraints.",
     "sections": [
       {
+        "heading": "Complete Project Architecture",
+        "content": "The system is structured as a modular PWA. Key directories include: /src/components/ui (Shadcn Base), /src/components/novario (Core Business Logic), /src/lib (Internal Logic & Documentation), /src/routes (Immersive Navigation Layer). This ensures high separation of concerns."
+      },
+      {
         "heading": "Rendering Logic & Jitter Elimination",
         "content": "We refactored the Build Book component to eliminate layout thrashing. By removing 'AnimatePresence' from large data arrays and utilizing 'display: none' for tab switching, we reduced CPU spikes from 80% to 15% during navigation."
       },
       {
         "heading": "Hardware Shield Implementation",
         "content": "The system probes 'navigator.deviceMemory' and 'navigator.hardwareConcurrency'. On low-end targets (<4GB RAM), it bypasses backdrop-filter CSS and intense Framer Motion springs to maintain a stable 60fps frame budget."
-      },
-      {
-        "heading": "Data Persistence & TTL Logic",
-        "content": "Firestore onSnapshot listeners handle the sub-second sync. Programs use a client-side timestamp delta to initiate purge transactions. Known Limitation: Media deletion is eventual (Cloudinary CDN cache) but database references are purged instantly."
       }
     ],
     "faqs": [
       {
-        "question": "Why was this platform built?",
-        "answer": "As a serverless experiment in ephemeral cryptography and low-latency state synchronization. We targeted the structural weaknesses of centralized messaging architectures."
+        "question": "Why is mobile optimization harder than PC optimization?",
+        "answer": "Mobile devices have thermal throttling, limited RAM, and varying GPU architectures. Unlike PCs, mobile browsers often kill background processes and have inconsistent event firing (like beforeunload), requiring complex state-reconciliation logic."
       },
       {
-        "question": "How easy was it to build this?",
-        "answer": "Engineered complexity. Between Cloudinary REST pipelines, MediaRecorder API encoding, and ResizeObserver-based auto-scrolling, it was a high-intensity full-stack sprint."
+        "question": "Why can a UI look perfect on PC but break on mobile?",
+        "answer": "Viewport instability. Mobile OS keyboards cause the visual viewport to shrink, which can break absolute positioning and cause 'jitter' or layout shifting. Touch-event latencies and high-DPI scaling also differ from mouse-based PC interactions."
+      },
+      {
+        "question": "What optimizations were done for mobile devices?",
+        "answer": "We implemented visualViewport tracking to handle keyboard offsets, reduced backdrop-filter complexity for low-end GPUs, used hardware-accelerated transforms for animations, and engineered visibility-aware cleanup for presence."
+      },
+      {
+        "question": "What optimizations were done for PC/Desktop?",
+        "answer": "Desktop-specific fixes include 100vw/100vh frame stabilization to prevent centered-card clipping, global Escape key handlers for modal management, and GPU-layer compositing for smooth bento-grid scrolling."
       }
     ],
     "analytics": {

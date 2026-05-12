@@ -2019,14 +2019,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           )}
                         </div>
                         <div className={`text-xs truncate font-medium ${isDarkMode ? "text-white/70" : "text-black/70"}`}>
-                          {currentPinned.type === "text" ? currentPinned.content : 
-                           currentPinned.type === "image" ? "Photo" : 
-                           currentPinned.type === "voice" ? "Voice Note" : "File"}
+                          {currentPinned.type === "text" ? currentPinned.content :
+                            currentPinned.type === "image" ? "Photo" :
+                              currentPinned.type === "voice" ? "Voice Note" : "File"}
                         </div>
                       </div>
                       {pinnedMsgs.length > 1 && (
                         <div className="flex items-center gap-1">
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setCurrentPinnedIdx(prev => (prev - 1 + pinnedMsgs.length) % pinnedMsgs.length);
@@ -2035,7 +2035,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           >
                             <ChevronLeft className="w-4 h-4" />
                           </button>
-                          <button 
+                          <button
                             onClick={(e) => {
                               e.stopPropagation();
                               setCurrentPinnedIdx(prev => (prev + 1) % pinnedMsgs.length);
@@ -2046,7 +2046,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                           </button>
                         </div>
                       )}
-                      <button 
+                      <button
                         onClick={(e) => {
                           e.stopPropagation();
                           pinMessage(currentPinned.id, true);
@@ -2895,10 +2895,10 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                   {/* Dynamic Neon Gradient Glow - DISABLED FOR LOW END */}
                   {!isLowEnd && (
                     <div className="absolute inset-0 overflow-hidden pointer-events-none select-none buildbook-ambient">
-                        <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
-                          }`} />
-                        <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "easy" ? "bg-orange-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
-                          }`} />
+                      <div className={`absolute -top-[20%] -left-[10%] w-[80%] h-[80%] blur-[140px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-500/20" : historyLevel === "easy" ? "bg-orange-500/20" : historyLevel === "medium" ? "bg-blue-500/20" : "bg-purple-500/20"
+                        }`} />
+                      <div className={`absolute top-[30%] -right-[20%] w-[70%] h-[70%] blur-[150px] rounded-full pointer-events-none transition-colors duration-700 ${logTab === "updates" ? "bg-emerald-700/20" : historyLevel === "easy" ? "bg-orange-700/20" : historyLevel === "medium" ? "bg-blue-700/20" : "bg-purple-700/20"
+                        }`} />
                     </div>
                   )}
 
@@ -2908,7 +2908,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                     historyLevel === "easy" ? (isDarkMode ? "bg-[#202c33]/95 border-orange-500/20" : "bg-white/95 border-orange-500/20") :
                       historyLevel === "medium" ? (isDarkMode ? "bg-[#202c33]/95 border-blue-500/20" : "bg-white/95 border-blue-500/20") :
                         (isDarkMode ? "bg-[#202c33]/95 border-purple-500/20" : "bg-white/95 border-purple-500/20")
-                    }` } style={{ transform: "translateZ(0)" }}>
+                    }`} style={{ transform: "translateZ(0)" }}>
                     <div className="flex items-center gap-4 sm:gap-6">
                       <button onClick={() => setShowLogs(false)} className={`p-2 rounded-full transition-all active:scale-90 shadow-md ${logTab === "updates" ? (isDarkMode ? "bg-white/10 hover:bg-emerald-500/20 text-emerald-400" : "bg-black/5 hover:bg-emerald-500/10 text-emerald-600") :
                         historyLevel === "easy" ? (isDarkMode ? "bg-white/10 hover:bg-orange-500/20 text-orange-400" : "bg-black/5 hover:bg-orange-500/10 text-orange-600") :
@@ -3301,7 +3301,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       </div>
                                     </div>
                                   </div>
-                                 )}
+                                )}
 
                                 {/* Hard Mode: Deep Intel Analysis */}
                                 {historyLevel === "hard" && historyData.history.find((h: any) => h.hardIntel)?.hardIntel && (
@@ -3383,21 +3383,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               </>
                             )}
 
-                          <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
-                            <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
-                              {historyData[historyLevel].summary}
-                            </p>
+                            <div className={`mt-12 p-6 rounded-2xl border ${isDarkMode ? "bg-emerald-500/10 border-emerald-500/20" : "bg-emerald-50 border-emerald-500/20"}`}>
+                              <p className={`text-xs sm:text-sm italic font-medium leading-relaxed ${isDarkMode ? "text-emerald-100/70" : "text-emerald-900/70"}`}>
+                                {historyData[historyLevel].summary}
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Book Footer */}
-                    <div className="pt-24 sm:pt-40 pb-16 sm:pb-24 text-center relative">
-                      <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none" />
-                      <div className="w-16 sm:w-24 h-0.5 bg-emerald-500/30 mx-auto mb-8 sm:mb-10 relative z-10" />
-                      <p className={`text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] relative z-10 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>End of Technical Protocol</p>
-                    </div>
+                      {/* Book Footer */}
+                      <div className="pt-24 sm:pt-40 pb-16 sm:pb-24 text-center relative">
+                        <div className="absolute inset-0 bg-emerald-500/10 blur-[60px] rounded-full pointer-events-none" />
+                        <div className="w-16 sm:w-24 h-0.5 bg-emerald-500/30 mx-auto mb-8 sm:mb-10 relative z-10" />
+                        <p className={`text-[10px] sm:text-[12px] font-black uppercase tracking-[0.5em] relative z-10 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>End of Technical Protocol</p>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
@@ -3465,9 +3465,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               )}
             </AnimatePresence>
 
-        </div>{/* end body */}
-      </motion.div>{/* end ovii-chat-frame */}
-    </motion.div>{/* end ovii-chat-root */}
-  </AnimatePresence>
-);
+          </div>{/* end body */}
+        </motion.div>{/* end ovii-chat-frame */}
+      </motion.div>{/* end ovii-chat-root */}
+    </AnimatePresence>
+  );
 }
