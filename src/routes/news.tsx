@@ -55,7 +55,7 @@ function NewsHome() {
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
         transition={{ duration: 0.3 }}
-        className="min-h-screen bg-background text-foreground flex flex-col"
+        className="min-h-screen bg-background text-foreground flex flex-col noise-overlay"
       >
         <Header />
         <BreakingTicker />
@@ -76,14 +76,26 @@ function NewsHome() {
 
   const heroPool = data.all.slice(0, 8);
 
+  const getOrbColors = (cat?: string) => {
+    switch (cat) {
+      case "Tech": return { p: "oklch(0.7 0.2 250)", s: "oklch(0.6 0.2 280)" }; // Blue/Purple
+      case "Business": return { p: "oklch(0.8 0.15 85)", s: "oklch(0.7 0.15 70)" }; // Gold/Yellow
+      case "World": return { p: "oklch(0.6 0.2 25)", s: "oklch(0.5 0.2 20)" }; // Crimson/Red
+      case "Sports": return { p: "oklch(0.7 0.2 150)", s: "oklch(0.6 0.2 140)" }; // Emerald/Green
+      default: return { p: "var(--primary)", s: "oklch(0.6 0.2 35)" }; // Default Orange
+    }
+  };
+
+  const orbColors = useMemo(() => getOrbColors(data.mode === "cat" ? data.cat : undefined), [data]);
+
   return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden"
+      className="min-h-screen bg-background text-foreground flex flex-col relative overflow-hidden noise-overlay"
     >
-      {/* Background Glow Orbs - Eliminates "Empty" feeling */}
+      {/* Background Glow Orbs - Adaptive Atmospheric UX */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden z-0">
         <motion.div 
           animate={{ 
@@ -93,7 +105,8 @@ function NewsHome() {
             opacity: [0.03, 0.08, 0.03]
           }}
           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-primary blur-[120px]" 
+          className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full blur-[120px]" 
+          style={{ backgroundColor: orbColors.p }}
         />
         <motion.div 
           animate={{ 
@@ -103,7 +116,8 @@ function NewsHome() {
             opacity: [0.02, 0.06, 0.02]
           }}
           transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-          className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-orange-600 blur-[100px]" 
+          className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full blur-[100px]" 
+          style={{ backgroundColor: orbColors.s }}
         />
       </div>
 
