@@ -14,12 +14,9 @@ async function fetchBingImageDirect(query: string): Promise<string | null> {
   try {
     const url = `https://api.bing.microsoft.com/v7.0/images/search?q=${encodeURIComponent(query)}&count=3&imageType=Photo&safeSearch=Moderate`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(url, {
-      signal: controller.signal,
+    const res = await fetchWithTimeout(url, 1500, {
       headers: { "Ocp-Apim-Subscription-Key": BING_API_KEY },
     });
-    clearTimeout(timer);
     if (!res.ok) return null;   // 401 / quota → silently fall through
     const data = await res.json();
     const images: any[] = data?.value || [];
@@ -38,9 +35,7 @@ async function fetchWikimediaDirect(query: string): Promise<string | null> {
   try {
     const url = `https://commons.wikimedia.org/w/api.php?action=query&format=json&generator=search&prop=imageinfo&iiprop=url&gsrsearch=${encodeURIComponent(query)}&gsrnamespace=6&gsrlimit=8&origin=*`;
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2000);
-    const res = await fetch(url, { signal: controller.signal });
-    clearTimeout(timer);
+    const res = await fetchWithTimeout(url, 1000);
     if (!res.ok) return null;
     const data = await res.json();
     const pages = data.query?.pages;
@@ -158,14 +153,14 @@ function saveToStorage() {
 
 const BING_PLACEHOLDER = "__bing_pending__";
 
-export async function fetchGuardianNews(query: string, category: string, page = 1): Promise<RemoteArticle[]> {
+export async function fetchGuardianNews(query: string, category: string, page = 1, pageSize = 15): Promise<RemoteArticle[]> {
   const cacheKey = `g:${query}:${category}:${page}`;
   const cached = cache.get(cacheKey);
   if (cached && Date.now() - cached.at < CACHE_MS) return cached.data;
 
   try {
     const section = CATEGORY_TO_SECTION[category];
-    let url = `https://content.guardianapis.com/search?api-key=${GUARDIAN_API_KEY}&show-fields=thumbnail,bodyText,byline&page=${page}&page-size=30`;
+    let url = `https://content.guardianapis.com/search?api-key=${GUARDIAN_API_KEY}&show-fields=thumbnail,bodyText,byline&page=${page}&page-size=${pageSize}`;
     
     if (section) url += `&section=${section}`;
     if (query) url += `&q=${encodeURIComponent(query)}`;
@@ -173,13 +168,14 @@ export async function fetchGuardianNews(query: string, category: string, page = 
     // Always use newest to guarantee recent news
     url += `&order-by=newest`;
 
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url, 3000);
     if (!res.ok) return [];
     
     const data = await res.json();
     const results = data.response?.results || [];
 
-    // Build articles, using Bing for any that have no thumbnail
+    // Build articles, limiting Bing enrichment to the first 5 without thumbnails to save time
+    let enrichedCount = 0;
     const articles = await Promise.all(results.map(async (item: any, i: number): Promise<RemoteArticle> => {
       const title = item.webTitle;
       const slug = slugify(title) + "-" + item.id.replace(/\//g, "-");
@@ -196,8 +192,13 @@ export async function fetchGuardianNews(query: string, category: string, page = 
       // Fetch a Bing image using the article title when no Guardian thumbnail is provided
       let image = item.fields?.thumbnail || "";
       if (!image) {
-        const bingImg = await fetchBingImage(title);
-        image = bingImg || getPicsumFallback(title);
+        if (enrichedCount < 5) {
+          enrichedCount++;
+          const bingImg = await fetchBingImage(title);
+          image = bingImg || getPicsumFallback(title);
+        } else {
+          image = getPicsumFallback(title);
+        }
       }
 
       const article: RemoteArticle = {
@@ -232,7 +233,7 @@ export async function fetchGuardianNews(query: string, category: string, page = 
 export async function fetchWikipediaFallback(query: string, category: string): Promise<RemoteArticle[]> {
   try {
     const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&prop=extracts|pageimages&generator=search&exlimit=1&explaintext=1&piprop=thumbnail&pithumbsize=800&gsrsearch=${encodeURIComponent(query)}&gsrlimit=1&origin=*`;
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url, 2000);
     if (!res.ok) return [];
     const data = await res.json();
     
@@ -313,7 +314,7 @@ export async function fetchWebSearchFallback(query: string, category: string): P
     const ddgUrl = `https://html.duckduckgo.com/html/?q=${encodeURIComponent(query)}`;
     // Use corsproxy.io to bypass browser CORS restrictions for DuckDuckGo HTML
     const url = `https://corsproxy.io/?${encodeURIComponent(ddgUrl)}`;
-    const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" } });
+    const res = await fetchWithTimeout(url, 3000, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" } });
     if (!res.ok) return [];
     
     const html = await res.text();
@@ -361,9 +362,8 @@ const GENERIC_UNSPLASH_ID = "photo-1504711434969-e33886168f5c";
 export async function fetchGoogleNewsRSS(query: string, fallbackImage?: string): Promise<RemoteArticle[]> {
   try {
     const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(query)}&hl=en-US&gl=US&ceid=US:en`;
-    // rss2json.com converts RSS to JSON and handles CORS — free, 10k req/day
     const url = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(rssUrl)}`;
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url, 3000);
     if (!res.ok) return [];
     const data = await res.json();
     if (data.status !== "ok" || !Array.isArray(data.items)) return [];
@@ -441,7 +441,7 @@ async function fetchWikipediaImage(query: string): Promise<string | null> {
     // Try exact page title first
     const pageName = query.split(" ").map(w => w.charAt(0).toUpperCase() + w.slice(1)).join("_");
     const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pageName)}`;
-    const res = await fetch(url);
+    const res = await fetchWithTimeout(url, 1500);
     if (res.ok) {
       const data = await res.json();
       if (data.thumbnail?.source) return data.thumbnail.source;
@@ -459,7 +459,7 @@ export async function fetchNapkinIllustration(query: string, excerpt: string): P
   try {
     // Note: Since Napkin AI API is in developer preview, this endpoint might need adjustment.
     // Most standard visual generation APIs use a POST request like this.
-    const res = await fetch("https://api.napkin.ai/v1/visuals", {
+    const res = await fetchWithTimeout("https://api.napkin.ai/v1/visuals", 3000, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${NAPKIN_API_KEY}`,
@@ -482,11 +482,11 @@ export async function fetchNapkinIllustration(query: string, excerpt: string): P
 
 const TMDB_API_KEY = "3f8af7f1ca1d529dea0f89190639240d";
 
-async function fetchWithTimeout(url: string, ms = 1500) {
+async function fetchWithTimeout(url: string, ms = 1500, options: RequestInit = {}) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), ms);
   try {
-    const res = await fetch(url, { signal: controller.signal });
+    const res = await fetch(url, { ...options, signal: controller.signal });
     clearTimeout(id);
     return res;
   } catch (err) {
@@ -561,7 +561,7 @@ async function fetchTMDBImages(query: string): Promise<{ profile?: string, newsI
     return { newsImages: [] };
   }
 }
-export async function getNews(category = "Top", page = 1) {
+export async function getNews(category = "Top", page = 1, pageSize = 15) {
   // If category doesn't match our standard ones, treat it as a search query
   const standardCats = ["Top", "India", "World", "Business", "Tech", "Sports", "Entertainment", "Science", "Health"];
   
@@ -569,9 +569,9 @@ export async function getNews(category = "Top", page = 1) {
     // India: query Guardian's world section with India tag for relevant, non-repetitive results
     let articles: RemoteArticle[];
     if (category === "India") {
-      articles = await fetchGuardianNews("India", "world", page);
+      articles = await fetchGuardianNews("India", "world", page, pageSize);
     } else {
-      articles = await fetchGuardianNews(category === "Top" ? "" : "", category === "Top" ? "" : category, page);
+      articles = await fetchGuardianNews(category === "Top" ? "" : "", category === "Top" ? "" : category, page, pageSize);
     }
 
     // De-duplicate by title similarity
@@ -644,15 +644,20 @@ export async function getNews(category = "Top", page = 1) {
 
       // Note: Google News articles are already OG-enriched inside fetchGoogleNewsRSS.
       // Here we only override articles that still have no real image after that enrichment.
+      let gnewsEnrichedCount = 0;
       const enrichedNews = await Promise.all(googleNews.map(async (a, i) => {
         if (a.image.includes(GENERIC_UNSPLASH_ID) || !a.image) {
            if (tmdbImages.length > 0) {
               const hash = (i + 1) % tmdbImages.length;
               return { ...a, image: tmdbImages[hash] };
            }
-           // Last resort: Bing Image Search using the article title
-           const bingImg = await fetchBingImage(a.title + " " + category);
-           return { ...a, image: bingImg || getPicsumFallback(category + i) };
+           // Only try Bing for the first 3 if no TMDB
+           if (gnewsEnrichedCount < 3) {
+             gnewsEnrichedCount++;
+             const bingImg = await fetchBingImage(a.title + " " + category);
+             return { ...a, image: bingImg || getPicsumFallback(category + i) };
+           }
+           return { ...a, image: getPicsumFallback(category + i) };
         }
         return a;
       }));
@@ -700,8 +705,8 @@ export async function getHomeFeed() {
   
   // Fetch main categories with more items, sub categories with fewer to save time
   const results = await Promise.all([
-    ...mainCats.map(c => getNews(c)),
-    ...subCats.map(c => getNews(c))
+    ...mainCats.map(c => getNews(c, 1, 12)),
+    ...subCats.map(c => getNews(c, 1, 6))
   ]);
   
   const cats = [...mainCats, ...subCats];

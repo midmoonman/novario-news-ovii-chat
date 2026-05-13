@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
-  deleteDoc, doc, Timestamp, setDoc, getDocs, writeBatch
+  deleteDoc, doc, Timestamp, setDoc, getDocs, writeBatch, limit
 } from "firebase/firestore";
 import { auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
@@ -1050,14 +1050,14 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           setCount(currentOnline.length);
         });
 
-        const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "asc"));
+        const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "desc"), limit(100));
         unsubMsgs = onSnapshot(q, { includeMetadataChanges: true }, (s) => {
           const list: Msg[] = s.docs.map((d) => {
             const data = d.data() as any;
             const msg: Msg = { id: d.id, ...data };
             if (d.metadata.hasPendingWrites && msg.uid === u.uid) msg.status = "sending";
             return msg;
-          });
+          }).reverse(); // Reverse because we fetched with desc order
           setMsgs(list);
           setIsLoading(false);
           const tnow = Date.now();
@@ -1302,8 +1302,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     setPres({ typing: false });
     requestAnimationFrame(() => inputRef.current?.focus());
     const isImageUrl = /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(v);
-    if (isImageUrl) await send("image", v);
-    else await send("text", v.slice(0, 5000));
+    if (isImageUrl) send("image", v);
+    else send("text", v.slice(0, 5000));
     setInputHeight(44); // Reset height after send
   };
 
