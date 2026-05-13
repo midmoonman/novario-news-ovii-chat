@@ -1,5 +1,5 @@
 // Novario Service Worker — PWA + Pure Web Push (no Firebase/FCM)
-const CACHE_NAME = 'novario-v12';
+const CACHE_NAME = 'novario-v13';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -17,7 +17,7 @@ self.addEventListener('push', (event) => {
   console.log('[SW] Push Received:', event.data?.text());
   let data = {
     title: '📰 Novario',
-    body: '🔴 Breaking Now — Live Coverage on Novario',
+    body: '🔴 New Message — Open Chat to read',
     icon: '/favicon.png',
     badge: '/favicon.png',
     url: '/news',
@@ -26,9 +26,10 @@ self.addEventListener('push', (event) => {
   if (event.data) {
     try {
       const parsed = event.data.json();
-      data = { ...data, ...parsed };
-    } catch {
-      data.body = event.data.text() || data.body;
+      if (parsed) data = { ...data, ...parsed };
+    } catch (e) {
+      const text = event.data.text();
+      if (text) data.body = text;
     }
   }
 

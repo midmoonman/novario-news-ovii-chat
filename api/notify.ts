@@ -72,6 +72,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       } catch { /* malformed — skip */ }
     });
 
+    console.log(`Found ${subscriptions.length} subscribers: ${subscriptions.map(s => s.deviceId).join(', ')}`);
+
     if (subscriptions.length === 0) {
       console.log('No subscriptions found in room:', room);
       return res.status(200).json({ success: true, message: 'No recipients with push subscriptions' });
@@ -95,7 +97,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     for (const { deviceId, sub } of subscriptions) {
       try {
-        console.log(`Sending push to device: ${deviceId} at endpoint: ${sub.endpoint.slice(0, 50)}...`);
+        console.log(`Sending push to device: ${deviceId} (endpoint: ${sub.endpoint.slice(0, 40)}...)`);
         const result = await webpush.sendNotification(sub, payload, {
           urgency: 'high',
           TTL: 86400,
