@@ -1,5 +1,5 @@
 // Novario Service Worker — PWA + Pure Web Push (no Firebase/FCM)
-const CACHE_NAME = 'novario-v4';
+const CACHE_NAME = 'novario-v8';
 
 self.addEventListener('install', () => self.skipWaiting());
 
