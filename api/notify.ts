@@ -48,16 +48,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { senderUid, room } = req.body;
+  const { senderUid, room, isTest } = req.body;
   if (!senderUid || !room) return res.status(400).json({ error: 'Missing senderUid or room' });
 
   try {
+    console.log(`Notify request from ${senderUid} in room ${room}${isTest ? ' (TEST MODE)' : ''}`);
     // Read from permanent 'subscriptions' collection (presence is wiped when closed)
     const subSnap = await db.collection(`ovii/${room}/subscriptions`).get();
 
     const subscriptions: { uid: string; sub: webpush.PushSubscription }[] = [];
     subSnap.forEach(docSnap => {
-      if (docSnap.id === senderUid) return;
+      if (docSnap.id === senderUid && !isTest) return; // skip sender unless it's a test
       const data = docSnap.data();
       if (!data.pushSub) return;
       try {

@@ -5,7 +5,7 @@ import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
 } from "firebase/firestore";
 import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin, BellRing } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
@@ -990,6 +990,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 updatedAt: serverTimestamp()
               }, { merge: true });
               console.log("Push endpoint synced to PERMANENT storage");
+              addNotification("Enrolled in Notifications", "success");
             }
           }
         } catch (pushErr) {
@@ -1852,6 +1853,25 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             >
                               <Sun className="w-4 h-4 text-primary" />
                               <div className="flex-1 text-left font-medium">Enable Notifications</div>
+                            </button>
+
+                            <button
+                              onClick={async () => {
+                                setShowMenu(false);
+                                addNotification("Sending test push...", "info");
+                                fetch('/api/notify', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ senderUid: uid, room: ROOM, isTest: true })
+                                }).then(r => r.json()).then(data => {
+                                  if (data.succeeded > 0) addNotification("Test push sent!", "success");
+                                  else addNotification("No subscription found", "error");
+                                }).catch(() => addNotification("Test failed", "error"));
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <BellRing className="w-4 h-4 text-primary" />
+                              <div className="flex-1 text-left font-medium">Test Push</div>
                             </button>
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
