@@ -21,9 +21,9 @@
       "purpose": "any"
     },
     {
-      "src": "/monochrome-icon.png",
-      "sizes": "512x512",
-      "type": "image/png",
+      "src": "/monochrome-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "monochrome"
     }
   ],
