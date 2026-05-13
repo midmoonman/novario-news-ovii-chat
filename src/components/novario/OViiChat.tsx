@@ -958,16 +958,19 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (!alive) return;
         currentUid = u.uid;
 
-        // ── Web Push Subscription (no Firebase/FCM — pure VAPID) ──────────
+        // ── Web Push Subscription (force refresh for mobile reliability) ───
         try {
-          if ('serviceWorker' in navigator && Notification.permission !== "denied") {
+          if ('serviceWorker' in navigator && 'PushManager' in window) {
             const reg = await navigator.serviceWorker.ready;
             
-            // Check if already subscribed
-            let sub = await reg.pushManager.getSubscription();
-            
-            if (!sub && Notification.permission === "granted") {
-              console.log("Notifying: re-subscribing...");
+            if (Notification.permission === "granted") {
+              // ALWAYS unsubscribe and re-subscribe fresh. 
+              // This ensures we never have a "stale" endpoint on mobile Chrome/PWA.
+              const existing = await reg.pushManager.getSubscription();
+              if (existing) {
+                await existing.unsubscribe();
+              }
+
               const VAPID_PUBLIC_KEY = "BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA";
               const urlB64 = VAPID_PUBLIC_KEY.replace(/-/g, "+").replace(/_/g, "/");
               const padding = "=".repeat((4 - (urlB64.length % 4)) % 4);
@@ -975,22 +978,20 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
               const uint8 = new Uint8Array(base64.length);
               for (let i = 0; i < base64.length; i++) uint8[i] = base64.charCodeAt(i);
               
-              sub = await reg.pushManager.subscribe({
+              const sub = await reg.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: uint8,
               });
-              console.log("Push subscription created!");
-            }
 
-            if (sub) {
               // Save to a PERMANENT collection (not presence) so it survives when browser is closed
               await setDoc(doc(db, "ovii", ROOM, "subscriptions", u.uid), {
                 uid: u.uid,
                 pushSub: JSON.stringify(sub.toJSON()),
-                updatedAt: serverTimestamp()
+                updatedAt: serverTimestamp(),
+                userAgent: navigator.userAgent
               }, { merge: true });
-              console.log("Push endpoint synced to PERMANENT storage");
-              addNotification("Enrolled in Notifications", "success");
+              
+              console.log("Push subscription refreshed:", sub.endpoint.slice(0, 40) + "...");
             }
           }
         } catch (pushErr) {

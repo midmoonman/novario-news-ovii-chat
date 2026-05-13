@@ -90,14 +90,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     for (const { uid, sub } of subscriptions) {
       try {
-        await webpush.sendNotification(sub, payload, {
+        console.log(`Sending push to ${uid} at endpoint: ${sub.endpoint.slice(0, 50)}...`);
+        const result = await webpush.sendNotification(sub, payload, {
           urgency: 'high',
           TTL: 86400,
         });
         successCount++;
-        console.log(`Push sent to ${uid}`);
+        console.log(`Push SUCCESS for ${uid}:`, result.statusCode);
       } catch (err: any) {
-        console.error(`Push failed for ${uid}:`, err.statusCode, err.message);
+        console.error(`Push FAILED for ${uid}:`, err.statusCode, err.message);
         errors.push(`${uid}: ${err.statusCode} - ${err.message}`);
         if (err.statusCode === 404 || err.statusCode === 410) {
           // Subscription expired — clean up from permanent storage
