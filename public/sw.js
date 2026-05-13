@@ -37,13 +37,15 @@ self.addEventListener('push', (event) => {
   // event.waitUntil keeps the SW alive until notification logic completes
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Check if the app is already open and visible to the user
-      const isAppOpenAndVisible = clientList.some(client => {
-        return client.url.includes(self.location.origin) && client.visibilityState === 'visible';
+      // Only suppress if the user is actively looking at the /ovii chat page
+      // client.focused ensures they are actually interacting with it, not just having it open
+      const isActivelyOnChat = clientList.some(client => {
+        return client.url.includes('/ovii') && 
+               client.visibilityState === 'visible' &&
+               client.focused === true;
       });
 
-      // If the user is already looking at the app, don't show the notification
-      if (isAppOpenAndVisible) {
+      if (isActivelyOnChat) {
         return;
       }
 
