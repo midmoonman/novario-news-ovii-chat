@@ -960,31 +960,37 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
         // ── Web Push Subscription (no Firebase/FCM — pure VAPID) ──────────
         try {
-          if (Notification.permission !== "denied") {
-            const permission = await Notification.requestPermission();
-            if (permission === "granted") {
-              const reg = await navigator.serviceWorker.ready;
-              // Your own VAPID public key — no Google/Firebase involved
+          if ('serviceWorker' in navigator && Notification.permission !== "denied") {
+            const reg = await navigator.serviceWorker.ready;
+            
+            // Check if already subscribed
+            let sub = await reg.pushManager.getSubscription();
+            
+            if (!sub && Notification.permission === "granted") {
+              console.log("Notifying: re-subscribing...");
               const VAPID_PUBLIC_KEY = "BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA";
-              // Convert VAPID key to Uint8Array (required by browser API)
               const urlB64 = VAPID_PUBLIC_KEY.replace(/-/g, "+").replace(/_/g, "/");
               const padding = "=".repeat((4 - (urlB64.length % 4)) % 4);
               const base64 = atob(urlB64 + padding);
               const uint8 = new Uint8Array(base64.length);
               for (let i = 0; i < base64.length; i++) uint8[i] = base64.charCodeAt(i);
-              // Subscribe to push — browser generates unique endpoint for this device
-              const sub = await reg.pushManager.subscribe({
+              
+              sub = await reg.pushManager.subscribe({
                 userVisibleOnly: true,
                 applicationServerKey: uint8,
               });
-              // Save subscription to Firestore so Vercel can push this device
+              console.log("Push subscription created!");
+            }
+
+            if (sub) {
               await setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
                 pushSub: JSON.stringify(sub.toJSON()),
               }, { merge: true });
+              console.log("Push endpoint synced to Firestore");
             }
           }
         } catch (pushErr) {
-          console.warn("Push setup failed (non-critical):", pushErr);
+          console.error("Push setup failed:", pushErr);
         }
         // ────────────────────────────────────────────────────────────────────
 

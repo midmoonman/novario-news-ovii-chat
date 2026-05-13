@@ -69,6 +69,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
 
     if (subscriptions.length === 0) {
+      console.log('No subscriptions found in room:', room);
       return res.status(200).json({ success: true, message: 'No recipients with push subscriptions' });
     }
 
@@ -83,7 +84,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       renotify: true,
     });
 
+    console.log(`Attempting to send push to ${subscriptions.length} subscribers`);
+
     let successCount = 0;
+    const errors: string[] = [];
+
     for (const { uid, sub } of subscriptions) {
       try {
         await webpush.sendNotification(sub, payload, {
@@ -93,6 +98,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         successCount++;
       } catch (err: any) {
         console.error(`Push failed for ${uid}:`, err.statusCode, err.message);
+        errors.push(`${uid}: ${err.statusCode} - ${err.message}`);
         // 404 or 410 = subscription expired/invalid — clean it up
         if (err.statusCode === 404 || err.statusCode === 410) {
           await db.collection(`ovii/${room}/presence`).doc(uid).update({
@@ -102,7 +108,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     }
 
-    return res.status(200).json({ success: true, attempted: subscriptions.length, succeeded: successCount });
+    return res.status(200).json({ 
+      success: true, 
+      attempted: subscriptions.length, 
+      succeeded: successCount,
+      errors: errors.length > 0 ? errors : undefined
+    });
   } catch (err: any) {
     console.error('notify handler error:', err);
     return res.status(500).json({ error: err.message });
