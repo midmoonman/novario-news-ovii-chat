@@ -18,8 +18,8 @@ self.addEventListener('push', (event) => {
   let data = {
     title: '📰 Novario',
     body: '🔴 Breaking Now — Live Coverage on Novario',
-    icon: '/favicon.svg',
-    badge: '/favicon.svg',
+    icon: '/favicon.png',
+    badge: '/favicon.png',
     url: '/news',
     tag: 'novario-news',
     renotify: true,

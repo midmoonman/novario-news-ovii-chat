@@ -76,8 +76,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const payload = JSON.stringify({
       title: '📰 Novario',
       body,
-      icon: '/favicon.svg',
-      badge: '/favicon.svg',
+      icon: '/favicon.png',
+      badge: '/favicon.png',
       url: '/news',
       tag: 'novario-news',
       renotify: true,
