@@ -301,7 +301,7 @@ function PhotoGrid({ images, isDarkMode, setSelectedImage, downloadFile }: {
 }
 
 // ─── AudioPlayer ─────────────────────────────────────────────────────────────
-const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode, activePaint = "default" }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any, isDarkMode: boolean, activePaint?: string }) => {
+const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode, activePaint = "default", isPinned }: { src: string, id: string, mine: boolean, status?: string, createdAt?: any, isDarkMode: boolean, activePaint?: string, isPinned?: boolean }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const waveRef = useRef<WaveSurfer | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -452,7 +452,8 @@ const AudioPlayer = ({ src, id, mine, status, createdAt, isDarkMode, activePaint
 
           <div className="flex items-center gap-2.5 shrink-0">
             {timeStr && (
-              <span className="text-[11px] font-['Inter'] font-extralight uppercase tracking-tight whitespace-nowrap truncate opacity-40 mr-1">
+              <span className="text-[11px] font-['Inter'] font-extralight uppercase tracking-tight whitespace-nowrap truncate opacity-40 mr-1 flex items-center gap-1.5">
+                {isPinned && <MaterialPin className="w-2.5 h-2.5 fill-primary text-primary -rotate-45" />}
                 {timeStr}
               </span>
             )}
@@ -1944,7 +1945,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         }`}
                       style={{
                         backgroundColor: n.type === "success" ? (activePaint !== "default" ? paintTheme.sent : "#00a884") : (n.type === "info" ? (activePaint !== "default" ? paintTheme.sent : "#005c4b") : undefined),
-                        color: "white",
+                        color: activePaint === "paint2" ? "#545333" : "white",
                         borderColor: "rgba(255,255,255,0.2)"
                       }}
                     >
@@ -2245,7 +2246,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                                   {m.type === "voice" || m.type === "audio" ? (
                                     <div className="flex flex-col gap-1 max-w-full">
-                                      <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} activePaint={activePaint} />
+                                      <AudioPlayer src={m.content} id={m.id} mine={mine} status={m.status} createdAt={m.createdAt} isDarkMode={isDarkMode} activePaint={activePaint} isPinned={m.isPinned} />
                                       {m.type === "audio" && m.fileName && (
                                         <div className={`text-[11px] px-3 py-1.5 rounded-[12px] opacity-90 font-medium break-all w-fit max-w-[280px] shadow-sm ${getAudioColor(mine, isDarkMode, activePaint)}`}>
                                           {m.fileName}
