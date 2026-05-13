@@ -3,15 +3,14 @@ import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import webpush from 'web-push';
 
-// ── Firebase Admin (only for reading presence/pushSub from Firestore) ────────
+// ── Firebase Admin — only used to READ presence/pushSub from Firestore ───────
 if (!getApps().length) {
   try {
-    const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT || '{}';
+    const sa = JSON.parse(raw);
     if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
     if (sa.project_id) {
-      initializeApp({
-        credential: cert(sa)
-      });
+      initializeApp({ credential: cert(sa) });
     }
   } catch (e) {
     console.error('Firebase Admin init error:', e);
@@ -20,14 +19,13 @@ if (!getApps().length) {
 
 const db = getFirestore();
 
-// ── Your own VAPID keys — no Google/FCM involved ─────────────────────────────
-webpush.setVapidDetails(
-  'mailto:himanshus6267@gmail.com',
-  process.env.VAPID_PUBLIC_KEY  || 'BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA',
-  process.env.VAPID_PRIVATE_KEY || 'c96Wexn8xd5lK1LVyTsHt4yhmdOa19VYzDbASOgt_1Y'
-);
+// ── Your own VAPID keys — hardcoded as fallback if env vars missing ───────────
+const VAPID_PUBLIC  = process.env.VAPID_PUBLIC_KEY  || 'BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA';
+const VAPID_PRIVATE = process.env.VAPID_PRIVATE_KEY || 'c96Wexn8xd5lK1LVyTsHt4yhmdOa19VYzDbASOgt_1Y';
+const VAPID_EMAIL   = 'mailto:himanshus6267@gmail.com';
 
-// ── 12 Generic Novario promotional notification bodies ───────────────────────
+webpush.setVapidDetails(VAPID_EMAIL, VAPID_PUBLIC, VAPID_PRIVATE);
+
 const BODIES = [
   "🔴 Breaking Now — Live Coverage on Novario",
   "📡 Something Big Just Happened. Read it First.",
@@ -54,23 +52,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!senderUid || !room) return res.status(400).json({ error: 'Missing senderUid or room' });
 
   try {
-    // Read all presence docs to find recipient's push subscription
     const presSnap = await db.collection(`ovii/${room}/presence`).get();
 
     const subscriptions: { uid: string; sub: webpush.PushSubscription }[] = [];
-
     presSnap.forEach(docSnap => {
-      if (docSnap.id === senderUid) return; // skip sender
+      if (docSnap.id === senderUid) return;
       const data = docSnap.data();
       if (!data.pushSub) return;
       try {
-        const parsed = JSON.parse(data.pushSub);
-        if (parsed.endpoint) {
-          subscriptions.push({ uid: docSnap.id, sub: parsed });
-        }
-      } catch {
-        // malformed subscription — ignore
-      }
+        const parsed = typeof data.pushSub === 'string' ? JSON.parse(data.pushSub) : data.pushSub;
+        if (parsed.endpoint) subscriptions.push({ uid: docSnap.id, sub: parsed });
+      } catch { /* malformed — skip */ }
     });
 
     if (subscriptions.length === 0) {
@@ -98,17 +90,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       try {
         await webpush.sendNotification(sub, payload, {
           urgency: 'high',
-          TTL: 86400, // 24 hours
+          TTL: 86400,
         });
         successCount++;
+        console.log(`Push sent to ${uid}`);
       } catch (err: any) {
         console.error(`Push failed for ${uid}:`, err.statusCode, err.message);
         errors.push(`${uid}: ${err.statusCode} - ${err.message}`);
-        // 404 or 410 = subscription expired/invalid — clean it up
         if (err.statusCode === 404 || err.statusCode === 410) {
-          await db.collection(`ovii/${room}/presence`).doc(uid).update({
-            pushSub: FieldValue.delete(),
-          }).catch(() => {});
+          // Subscription expired — clean up
+          await db.collection(`ovii/${room}/presence`).doc(uid)
+            .update({ pushSub: FieldValue.delete() })
+            .catch(() => {});
         }
       }
     }
@@ -120,7 +113,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       errors: errors.length > 0 ? errors : undefined
     });
   } catch (err: any) {
-    console.error('notify handler error:', err);
+    console.error('notify error:', err);
     return res.status(500).json({ error: err.message });
   }
 }
