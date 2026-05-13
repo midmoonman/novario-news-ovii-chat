@@ -1,19 +1,24 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import * as admin from 'firebase-admin';
+import { initializeApp, getApps, cert } from 'firebase-admin/app';
+import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import webpush from 'web-push';
 
 // ── Firebase Admin (only for reading presence/pushSub from Firestore) ────────
-if (!admin.apps.length) {
+if (!getApps().length) {
   try {
     const sa = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT || '{}');
     if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
-    if (sa.project_id) admin.initializeApp({ credential: admin.credential.cert(sa) });
+    if (sa.project_id) {
+      initializeApp({
+        credential: cert(sa)
+      });
+    }
   } catch (e) {
     console.error('Firebase Admin init error:', e);
   }
 }
 
-const db = admin.firestore();
+const db = getFirestore();
 
 // ── Your own VAPID keys — no Google/FCM involved ─────────────────────────────
 webpush.setVapidDetails(
@@ -102,7 +107,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         // 404 or 410 = subscription expired/invalid — clean it up
         if (err.statusCode === 404 || err.statusCode === 410) {
           await db.collection(`ovii/${room}/presence`).doc(uid).update({
-            pushSub: admin.firestore.FieldValue.delete(),
+            pushSub: FieldValue.delete(),
           }).catch(() => {});
         }
       }
