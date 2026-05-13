@@ -1,5 +1,5 @@
 // Novario Service Worker — minimal, required for PWA install prompt
-const CACHE_NAME = 'novario-v1';
+const CACHE_NAME = 'novario-v2.6';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
