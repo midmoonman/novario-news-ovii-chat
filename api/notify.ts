@@ -52,10 +52,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (!senderUid || !room) return res.status(400).json({ error: 'Missing senderUid or room' });
 
   try {
-    const presSnap = await db.collection(`ovii/${room}/presence`).get();
+    // Read from permanent 'subscriptions' collection (presence is wiped when closed)
+    const subSnap = await db.collection(`ovii/${room}/subscriptions`).get();
 
     const subscriptions: { uid: string; sub: webpush.PushSubscription }[] = [];
-    presSnap.forEach(docSnap => {
+    subSnap.forEach(docSnap => {
       if (docSnap.id === senderUid) return;
       const data = docSnap.data();
       if (!data.pushSub) return;
@@ -98,9 +99,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.error(`Push failed for ${uid}:`, err.statusCode, err.message);
         errors.push(`${uid}: ${err.statusCode} - ${err.message}`);
         if (err.statusCode === 404 || err.statusCode === 410) {
-          // Subscription expired — clean up
-          await db.collection(`ovii/${room}/presence`).doc(uid)
-            .update({ pushSub: FieldValue.delete() })
+          // Subscription expired — clean up from permanent storage
+          await db.collection(`ovii/${room}/subscriptions`).doc(uid)
+            .delete()
             .catch(() => {});
         }
       }

@@ -983,10 +983,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
             }
 
             if (sub) {
-              await setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
+              // Save to a PERMANENT collection (not presence) so it survives when browser is closed
+              await setDoc(doc(db, "ovii", ROOM, "subscriptions", u.uid), {
+                uid: u.uid,
                 pushSub: JSON.stringify(sub.toJSON()),
+                updatedAt: serverTimestamp()
               }, { merge: true });
-              console.log("Push endpoint synced to Firestore");
+              console.log("Push endpoint synced to PERMANENT storage");
             }
           }
         } catch (pushErr) {
