@@ -100,8 +100,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         console.log(`Sending push to device: ${deviceId} (endpoint: ${sub.endpoint.slice(0, 40)}...)`);
         const result = await webpush.sendNotification(sub, payload, {
           urgency: 'high',
-          TTL: 3600, // 1 hour (shorter TTL often triggers faster delivery on FCM)
-          topic: 'novario-message',
+          TTL: 86400, // 24 hours
         });
         successCount++;
         console.log(`Push SUCCESS for device: ${deviceId}`, result.statusCode);

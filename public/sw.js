@@ -14,44 +14,45 @@ self.addEventListener('fetch', (event) => {
 });
 
 self.addEventListener('push', (event) => {
-  console.log('[SW] Push Received:', event.data?.text());
-  let data = {
-    title: '📰 Novario',
-    body: '🔴 New Message — Open Chat to read',
-    icon: '/favicon.png',
-    badge: '/favicon.png',
-    url: '/news',
-  };
+  console.log('[SW] Push Received');
+  
+  event.waitUntil((async () => {
+    let data = {
+      title: '📰 Novario',
+      body: '🔴 New Message — Open Chat to read',
+      icon: '/favicon.png',
+      badge: '/favicon.png',
+      url: '/news',
+    };
 
-  if (event.data) {
-    try {
-      const parsed = event.data.json();
-      if (parsed) data = { ...data, ...parsed };
-    } catch (e) {
-      const text = event.data.text();
-      if (text) data.body = text;
+    if (event.data) {
+      try {
+        const parsed = event.data.json();
+        if (parsed) data = { ...data, ...parsed };
+      } catch (e) {
+        const text = event.data.text();
+        if (text) data.body = text;
+      }
     }
-  }
 
-  const origin = self.location.origin;
-  const fullUrl = data.url.startsWith('http') ? data.url : origin + data.url;
+    const origin = self.location.origin;
+    const fullUrl = data.url.startsWith('http') ? data.url : origin + data.url;
 
-  event.waitUntil(
-    self.registration.showNotification(data.title, {
+    await self.registration.showNotification(data.title, {
       body: data.body,
       icon: origin + '/favicon.png',
       badge: origin + '/favicon.png',
       tag: 'novario-msg',
       renotify: true,
       vibrate: [200, 100, 200, 100, 200],
-      requireInteraction: false,
+      requireInteraction: true, // Keep on screen on PC
       silent: false,
       actions: [
         { action: 'open', title: '📖 Read Now' }
       ],
       data: { url: fullUrl },
-    }).catch(err => console.error('[SW] Notification Error:', err))
-  );
+    });
+  })());
 });
 
 self.addEventListener('notificationclick', (event) => {
