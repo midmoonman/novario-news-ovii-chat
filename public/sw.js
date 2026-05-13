@@ -1,5 +1,5 @@
 // Novario Service Worker — PWA + Pure Web Push (no Firebase/FCM)
-const CACHE_NAME = 'novario-v11';
+const CACHE_NAME = 'novario-v12';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -39,12 +39,13 @@ self.addEventListener('push', (event) => {
       body: data.body,
       icon: origin + '/favicon.png',
       badge: origin + '/favicon.png',
+      tag: 'novario-msg',
       renotify: true,
       vibrate: [200, 100, 200],
       requireInteraction: false,
       silent: false,
       data: { url: origin + '/news' },
-    })
+    }).catch(err => console.error('[SW] Notification Error:', err))
   );
 });
 
