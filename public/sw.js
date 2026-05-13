@@ -1,5 +1,5 @@
 // Novario Service Worker — PWA + Pure Web Push (no Firebase/FCM)
-const CACHE_NAME = 'novario-v3';
+const CACHE_NAME = 'novario-v4';
 
 self.addEventListener('install', () => self.skipWaiting());
 
@@ -34,17 +34,29 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  // event.waitUntil keeps the SW alive until notification is shown
+  // event.waitUntil keeps the SW alive until notification logic completes
   event.waitUntil(
-    self.registration.showNotification(data.title, {
-      body: data.body,
-      icon: data.icon,
-      badge: data.badge,
-      tag: data.tag,
-      renotify: data.renotify,
-      vibrate: [200, 100, 200],
-      requireInteraction: false,
-      data: { url: data.url },
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
+      // Check if the app is already open and visible to the user
+      const isAppOpenAndVisible = clientList.some(client => {
+        return client.url.includes(self.location.origin) && client.visibilityState === 'visible';
+      });
+
+      // If the user is already looking at the app, don't show the notification
+      if (isAppOpenAndVisible) {
+        return;
+      }
+
+      return self.registration.showNotification(data.title, {
+        body: data.body,
+        icon: data.icon,
+        badge: data.badge,
+        tag: data.tag,
+        renotify: data.renotify,
+        vibrate: [200, 100, 200],
+        requireInteraction: false,
+        data: { url: data.url },
+      });
     })
   );
 });
