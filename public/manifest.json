@@ -31,5 +31,6 @@
   "lang": "en",
   "dir": "ltr",
   "background_sync": true,
-  "gcm_sender_id": "103953800507"
+  "gcm_sender_id": "103953800507",
+  "permissions": ["notifications", "push"]
 }

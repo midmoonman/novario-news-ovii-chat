@@ -48,17 +48,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { senderUid, room, isTest } = req.body;
+  const { senderUid, senderDeviceId, room, isTest } = req.body;
   if (!senderUid || !room) return res.status(400).json({ error: 'Missing senderUid or room' });
 
   try {
-    console.log(`Notify request from ${senderUid} in room ${room}${isTest ? ' (TEST MODE)' : ''}`);
+    console.log(`Notify request from ${senderUid} (device: ${senderDeviceId}) in room ${room}${isTest ? ' (TEST MODE)' : ''}`);
     // Read from permanent 'subscriptions' collection (presence is wiped when closed)
     const subSnap = await db.collection(`ovii/${room}/subscriptions`).get();
 
     const subscriptions: { uid: string; sub: webpush.PushSubscription }[] = [];
     subSnap.forEach(docSnap => {
-      if (docSnap.id === senderUid && !isTest) return; // skip sender unless it's a test
+      // Skip sender's specific device (unless it's a test)
+      if (!isTest) {
+        if (docSnap.id === senderDeviceId) return;
+        // Fallback: if no deviceId was sent, skip by uid alone
+        if (!senderDeviceId && docSnap.data().uid === senderUid) return;
+      }
       const data = docSnap.data();
       if (!data.pushSub) return;
       try {
@@ -94,6 +99,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const result = await webpush.sendNotification(sub, payload, {
           urgency: 'high',
           TTL: 86400,
+          topic: 'novario-message',
         });
         successCount++;
         console.log(`Push SUCCESS for ${uid}:`, result.statusCode);

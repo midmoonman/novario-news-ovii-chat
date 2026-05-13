@@ -958,6 +958,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (!alive) return;
         currentUid = u.uid;
 
+        // ── Device ID (unique per browser/installation) ────────────────────
+        let deviceId = localStorage.getItem("ovii_device_id");
+        if (!deviceId) {
+          deviceId = crypto.randomUUID();
+          localStorage.setItem("ovii_device_id", deviceId);
+        }
+
         // ── Web Push Subscription (smart check for mobile reliability) ────
         try {
           if ('serviceWorker' in navigator && 'PushManager' in window) {
@@ -973,8 +980,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
               let sub = await reg.pushManager.getSubscription();
               
-              // Check if we actually need to resubscribe (changed or missing)
-              const subDoc = await getDoc(doc(db, "ovii", ROOM, "subscriptions", u.uid));
+              // Check if we actually need to resubscribe (keyed by deviceId)
+              const subDoc = await getDoc(doc(db, "ovii", ROOM, "subscriptions", deviceId));
               const savedData = subDoc.exists() ? subDoc.data() : null;
               const savedEndpoint = savedData?.pushSub ? JSON.parse(savedData.pushSub).endpoint : null;
               
@@ -987,13 +994,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                 console.log("Push endpoint refreshed");
               }
 
-              // Always save/update to keep 'updatedAt' and 'userAgent' fresh
-              await setDoc(doc(db, "ovii", ROOM, "subscriptions", u.uid), {
+              // Always save/update keyed by deviceId (not uid) to allow multiple devices per user
+              await setDoc(doc(db, "ovii", ROOM, "subscriptions", deviceId), {
                 uid: u.uid,
+                deviceId,
                 pushSub: JSON.stringify(sub.toJSON()),
                 updatedAt: serverTimestamp(),
                 userAgent: navigator.userAgent
               }, { merge: true });
+
+              // ── Battery Optimization Prompt (Android only) ──
+              const isAndroid = /android/i.test(navigator.userAgent);
+              const hasShown = localStorage.getItem("ovii_battery_prompt_shown");
+              if (isAndroid && !hasShown) {
+                localStorage.setItem("ovii_battery_prompt_shown", "true");
+                setTimeout(() => {
+                  addNotification("For reliable alerts: Settings → Apps → Chrome → Battery → Unrestricted", "info");
+                }, 3000);
+              }
             }
           }
         } catch (pushErr) {
@@ -1248,10 +1266,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   const triggerNotification = () => {
     if (!uid) return;
+    const deviceId = localStorage.getItem("ovii_device_id");
     fetch('/api/notify', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ senderUid: uid, room: ROOM })
+      body: JSON.stringify({ senderUid: uid, senderDeviceId: deviceId, room: ROOM })
     }).catch(() => { });
   };
 
@@ -1862,10 +1881,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               onClick={async () => {
                                 setShowMenu(false);
                                 addNotification("Sending test push...", "info");
+                                const deviceId = localStorage.getItem("ovii_device_id");
                                 const r = await fetch('/api/notify', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ senderUid: uid, room: ROOM, isTest: true })
+                                  body: JSON.stringify({ senderUid: uid, senderDeviceId: deviceId, room: ROOM, isTest: true })
                                 });
                                 const data = await r.json();
                                 addNotification(
