@@ -100,6 +100,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           urgency: 'high',
           TTL: 86400,
           topic: 'novario-message',
+          headers: {
+            'Content-Encoding': 'aes128gcm',
+          }
         });
         successCount++;
         console.log(`Push SUCCESS for device: ${deviceId}`, result.statusCode);

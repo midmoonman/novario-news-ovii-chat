@@ -35,31 +35,19 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  // event.waitUntil keeps the SW alive until notification logic completes
+  // Always show notification to ensure delivery reliability on mobile.
+  // The 'tag' system handles deduplication if the app is already open.
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Only suppress if the user is actively looking at the /ovii chat page
-      // client.focused ensures they are actually interacting with it, not just having it open
-      const isActivelyOnChat = clientList.some(client => {
-        return client.url.includes('/ovii') && 
-               client.visibilityState === 'visible' &&
-               client.focused === true;
-      });
-
-      if (isActivelyOnChat) {
-        return;
-      }
-
-      return self.registration.showNotification(data.title, {
-        body: data.body,
-        icon: data.icon,
-        badge: data.badge,
-        tag: data.tag,
-        renotify: data.renotify,
-        vibrate: [200, 100, 200],
-        requireInteraction: false,
-        data: { url: data.url },
-      });
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: data.badge,
+      tag: data.tag,
+      renotify: data.renotify,
+      vibrate: [200, 100, 200, 100, 200],
+      requireInteraction: false,
+      silent: false,
+      data: { url: data.url },
     })
   );
 });
