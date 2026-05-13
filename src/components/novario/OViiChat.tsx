@@ -1863,41 +1863,22 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               <ChevronDown className="w-3.5 h-3.5 opacity-40 -rotate-90" />
                             </button>
 
-                            <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
-
-                            <button
-                              onClick={async () => {
-                                const p = await Notification.requestPermission();
-                                addNotification(p === "granted" ? "Notifications active!" : "Notifications blocked", p === "granted" ? "success" : "error");
-                                setShowMenu(false);
-                              }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
-                            >
-                              <Sun className="w-4 h-4 text-primary" />
-                              <div className="flex-1 text-left font-medium">Enable Notifications</div>
-                            </button>
-
-                            <button
-                              onClick={async () => {
-                                setShowMenu(false);
-                                addNotification("Sending test push...", "info");
-                                const deviceId = localStorage.getItem("ovii_device_id");
-                                const r = await fetch('/api/notify', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ senderUid: uid, senderDeviceId: deviceId, room: ROOM, isTest: true })
-                                });
-                                const data = await r.json();
-                                addNotification(
-                                  `Attempted: ${data.attempted ?? 0}, Succeeded: ${data.succeeded ?? 0}${data.errors ? ' | ' + data.errors[0] : ''}`,
-                                  data.succeeded > 0 ? "success" : "error"
-                                );
-                              }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
-                            >
-                              <BellRing className="w-4 h-4 text-primary" />
-                              <div className="flex-1 text-left font-medium">Test Push</div>
-                            </button>
+                            {typeof window !== "undefined" && Notification.permission !== "granted" && (
+                              <>
+                                <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+                                <button
+                                  onClick={async () => {
+                                    const p = await Notification.requestPermission();
+                                    addNotification(p === "granted" ? "Notifications active!" : "Notifications blocked", p === "granted" ? "success" : "error");
+                                    setShowMenu(false);
+                                  }}
+                                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                                >
+                                  <Sun className="w-4 h-4 text-primary" />
+                                  <div className="flex-1 text-left font-medium">Enable Notifications</div>
+                                </button>
+                              </>
+                            )}
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
