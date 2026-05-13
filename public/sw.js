@@ -34,6 +34,7 @@ self.addEventListener('push', (event) => {
   }
 
   const origin = self.location.origin;
+  const fullUrl = data.url.startsWith('http') ? data.url : origin + data.url;
 
   event.waitUntil(
     self.registration.showNotification(data.title, {
@@ -48,7 +49,7 @@ self.addEventListener('push', (event) => {
       actions: [
         { action: 'open', title: '📖 Read Now' }
       ],
-      data: { url: origin + '/news' },
+      data: { url: fullUrl },
     }).catch(err => console.error('[SW] Notification Error:', err))
   );
 });
@@ -61,6 +62,7 @@ self.addEventListener('notificationclick', (event) => {
   if (event.action === 'open') {
     // Already handling below by opening the url
   }
+  event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
       for (const client of list) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {

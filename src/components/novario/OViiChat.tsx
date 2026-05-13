@@ -1,11 +1,11 @@
-import { useEffect, useRef, useState, Fragment } from "react";
+import { useEffect, useRef, useState, Fragment, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
   deleteDoc, doc, Timestamp, setDoc, getDocs, getDoc, writeBatch, limit
 } from "firebase/firestore";
 import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin, BellRing } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, ShieldAlert, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin, BellRing } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
@@ -712,6 +712,49 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [showAvatarPicker, setShowAvatarPicker] = useState(!isReturning);
   const [inputName, setInputName] = useState(name);
 
+  const syncPushSubscription = useCallback(async (forcedUid?: string) => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (Notification.permission !== "granted") return;
+
+      const reg = await navigator.serviceWorker.ready;
+      const VAPID_PUBLIC_KEY = "BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA";
+      const urlB64 = VAPID_PUBLIC_KEY.replace(/-/g, "+").replace(/_/g, "/");
+      const padding = "=".repeat((4 - (urlB64.length % 4)) % 4);
+      const base64 = urlB64 + padding;
+      const uint8 = new Uint8Array(atob(base64).split("").map(c => c.charCodeAt(0)));
+
+      let sub = await reg.pushManager.getSubscription();
+
+      // Check Firestore to see if we're already synced
+      const subDoc = await getDoc(doc(db, "ovii", ROOM, "subscriptions", deviceId));
+      const savedData = subDoc.exists() ? subDoc.data() : null;
+      const savedEndpoint = savedData?.pushSub ? JSON.parse(savedData.pushSub).endpoint : null;
+
+      if (!sub || sub.endpoint !== savedEndpoint) {
+        if (sub) await sub.unsubscribe();
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: uint8,
+        });
+        console.log("Push endpoint refreshed");
+      }
+
+      const activeUid = forcedUid || uid;
+      if (activeUid) {
+        await setDoc(doc(db, "ovii", ROOM, "subscriptions", deviceId), {
+          uid: activeUid,
+          deviceId,
+          pushSub: JSON.stringify(sub.toJSON()),
+          updatedAt: serverTimestamp(),
+          userAgent: navigator.userAgent
+        }, { merge: true });
+      }
+    } catch (err) {
+      console.error("Push sync failed:", err);
+    }
+  }, [deviceId, uid]);
+
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [appNotifications, setAppNotifications] = useState<{ id: string, message: string, type: "success" | "error" | "info" }[]>([]);
   const [particles] = useState(() => Array.from({ length: 6 }).map((_, i) => ({
@@ -958,64 +1001,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (!alive) return;
         currentUid = u.uid;
 
-        // ── Device ID (unique per browser/installation) ────────────────────
-        let deviceId = localStorage.getItem("ovii_device_id");
-        if (!deviceId) {
-          deviceId = crypto.randomUUID();
-          localStorage.setItem("ovii_device_id", deviceId);
-        }
+        // ── Web Push Sync ───────────────────────────────────────────────────
+        await syncPushSubscription(u.uid);
 
-        // ── Web Push Subscription (smart check for mobile reliability) ────
-        try {
-          if ('serviceWorker' in navigator && 'PushManager' in window) {
-            const reg = await navigator.serviceWorker.ready;
-            
-            if (Notification.permission === "granted") {
-              const VAPID_PUBLIC_KEY = "BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA";
-              const urlB64 = VAPID_PUBLIC_KEY.replace(/-/g, "+").replace(/_/g, "/");
-              const padding = "=".repeat((4 - (urlB64.length % 4)) % 4);
-              const base64 = atob(urlB64 + padding);
-              const uint8 = new Uint8Array(base64.length);
-              for (let i = 0; i < base64.length; i++) uint8[i] = base64.charCodeAt(i);
-
-              let sub = await reg.pushManager.getSubscription();
-              
-              // Check if we actually need to resubscribe (keyed by deviceId)
-              const subDoc = await getDoc(doc(db, "ovii", ROOM, "subscriptions", deviceId));
-              const savedData = subDoc.exists() ? subDoc.data() : null;
-              const savedEndpoint = savedData?.pushSub ? JSON.parse(savedData.pushSub).endpoint : null;
-              
-              if (!sub || sub.endpoint !== savedEndpoint) {
-                if (sub) await sub.unsubscribe();
-                sub = await reg.pushManager.subscribe({
-                  userVisibleOnly: true,
-                  applicationServerKey: uint8,
-                });
-                console.log("Push endpoint refreshed");
-              }
-
-              // Always save/update keyed by deviceId (not uid) to allow multiple devices per user
-              await setDoc(doc(db, "ovii", ROOM, "subscriptions", deviceId), {
-                uid: u.uid,
-                deviceId,
-                pushSub: JSON.stringify(sub.toJSON()),
-                updatedAt: serverTimestamp(),
-                userAgent: navigator.userAgent
-              }, { merge: true });
-
-              // ── Battery Optimization Prompt (Android only) ──
-              const isAndroid = /android/i.test(navigator.userAgent);
-              const hasShown = localStorage.getItem("ovii_battery_prompt_shown");
-              if (isAndroid && !hasShown) {
-                localStorage.setItem("ovii_battery_prompt_shown", "true");
-                setTimeout(() => {
-                  addNotification("For reliable alerts: Settings → Apps → Chrome → Battery → Unrestricted", "info");
-                }, 3000);
-              }
-            }
-          }
-        } catch (pushErr) {
-          console.error("Push setup failed:", pushErr);
+        // ── Battery Optimization Prompt (Android only) ──
+        const isAndroid = /android/i.test(navigator.userAgent);
+        if (isAndroid && !localStorage.getItem("ovii_battery_prompt_shown")) {
+          localStorage.setItem("ovii_battery_prompt_shown", "true");
+          setTimeout(() => {
+            addNotification("For reliable alerts: Settings → Apps → Chrome → Battery → Unrestricted", "info");
+          }, 3000);
         }
         // ────────────────────────────────────────────────────────────────────
 
@@ -1653,7 +1648,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             addNotification("Profile updated", "success");
                             // ── Manual request on interaction — helps Android compliance ──
                             if (Notification.permission === "default") {
-                              await Notification.requestPermission();
+                              const p = await Notification.requestPermission();
+                              if (p === "granted") syncPushSubscription();
                             }
                           }}
                           className={`rounded-full overflow-hidden border-2 aspect-square transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : `border-transparent ${isDarkMode ? "hover:border-white/30" : "hover:border-black/20"}`
@@ -1887,7 +1883,12 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                 <button
                                   onClick={async () => {
                                     const p = await Notification.requestPermission();
-                                    addNotification(p === "granted" ? "Notifications active!" : "Notifications blocked", p === "granted" ? "success" : "error");
+                                    if (p === "granted") {
+                                      syncPushSubscription();
+                                      addNotification("Notifications active!", "success");
+                                    } else {
+                                      addNotification("Notifications blocked", "error");
+                                    }
                                     setShowMenu(false);
                                   }}
                                   className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
