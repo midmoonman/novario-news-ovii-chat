@@ -35,20 +35,21 @@ self.addEventListener('push', (event) => {
     }
   }
 
-  // Always show notification to ensure delivery reliability on mobile.
-  // The 'tag' system handles deduplication if the app is already open.
+  // Ensure absolute URLs for mobile system UI compatibility
+  const origin = self.location.origin;
+  
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
-      icon: data.icon,
-      badge: data.badge,
-      tag: data.tag,
-      renotify: data.renotify,
-      vibrate: [200, 100, 200, 100, 200],
-      requireInteraction: false,
+      icon: data.icon.startsWith('http') ? data.icon : origin + data.icon,
+      badge: data.badge.startsWith('http') ? data.badge : origin + data.badge,
+      tag: data.tag + '-' + Date.now(), // Force unique tag to bypass collapse
+      renotify: true,
+      vibrate: [200, 100, 200],
+      requireInteraction: true, // Keep it on screen until seen
       silent: false,
-      data: { url: data.url },
-    })
+      data: { url: data.url.startsWith('http') ? data.url : origin + data.url },
+    }).catch(err => console.error('[SW] Notification Error:', err))
   );
 });
 
