@@ -1,8 +1,11 @@
-// Novario Service Worker — PWA + Pure Web Push Notifications (no Firebase/FCM)
-const CACHE_NAME = 'novario-v2';
+// Novario Service Worker — PWA + Pure Web Push (no Firebase/FCM)
+const CACHE_NAME = 'novario-v3';
 
 self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(clients.claim());
+});
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
@@ -10,7 +13,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// ── Push handler — fires even when browser is fully closed ───────────────────
+// ── This fires even when browser/PWA is fully closed ─────────────────────────
 self.addEventListener('push', (event) => {
   let data = {
     title: '📰 Novario',
@@ -31,6 +34,7 @@ self.addEventListener('push', (event) => {
     }
   }
 
+  // event.waitUntil keeps the SW alive until notification is shown
   event.waitUntil(
     self.registration.showNotification(data.title, {
       body: data.body,
@@ -45,20 +49,21 @@ self.addEventListener('push', (event) => {
   );
 });
 
-// ── Notification click — opens /news page ────────────────────────────────────
+// ── Tapping the notification opens /news ─────────────────────────────────────
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const url = event.notification.data?.url || '/news';
 
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+      // If app is already open somewhere, focus it
       for (const client of list) {
         if (client.url.includes(self.location.origin) && 'focus' in client) {
-          client.focus();
           client.navigate(url);
-          return;
+          return client.focus();
         }
       }
+      // Otherwise open a new window
       if (clients.openWindow) return clients.openWindow(url);
     })
   );
