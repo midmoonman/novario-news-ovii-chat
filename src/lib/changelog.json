@@ -1,5 +1,28 @@
 [
   {
+    "date": "2026-05-13",
+    "updates": [
+      {
+        "title": "Protocol 125: Premium Branding Evolution",
+        "status": "DEPLOYED",
+        "description": "Replaced the legacy SVG favicon with the new, high-fidelity 'Novario' elegant serif logo. Synchronized the branding across public/favicon.png, apple-touch-icon.png, and the PWA manifest.png for a cohesive, native-app feel on all devices.",
+        "rationale": "Strengthens brand identity with a high-end, minimalist aesthetic that aligns with the platform's 'Premium News' mission."
+      },
+      {
+        "title": "Protocol 124: Unified Media Pinning",
+        "status": "DEPLOYED",
+        "description": "Resolved a functional regression where voice notes and documents were excluded from the pinning system. Integrated the MaterialPin indicator directly into the AudioPlayer UI and ensured long-press context menu propagation for all media types.",
+        "rationale": "Ensures full feature parity across all message types, allowing users to save critical audio intel and files permanently."
+      },
+      {
+        "title": "Olive Contrast Optimization",
+        "status": "DEPLOYED",
+        "description": "Engineered theme-aware text contrast for app notifications. Implemented logic to automatically switch toast text to 'Dark Olive' when the 'Cream & Olive' (paint2) theme is active, replacing the unreadable white-on-cream default.",
+        "rationale": "Maintains 100% readability and professional accessibility standards across all custom-painted environments."
+      }
+    ]
+  },
+  {
     "date": "2026-05-12",
     "updates": [
       {
