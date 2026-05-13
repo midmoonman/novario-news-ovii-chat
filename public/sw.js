@@ -15,6 +15,7 @@ self.addEventListener('fetch', (event) => {
 
 // ── This fires even when browser/PWA is fully closed ─────────────────────────
 self.addEventListener('push', (event) => {
+  console.log('[SW] Push Received:', event.data?.text());
   let data = {
     title: '📰 Novario',
     body: '🔴 Breaking Now — Live Coverage on Novario',
