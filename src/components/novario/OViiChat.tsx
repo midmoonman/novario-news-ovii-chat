@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
-  deleteDoc, doc, Timestamp, setDoc, getDocs, writeBatch, limit
+  deleteDoc, doc, Timestamp, setDoc, getDocs, getDoc, writeBatch, limit
 } from "firebase/firestore";
 import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
@@ -958,40 +958,42 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (!alive) return;
         currentUid = u.uid;
 
-        // ── Web Push Subscription (force refresh for mobile reliability) ───
+        // ── Web Push Subscription (smart check for mobile reliability) ────
         try {
           if ('serviceWorker' in navigator && 'PushManager' in window) {
             const reg = await navigator.serviceWorker.ready;
             
             if (Notification.permission === "granted") {
-              // ALWAYS unsubscribe and re-subscribe fresh. 
-              // This ensures we never have a "stale" endpoint on mobile Chrome/PWA.
-              const existing = await reg.pushManager.getSubscription();
-              if (existing) {
-                await existing.unsubscribe();
-              }
-
               const VAPID_PUBLIC_KEY = "BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA";
               const urlB64 = VAPID_PUBLIC_KEY.replace(/-/g, "+").replace(/_/g, "/");
               const padding = "=".repeat((4 - (urlB64.length % 4)) % 4);
               const base64 = atob(urlB64 + padding);
               const uint8 = new Uint8Array(base64.length);
               for (let i = 0; i < base64.length; i++) uint8[i] = base64.charCodeAt(i);
-              
-              const sub = await reg.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: uint8,
-              });
 
-              // Save to a PERMANENT collection (not presence) so it survives when browser is closed
+              let sub = await reg.pushManager.getSubscription();
+              
+              // Check if we actually need to resubscribe (changed or missing)
+              const subDoc = await getDoc(doc(db, "ovii", ROOM, "subscriptions", u.uid));
+              const savedData = subDoc.exists() ? subDoc.data() : null;
+              const savedEndpoint = savedData?.pushSub ? JSON.parse(savedData.pushSub).endpoint : null;
+              
+              if (!sub || sub.endpoint !== savedEndpoint) {
+                if (sub) await sub.unsubscribe();
+                sub = await reg.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: uint8,
+                });
+                console.log("Push endpoint refreshed");
+              }
+
+              // Always save/update to keep 'updatedAt' and 'userAgent' fresh
               await setDoc(doc(db, "ovii", ROOM, "subscriptions", u.uid), {
                 uid: u.uid,
                 pushSub: JSON.stringify(sub.toJSON()),
                 updatedAt: serverTimestamp(),
                 userAgent: navigator.userAgent
               }, { merge: true });
-              
-              console.log("Push subscription refreshed:", sub.endpoint.slice(0, 40) + "...");
             }
           }
         } catch (pushErr) {
@@ -1860,14 +1862,16 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               onClick={async () => {
                                 setShowMenu(false);
                                 addNotification("Sending test push...", "info");
-                                fetch('/api/notify', {
+                                const r = await fetch('/api/notify', {
                                   method: 'POST',
                                   headers: { 'Content-Type': 'application/json' },
                                   body: JSON.stringify({ senderUid: uid, room: ROOM, isTest: true })
-                                }).then(r => r.json()).then(data => {
-                                  if (data.succeeded > 0) addNotification("Test push sent!", "success");
-                                  else addNotification("No subscription found", "error");
-                                }).catch(() => addNotification("Test failed", "error"));
+                                });
+                                const data = await r.json();
+                                addNotification(
+                                  `Attempted: ${data.attempted ?? 0}, Succeeded: ${data.succeeded ?? 0}${data.errors ? ' | ' + data.errors[0] : ''}`,
+                                  data.succeeded > 0 ? "success" : "error"
+                                );
                               }}
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
