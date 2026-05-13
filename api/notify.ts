@@ -56,7 +56,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     // Read from permanent 'subscriptions' collection (presence is wiped when closed)
     const subSnap = await db.collection(`ovii/${room}/subscriptions`).get();
 
-    const subscriptions: { uid: string; sub: webpush.PushSubscription }[] = [];
+    const subscriptions: { deviceId: string; sub: webpush.PushSubscription }[] = [];
     subSnap.forEach(docSnap => {
       // Skip sender's specific device (unless it's a test)
       if (!isTest) {
@@ -68,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       if (!data.pushSub) return;
       try {
         const parsed = typeof data.pushSub === 'string' ? JSON.parse(data.pushSub) : data.pushSub;
-        if (parsed.endpoint) subscriptions.push({ uid: docSnap.id, sub: parsed });
+        if (parsed.endpoint) subscriptions.push({ deviceId: docSnap.id, sub: parsed });
       } catch { /* malformed — skip */ }
     });
 
@@ -93,22 +93,22 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     let successCount = 0;
     const errors: string[] = [];
 
-    for (const { uid, sub } of subscriptions) {
+    for (const { deviceId, sub } of subscriptions) {
       try {
-        console.log(`Sending push to ${uid} at endpoint: ${sub.endpoint.slice(0, 50)}...`);
+        console.log(`Sending push to device: ${deviceId} at endpoint: ${sub.endpoint.slice(0, 50)}...`);
         const result = await webpush.sendNotification(sub, payload, {
           urgency: 'high',
           TTL: 86400,
           topic: 'novario-message',
         });
         successCount++;
-        console.log(`Push SUCCESS for ${uid}:`, result.statusCode);
+        console.log(`Push SUCCESS for device: ${deviceId}`, result.statusCode);
       } catch (err: any) {
-        console.error(`Push FAILED for ${uid}:`, err.statusCode, err.message);
-        errors.push(`${uid}: ${err.statusCode} - ${err.message}`);
+        console.error(`Push FAILED for device: ${deviceId}`, err.statusCode, err.message);
+        errors.push(`${deviceId}: ${err.statusCode} - ${err.message}`);
         if (err.statusCode === 404 || err.statusCode === 410) {
           // Subscription expired — clean up from permanent storage
-          await db.collection(`ovii/${room}/subscriptions`).doc(uid)
+          await db.collection(`ovii/${room}/subscriptions`).doc(deviceId)
             .delete()
             .catch(() => {});
         }
