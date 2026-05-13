@@ -1854,6 +1854,24 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
+                            {typeof window !== "undefined" && isMobileDevice() && /Android/i.test(navigator.userAgent) && (
+                              <div className={`mx-4 my-2 p-3 rounded-xl border ${isDarkMode ? "bg-orange-500/10 border-orange-500/20" : "bg-orange-50 border-orange-100"}`}>
+                                <div className="flex items-center gap-2 mb-1.5 text-orange-500">
+                                  <ShieldAlert className="w-4 h-4" />
+                                  <span className="text-[11px] font-black uppercase tracking-wider">Battery Alert</span>
+                                </div>
+                                <p className={`text-[10px] leading-relaxed mb-2 ${isDarkMode ? "text-orange-200/60" : "text-orange-800/60"}`}>
+                                  To get real-time alerts, set this app to <strong>"Unrestricted"</strong> in your phone's Battery settings.
+                                </p>
+                                <button 
+                                  onClick={() => addNotification("Open Settings > Apps > Novario > Battery", "info")}
+                                  className="w-full py-1.5 rounded-lg bg-orange-500 text-white text-[10px] font-bold active:scale-95 transition-transform"
+                                >
+                                  How to fix
+                                </button>
+                              </div>
+                            )}
+
                             <button
                               onClick={() => setShowPaintsSubmenu(true)}
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
