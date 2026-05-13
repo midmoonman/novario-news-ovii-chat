@@ -5,7 +5,7 @@
       {
         "title": "Protocol 126: Android Dynamic Theming (Material You)",
         "status": "DEPLOYED",
-        "description": "Implemented Android Themed Icon support by engineering a high-fidelity monochrome mask (monochrome-icon.png) and integrating it into the PWA manifest. This allows the Novario app icon to dynamically adapt its palette to match the user's Android system theme (Material You).",
+        "description": "Implemented Android Themed Icon support by engineering a high-fidelity monochrome SVG mask (monochrome-icon.svg) and integrating it into the PWA manifest. This allows the Novario app icon to dynamically adapt its palette to match the user's Android system theme (Material You) with vector precision.",
         "rationale": "Ensures compliance with modern Play Store and Android standards while providing a deeply integrated, native-feeling experience for mobile users."
       },
       {
