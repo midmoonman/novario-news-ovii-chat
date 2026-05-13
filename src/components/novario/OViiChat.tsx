@@ -3304,15 +3304,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                                       animate={{ opacity: 1, scale: 1 }}
                                       className={`rounded-3xl border overflow-hidden shadow-2xl p-6 ${isDarkMode ? "bg-black/40 border-white/10" : "bg-white border-black/10"}`}
                                     >
-                                      <div className="flex items-center gap-2 mb-4 opacity-40">
-                                        <div className="w-2 h-2 rounded-full bg-red-500" />
-                                        <div className="w-2 h-2 rounded-full bg-yellow-500" />
-                                        <div className="w-2 h-2 rounded-full bg-green-500" />
-                                        <span className="text-[10px] font-black uppercase ml-2 tracking-widest">System_File_Structure_Illustration</span>
+                                      <div className="flex items-center gap-2 mb-4 opacity-40 flex-wrap">
+                                        <div className="flex gap-2">
+                                          <div className="w-2 h-2 rounded-full bg-red-500" />
+                                          <div className="w-2 h-2 rounded-full bg-yellow-500" />
+                                          <div className="w-2 h-2 rounded-full bg-green-500" />
+                                        </div>
+                                        <span className="text-[9px] sm:text-[10px] font-black uppercase ml-2 tracking-widest break-words flex-1 min-w-[150px]">System_Architecture_Intel</span>
                                       </div>
                                       
-                                      <div className="relative">
-                                        <pre className={`text-[10px] sm:text-[11px] font-mono leading-relaxed overflow-x-auto whitespace-pre pb-4 scrollbar-thin ${isDarkMode ? "text-emerald-500/90" : "text-emerald-700"}`}>
+                                      <div className="relative overflow-x-auto scrollbar-hide pb-4">
+                                        <pre className={`text-[10px] sm:text-[11px] font-mono leading-relaxed whitespace-pre pl-2 ${isDarkMode ? "text-emerald-500/90" : "text-emerald-700"}`}>
                                           {historyData.hard.projectTree}
                                         </pre>
                                         
