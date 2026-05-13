@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState, Fragment } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
+import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
   deleteDoc, doc, Timestamp, setDoc, getDocs, writeBatch, limit
 } from "firebase/firestore";
-import { auth, db, ensureAnonAuth } from "@/lib/firebase";
+import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
 import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
@@ -959,6 +958,36 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (!alive) return;
         currentUid = u.uid;
 
+        // ── Web Push Subscription (no Firebase/FCM — pure VAPID) ──────────
+        try {
+          if (Notification.permission !== "denied") {
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+              const reg = await navigator.serviceWorker.ready;
+              // Your own VAPID public key — no Google/Firebase involved
+              const VAPID_PUBLIC_KEY = "BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA";
+              // Convert VAPID key to Uint8Array (required by browser API)
+              const urlB64 = VAPID_PUBLIC_KEY.replace(/-/g, "+").replace(/_/g, "/");
+              const padding = "=".repeat((4 - (urlB64.length % 4)) % 4);
+              const base64 = atob(urlB64 + padding);
+              const uint8 = new Uint8Array(base64.length);
+              for (let i = 0; i < base64.length; i++) uint8[i] = base64.charCodeAt(i);
+              // Subscribe to push — browser generates unique endpoint for this device
+              const sub = await reg.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: uint8,
+              });
+              // Save subscription to Firestore so Vercel can push this device
+              await setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
+                pushSub: JSON.stringify(sub.toJSON()),
+              }, { merge: true });
+            }
+          }
+        } catch (pushErr) {
+          console.warn("Push setup failed (non-critical):", pushErr);
+        }
+        // ────────────────────────────────────────────────────────────────────
+
         const presCol = collection(db, "ovii", ROOM, "presence");
         const snap = await getDocs(presCol);
         const now = Date.now();
@@ -1204,6 +1233,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (uid) setDoc(doc(db, "ovii", ROOM, "presence", uid), data, { merge: true }).catch(() => { });
   };
 
+  const triggerNotification = () => {
+    if (!uid) return;
+    fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderUid: uid, room: ROOM })
+    }).catch(() => { });
+  };
+
   const send = async (type: Msg["type"], content: string, extra: Partial<Msg> = {}) => {
     if (!uid || !content) return;
     lastActivity.current = Date.now();
@@ -1218,6 +1256,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       setReplyingTo(null);
     }
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
+    triggerNotification();
   };
 
   const deleteMessage = async (msgId: string, mode: "me" | "everyone") => {
@@ -1271,6 +1310,7 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       status: "sent", createdAt: Timestamp.now()
     };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
+    triggerNotification();
     if (type === "image" || type === "video") {
       setTimeout(() => scrollToBottom(false), 300);
     }
@@ -1572,13 +1612,17 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                         <button
                           key={av.id}
                           disabled={!inputName.trim()}
-                          onClick={() => {
+                          onClick={async () => {
                             setAvatar(av.url);
                             setName(inputName.trim());
                             localStorage.setItem("ovii-avatar-choice", av.url);
                             localStorage.setItem("ovii-name", inputName.trim());
                             setShowAvatarPicker(false);
                             addNotification("Profile updated", "success");
+                            // ── Manual request on interaction — helps Android compliance ──
+                            if (Notification.permission === "default") {
+                              await Notification.requestPermission();
+                            }
                           }}
                           className={`rounded-full overflow-hidden border-2 aspect-square transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : `border-transparent ${isDarkMode ? "hover:border-white/30" : "hover:border-black/20"}`
                             }`}
@@ -1785,6 +1829,20 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               <Palette className="w-4 h-4 text-primary" />
                               <div className="flex-1 text-left font-medium">Paints</div>
                               <ChevronDown className="w-3.5 h-3.5 opacity-40 -rotate-90" />
+                            </button>
+
+                            <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+
+                            <button
+                              onClick={async () => {
+                                const p = await Notification.requestPermission();
+                                addNotification(p === "granted" ? "Notifications active!" : "Notifications blocked", p === "granted" ? "success" : "error");
+                                setShowMenu(false);
+                              }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <Sun className="w-4 h-4 text-primary" />
+                              <div className="flex-1 text-left font-medium">Enable Notifications</div>
                             </button>
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
