@@ -109,20 +109,24 @@
     "summary": "Summary: A cloud-reliant messaging engine optimized for high-refresh-rate displays and strict ephemeral data protocols."
   },
   "hard": {
-    "title": "Technical Specification & Performance Profile",
-    "intro": "OVii Chat is a React-based PWA utilizing a serverless architecture (Firebase/Cloudinary). It features a custom hardware-detection engine to throttle rendering based on client-side constraints.",
+    "title": "Technical Specification & Architectural Museum",
+    "intro": "OVii Chat is a high-performance React-based PWA utilizing a serverless architecture. It features a custom hardware-detection engine to throttle rendering based on client-side constraints and a real-time data synchronization layer.",
     "sections": [
       {
+        "heading": "The Core Technology Stack",
+        "content": "Built with Vite, React, and TypeScript. State management is handled through React Hooks and Firebase Real-time listeners. Styling utilizes Tailwind CSS with a custom Glassmorphism 2.0 system. PWA capabilities are driven by a custom service worker (sw.js) for offline caching and background sync."
+      },
+      {
+        "heading": "Service & API Integration Hub",
+        "content": "• Firebase Firestore: Real-time message synchronization and high-frequency presence heartbeat tracking.\n• Firebase Auth: Secure Anonymous Authentication for identity protection.\n• Wavesurfer.js: Multi-threaded audio waveform rendering for immersive voice note playback.\n• Microlink API: Premium link preview generation with metadata extraction.\n• Framer Motion: Hardware-accelerated 60fps animations and physics-based transitions.\n• Vercel: High-edge deployment and serverless architecture management."
+      },
+      {
         "heading": "Complete Project Architecture",
-        "content": "The system is structured as a modular PWA. Key directories include: /src/components/ui (Shadcn Base), /src/components/novario (Core Business Logic), /src/lib (Internal Logic & Documentation), /src/routes (Immersive Navigation Layer). This ensures high separation of concerns."
+        "content": "The system is structured as a modular PWA. Key directories include: /src/components/ui (Shadcn Base), /src/components/novario (Core Business Logic), /src/lib (Internal Logic & Documentation), /src/routes (Immersive Navigation Layer). This ensures high separation of concerns and maximum scalability."
       },
       {
-        "heading": "Rendering Logic & Jitter Elimination",
-        "content": "We refactored the Build Book component to eliminate layout thrashing. By removing 'AnimatePresence' from large data arrays and utilizing 'display: none' for tab switching, we reduced CPU spikes from 80% to 15% during navigation."
-      },
-      {
-        "heading": "Hardware Shield Implementation",
-        "content": "The system probes 'navigator.deviceMemory' and 'navigator.hardwareConcurrency'. On low-end targets (<4GB RAM), it bypasses backdrop-filter CSS and intense Framer Motion springs to maintain a stable 60fps frame budget."
+        "heading": "Rendering Logic & Hardware Guard",
+        "content": "We refactored the Build Book component to eliminate layout thrashing. The system probes 'navigator.deviceMemory' and 'navigator.hardwareConcurrency'. On low-end targets (<4GB RAM), it bypasses backdrop-filter CSS and intense Framer Motion springs to maintain a stable 60fps frame budget."
       }
     ],
     "faqs": [
@@ -188,7 +192,7 @@
         { "name": "Cyber Blue", "value": "#3B82F6", "hex": "#3B82F6", "usage": "Technical Layer" }
       ]
     },
-    "projectTree": ".\n├── public\n│   ├── avatars\n│   │   ├── 4a19ace2c10e8dda74cb256d77eb7dd3.jpg\n│   │   ├── 551e94ae8845df9d455f221c07421dcd.jpg\n│   │   ├── 5b40bdbe8b8fe41e40eed4cb428c3f80.jpg\n│   │   ├── HAMSTER GUARDIA.jpg\n│   │   ├── Peace, Love, and Mouse Vibes.jpg\n│   │   ├── Rockstar Hamster Playing Drums 🎸🐹.jpg\n│   │   ├── SaveClip.App_491438162_17903102472155147_7443921825569870270_n.jpg\n│   │   ├── The Lovely Mouse.jpg\n│   │   ├── bhola.jpg\n│   │   ├── cat-pfp-16.png\n│   │   ├── download (1).jpg\n│   │   ├── download (2).jpg\n│   │   ├── download (4).jpg\n│   │   ├── download.jpg\n│   │   ├── hamster anyone.jpg\n│   │   └── images (1).jpg\n│   ├── favicon.svg\n│   ├── hp_dark_bg.png\n│   ├── hp_light_bg.png\n│   ├── manifest.json\n│   ├── novario-brand.png\n│   └── sw.js\n├── src\n│   ├── components\n│   │   ├── novario\n│   │   │   ├── ArticleTimeline.tsx\n│   │   │   ├── BottomNav.tsx\n│   │   │   ├── BreakingTicker.tsx\n│   │   │   ├── CategoryGrid.tsx\n│   │   │   ├── Header.tsx\n│   │   │   ├── HeroSlider.tsx\n│   │   │   ├── LanguageMenu.tsx\n│   │   │   ├── LiveCounter.tsx\n│   │   │   ├── LiveIllustration.tsx\n│   │   │   ├── OViiChat.tsx\n│   │   │   ├── PasswordModal.tsx\n│   │   │   ├── ShareCard.tsx\n│   │   │   ├── TrendingPeople.tsx\n│   │   │   ├── TrendingRow.tsx\n│   │   │   └── WeatherWidget.tsx\n│   │   └── ui\n│   │       ├── ... (40+ shadcn components)\n│   ├── hooks\n│   │   └── use-mobile.tsx\n│   ├── lib\n│   │   ├── avatars.ts\n│   │   ├── changelog.json\n│   │   ├── firebase.ts\n│   │   ├── history.json\n│   │   └── utils.ts\n│   ├── routes\n│   │   ├── about.tsx\n│   │   ├── contact.tsx\n│   │   ├── index.tsx\n│   │   ├── news.$slug.tsx\n│   │   ├── news.tsx\n│   │   ├── newsroom.tsx\n│   │   ├── ovii.tsx\n│   │   ├── privacy.tsx\n│   │   └── terms.tsx\n│   ├── server\n│   │   └── newsapi.functions.ts\n│   ├── main.tsx\n│   ├── router.tsx\n│   └── styles.css\n├── package.json\n└── vite.config.ts",
+    "projectTree": ".\n├── public\n│   ├── avatars\n│   │   ├── ... (16 custom high-fidelity avatars)\n│   ├── apple-touch-icon.png\n│   ├── favicon.png\n│   ├── hp_dark_bg.png\n│   ├── hp_light_bg.png\n│   ├── manifest.json\n│   └── sw.js\n├── src\n│   ├── components\n│   │   ├── novario\n│   │   │   ├── ArticleTimeline.tsx\n│   │   │   ├── BottomNav.tsx\n│   │   │   ├── BreakingTicker.tsx\n│   │   │   ├── CategoryGrid.tsx\n│   │   │   ├── Header.tsx\n│   │   │   ├── HeroSlider.tsx\n│   │   │   ├── LanguageMenu.tsx\n│   │   │   ├── LiveCounter.tsx\n│   │   │   ├── LiveIllustration.tsx\n│   │   │   ├── OViiChat.tsx\n│   │   │   ├── PasswordModal.tsx\n│   │   │   ├── ShareCard.tsx\n│   │   │   ├── TrendingPeople.tsx\n│   │   │   ├── TrendingRow.tsx\n│   │   │   └── WeatherWidget.tsx\n│   │   └── ui\n│   │       ├── ... (40+ shadcn/radix components)\n│   ├── hooks\n│   │   └── use-mobile.tsx\n│   ├── lib\n│   │   ├── avatars.ts\n│   │   ├── changelog.json\n│   │   ├── firebase.ts\n│   │   ├── history.json\n│   │   └── utils.ts\n│   ├── routes\n│   │   ├── about.tsx\n│   │   ├── contact.tsx\n│   │   ├── index.tsx\n│   │   ├── news.$slug.tsx\n│   │   ├── news.tsx\n│   │   ├── newsroom.tsx\n│   │   ├── ovii.tsx\n│   │   ├── privacy.tsx\n│   │   └── terms.tsx\n│   ├── server\n│   │   └── newsapi.functions.ts\n│   ├── main.tsx\n│   ├── router.tsx\n│   └── styles.css\n├── package.json\n└── vite.config.ts",
     "summary": "Technical Summary: A high-performance, hardware-aware React messaging engine with sub-second sync and automated cryptographic data purging."
   }
 }
