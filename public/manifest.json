@@ -28,7 +28,24 @@
     }
   ],
   "categories": ["news", "magazines"],
+  "shortcuts": [
+    {
+      "name": "Latest News",
+      "short_name": "News",
+      "description": "View latest premium news",
+      "url": "/news",
+      "icons": [{ "src": "/favicon.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ovii Chat",
+      "short_name": "Chat",
+      "description": "Open private chat room",
+      "url": "/",
+      "icons": [{ "src": "/favicon.png", "sizes": "192x192" }]
+    }
+  ],
   "lang": "en",
+
   "dir": "ltr"
 }
 
