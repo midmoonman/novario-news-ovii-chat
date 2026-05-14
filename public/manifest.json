@@ -29,8 +29,6 @@
   ],
   "categories": ["news", "magazines"],
   "lang": "en",
-  "dir": "ltr",
-  "background_sync": true,
-  "gcm_sender_id": "389509460096",
-  "permissions": ["notifications", "push"]
+  "dir": "ltr"
 }
+
