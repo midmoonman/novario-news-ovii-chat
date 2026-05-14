@@ -1073,21 +1073,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           }).reverse(); // Reverse because we fetched with desc order
           setMsgs(list);
           setIsLoading(false);
-          const tnow = Date.now();
-          for (const m of list) {
-            if (m.uid !== u.uid && m.status !== "read" && !s.metadata.hasPendingWrites) {
-              setDoc(doc(db, "ovii", ROOM, "messages", m.id), { status: "read" }, { merge: true }).catch(() => { });
-            }
-            const ts = m.createdAt?.toMillis?.() ?? 0;
-            if (!ts) continue;
+          // Optimized: Removed the aggressive per-message read status update loop 
+          // that was causing slow performance on mobile devices.
 
-            // Retention logic: 14 days for everything
-            const limit = 14 * 24 * 60 * 60 * 1000;
-
-            if (tnow - ts > limit) {
-              deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => { });
-            }
-          }
         });
 
         return () => {
