@@ -1231,8 +1231,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       setReplyingTo(null);
     }
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
-    triggerNotification();
   };
+
 
   const deleteMessage = async (msgId: string, mode: "me" | "everyone") => {
     try {
@@ -1285,8 +1285,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       status: "sent", createdAt: Timestamp.now()
     };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
-    triggerNotification();
     if (type === "image" || type === "video") {
+
       setTimeout(() => scrollToBottom(false), 300);
     }
   };
