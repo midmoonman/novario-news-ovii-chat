@@ -712,7 +712,48 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const [showAvatarPicker, setShowAvatarPicker] = useState(!isReturning);
   const [inputName, setInputName] = useState(name);
 
+  const syncPushSubscription = useCallback(async (forcedUid?: string) => {
+    try {
+      if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      if (Notification.permission !== "granted") return;
 
+      const reg = await navigator.serviceWorker.ready;
+      const VAPID_PUBLIC_KEY = "BFVR8fvSQQA90qsnpl-z91RcbxIW2maK0udfbhGqFjR6vdXmJRBCdVOxOYj7utzYsZAA7t9zL79R0_EDElmIYgA";
+      const urlB64 = VAPID_PUBLIC_KEY.replace(/-/g, "+").replace(/_/g, "/");
+      const padding = "=".repeat((4 - (urlB64.length % 4)) % 4);
+      const base64 = urlB64 + padding;
+      const uint8 = new Uint8Array(atob(base64).split("").map(c => c.charCodeAt(0)));
+
+      let sub = await reg.pushManager.getSubscription();
+
+      // Check Firestore to see if we're already synced
+      const subDoc = await getDoc(doc(db, "ovii", ROOM, "subscriptions", deviceId));
+      const savedData = subDoc.exists() ? subDoc.data() : null;
+      const savedEndpoint = savedData?.pushSub ? JSON.parse(savedData.pushSub).endpoint : null;
+
+      if (!sub || sub.endpoint !== savedEndpoint) {
+        if (sub) await sub.unsubscribe();
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: uint8,
+        });
+        console.log("Push endpoint refreshed");
+      }
+
+      const activeUid = forcedUid || uid;
+      if (activeUid) {
+        await setDoc(doc(db, "ovii", ROOM, "subscriptions", deviceId), {
+          uid: activeUid,
+          deviceId,
+          pushSub: JSON.stringify(sub.toJSON()),
+          updatedAt: serverTimestamp(),
+          userAgent: navigator.userAgent
+        }, { merge: true });
+      }
+    } catch (err) {
+      console.error("Push sync failed:", err);
+    }
+  }, [deviceId, uid]);
 
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
   const [appNotifications, setAppNotifications] = useState<{ id: string, message: string, type: "success" | "error" | "info" }[]>([]);
@@ -960,15 +1001,9 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (!alive) return;
         currentUid = u.uid;
 
+        // ── Web Push Sync ───────────────────────────────────────────────────
+        await syncPushSubscription(u.uid);
 
-        // ── Battery Optimization Prompt (Android only) ──
-        const isAndroid = /android/i.test(navigator.userAgent);
-        if (isAndroid && !localStorage.getItem("ovii_battery_prompt_shown")) {
-          localStorage.setItem("ovii_battery_prompt_shown", "true");
-          setTimeout(() => {
-            addNotification("For reliable alerts: Settings → Apps → Chrome → Battery → Unrestricted", "info");
-          }, 3000);
-        }
         // ────────────────────────────────────────────────────────────────────
 
         const presCol = collection(db, "ovii", ROOM, "presence");
@@ -1073,9 +1108,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
           }).reverse(); // Reverse because we fetched with desc order
           setMsgs(list);
           setIsLoading(false);
-          // Optimized: Removed the aggressive per-message read status update loop 
-          // that was causing slow performance on mobile devices.
+          const tnow = Date.now();
+          for (const m of list) {
+            if (m.uid !== u.uid && m.status !== "read" && !s.metadata.hasPendingWrites) {
+              setDoc(doc(db, "ovii", ROOM, "messages", m.id), { status: "read" }, { merge: true }).catch(() => { });
+            }
+            const ts = m.createdAt?.toMillis?.() ?? 0;
+            if (!ts) continue;
 
+            // Retention logic: 14 days for everything
+            const limit = 14 * 24 * 60 * 60 * 1000;
+
+            if (tnow - ts > limit) {
+              deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => { });
+            }
+          }
         });
 
         return () => {
@@ -1204,6 +1251,15 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     if (uid) setDoc(doc(db, "ovii", ROOM, "presence", uid), data, { merge: true }).catch(() => { });
   };
 
+  const triggerNotification = () => {
+    if (!uid) return;
+    const deviceId = localStorage.getItem("ovii_device_id");
+    fetch('/api/notify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senderUid: uid, senderDeviceId: deviceId, room: ROOM })
+    }).catch(() => { });
+  };
 
   const send = async (type: Msg["type"], content: string, extra: Partial<Msg> = {}) => {
     if (!uid || !content) return;
@@ -1219,8 +1275,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       setReplyingTo(null);
     }
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
+    triggerNotification();
   };
-
 
   const deleteMessage = async (msgId: string, mode: "me" | "everyone") => {
     try {
@@ -1273,8 +1329,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
       status: "sent", createdAt: Timestamp.now()
     };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
+    triggerNotification();
     if (type === "image" || type === "video") {
-
       setTimeout(() => scrollToBottom(false), 300);
     }
   };
@@ -1582,7 +1638,11 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                             localStorage.setItem("ovii-name", inputName.trim());
                             setShowAvatarPicker(false);
                             addNotification("Profile updated", "success");
-
+                            // ── Manual request on interaction — helps Android compliance ──
+                            if (Notification.permission === "default") {
+                              const p = await Notification.requestPermission();
+                              if (p === "granted") syncPushSubscription();
+                            }
                           }}
                           className={`rounded-full overflow-hidden border-2 aspect-square transition-all hover:scale-110 disabled:opacity-20 disabled:hover:scale-100 ${avatar === av.url ? "border-primary shadow-[0_0_15px_rgba(245,158,11,0.4)]" : `border-transparent ${isDarkMode ? "hover:border-white/30" : "hover:border-black/20"}`
                             }`}
@@ -1792,7 +1852,27 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
                               <ChevronDown className="w-3.5 h-3.5 opacity-40 -rotate-90" />
                             </button>
 
-
+                            {typeof window !== "undefined" && Notification.permission !== "granted" && (
+                              <>
+                                <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+                                <button
+                                  onClick={async () => {
+                                    const p = await Notification.requestPermission();
+                                    if (p === "granted") {
+                                      syncPushSubscription();
+                                      addNotification("Notifications active!", "success");
+                                    } else {
+                                      addNotification("Notifications blocked", "error");
+                                    }
+                                    setShowMenu(false);
+                                  }}
+                                  className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                                >
+                                  <Sun className="w-4 h-4 text-primary" />
+                                  <div className="flex-1 text-left font-medium">Enable Notifications</div>
+                                </button>
+                              </>
+                            )}
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 

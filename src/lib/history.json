@@ -61,7 +61,6 @@
     "analytics": {
       "hardwareUsage": [
         { "label": "App Speed", "value": 85, "color": "#22c55e" },
-        { "label": "Battery Life", "value": 75, "color": "#3b82f6" },
         { "label": "Storage Used", "value": 15, "color": "#f97316" }
       ],
       "fileDistribution": [
@@ -69,7 +68,7 @@
         { "category": "Photos/Video", "percentage": 70 }
       ]
     },
-    "summary": "OVii Chat: A fast, private, and fun way to talk that respects your battery and your privacy."
+    "summary": "OVii Chat: A fast, private, and fun way to talk that respects your privacy."
   },
   "medium": {
     "title": "The Purpose & Architecture of OVii",
@@ -81,7 +80,7 @@
       },
       {
         "heading": "Tradeoffs: Speed vs. Polish",
-        "content": "To maintain a 120Hz feel, we reduced complex glassmorphism filters on older phones. This means better battery life and zero lag, even if the 'blur' effect is slightly simpler."
+        "content": "To maintain a 120Hz feel, we reduced complex glassmorphism filters on older phones. This means zero lag, even if the 'blur' effect is slightly simpler."
       }
     ],
     "faqs": [

@@ -47,7 +47,7 @@ function PrivacyPage() {
             </p>
             <ul className="list-disc pl-8 space-y-2 mb-4">
               <li><strong>Ephemeral Session Data:</strong> We may use local storage or temporary cookies to remember your interface preferences (such as Dark Mode or Language) during your current session.</li>
-              <li><strong>Hardware Detection:</strong> Our 'Foreman Shield' protocol detects basic device capabilities (CPU/GPU load) to dynamically adjust visual effects and prevent battery drain.</li>
+              <li><strong>Hardware Detection:</strong> Our 'Foreman Shield' protocol detects basic device capabilities (CPU/GPU load) to dynamically adjust visual effects.</li>
               <li><strong>Aggregate Analytics:</strong> We track overall traffic patterns (e.g., total views on a specific news category) to improve our content curation, but this data is never linked to an individual reader.</li>
             </ul>
           </section>
