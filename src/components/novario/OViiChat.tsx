@@ -1001,8 +1001,8 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
         if (!alive) return;
         currentUid = u.uid;
 
-        // ── Web Push Sync ───────────────────────────────────────────────────
-        await syncPushSubscription(u.uid);
+        // ── Web Push Sync (Non-blocking) ────────────────────────────────────
+        syncPushSubscription(u.uid).catch(err => console.error("Push sync failed", err));
 
         // ── Battery Optimization Prompt (Android only) ──
         const isAndroid = /android/i.test(navigator.userAgent);
