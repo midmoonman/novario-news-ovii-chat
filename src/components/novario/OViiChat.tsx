@@ -178,7 +178,7 @@ type Msg = {
   uid: string;
   avatar: string;
   name?: string;
-  type: "text" | "image" | "voice" | "video" | "audio" | "file";
+  type: "text" | "image" | "voice" | "video" | "audio" | "file" | "text-system";
   content: string;
   caption?: string;
   fileName?: string;
@@ -840,9 +840,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                 new Notification("📰 Novario", {
                   body: "🔴 New Message — Open Chat to read",
                   icon: "/favicon.png",
-                  tag: "ovii-msg",
-                  renotify: true
-                });
+                  tag: "ovii-msg"
+                } as any);
               }
             }
           }
