@@ -4,7 +4,7 @@ import { PasswordModal } from "@/components/novario/PasswordModal";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db, ensureAnonAuth } from "@/lib/firebase";
 
-const ChampChat = lazy(() => import("@/components/novario/ChampChat").then(m => ({ default: m.ChampChat })));
+const OViiChat = lazy(() => import("@/components/novario/OViiChat").then(m => ({ default: m.OViiChat })));
 
 function NotFoundComponent() {
   return (
@@ -33,17 +33,14 @@ export const Route = createRootRoute({
 
 
 function RootComponent() {
-  const [showChamp, setShowOvii] = useState(() => {
-    const noLockUntil = localStorage.getItem("champ_unlocked_at");
+  const [showOvii, setShowOvii] = useState(() => {
+    const noLockUntil = localStorage.getItem("ovii_no_lock_until");
     return (noLockUntil && parseInt(noLockUntil) > Date.now());
   });
   const [unlocked, setUnlocked] = useState(() => {
-    const noLockUntil = localStorage.getItem("champ_unlocked_at");
-    const isUnlocked = localStorage.getItem("champ_unlocked") === "true";
-    return isUnlocked || (noLockUntil && parseInt(noLockUntil) > Date.now());
+    const noLockUntil = localStorage.getItem("ovii_no_lock_until");
+    return (noLockUntil && parseInt(noLockUntil) > Date.now());
   });
-  const [room, setRoom] = useState<string>("champ-room");
-  const [password, setPassword] = useState<string>("112233");
   const initialLoadRef = useRef(true);
 
   // ── Presence Logic ─────────────────────────────────────────────────────
@@ -59,12 +56,12 @@ function RootComponent() {
 
 
 
-  const chatOpen = showChamp && unlocked;
+  const chatOpen = showOvii && unlocked;
 
   useEffect(() => {
     const handleOpen = () => setShowOvii(true);
-    window.addEventListener("open-champ", handleOpen);
-    return () => window.removeEventListener("open-champ", handleOpen);
+    window.addEventListener("open-ovii", handleOpen);
+    return () => window.removeEventListener("open-ovii", handleOpen);
   }, []);
 
   // Freeze EVERYTHING when chat is open — no leaking, no scrolling
@@ -97,13 +94,8 @@ function RootComponent() {
     <div className="w-full overflow-x-hidden relative flex flex-col min-h-screen">
       {/* Only render news page when chat is NOT open to prevent paint-through */}
       {!chatOpen && <Outlet />}
-      {showChamp && !unlocked && (
-        <PasswordModal onUnlock={(mode, r) => { 
-          setRoom(r); 
-          setPassword(r === "Champ" ? "786786" : "112233");
-          setUnlocked(true); 
-          localStorage.setItem("champ_unlocked", "true");
-        }} />
+      {showOvii && !unlocked && (
+        <PasswordModal onUnlock={() => setUnlocked(true)} />
       )}
       {chatOpen && (
         <Suspense fallback={
@@ -111,7 +103,7 @@ function RootComponent() {
             <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           </div>
         }>
-          <ChampChat onLock={() => { setUnlocked(false); setShowOvii(false); }} room={room} password={password} />
+          <OViiChat onLock={() => { setUnlocked(false); setShowOvii(false); }} />
         </Suspense>
       )}
     </div>

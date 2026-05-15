@@ -248,7 +248,7 @@ type HistoryDataRoot = {
 } & Record<"easy" | "medium" | "hard", HistoryTier>;
 
 
-// const ROOM = "ovii-room"; // Moved inside component to be dynamic
+const ROOM = "ovii-room";
 const STOP_AUDIO_EVENT = "ovii_stop_audio";
 
 // ─── Detect if we're on a touch/mobile device ───────────────────────────────
@@ -721,8 +721,7 @@ function usePerformanceShield() {
   return isLowEnd;
 }
 
-export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () => void, password?: string, room?: string }) {
-  const ROOM = room;
+export function OViiChat({ onLock, password }: { onLock: () => void, password?: string }) {
 
   const [encryptionKey, setEncryptionKey] = useState<CryptoKey | null>(null);
 
@@ -1881,7 +1880,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
               </div>
               <div>
                 <div className="font-bold text-[14px] leading-tight transition-colors duration-500" style={{ color: isDarkMode ? (paintTheme.nameDark || undefined) : (paintTheme.nameLight || undefined) }}>
-                  {otherName || (count > 1 ? "Champ User" : "Waiting...") || "Waiting..."}
+                  {otherName || (count > 1 ? "Ovii User" : "Waiting...") || "Waiting..."}
                 </div>
                 <div className="text-[10px] opacity-60 flex items-center gap-1.5 font-medium">
                   {recordingUsers.length > 0 ? (

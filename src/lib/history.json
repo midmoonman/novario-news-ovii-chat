@@ -32,8 +32,8 @@
     }
   ],
   "easy": {
-    "title": "What is Champ Chat?",
-    "intro": "Champ Chat is a secret, private chat room hidden inside Novario News. It’s built for one-on-one hanging out where everything you send eventually disappears.",
+    "title": "What is OVii Chat?",
+    "intro": "OVii Chat is a secret, private chat room hidden inside Novario News. It’s built for one-on-one hanging out where everything you send eventually disappears.",
     "sections": [
       {
         "heading": "The Secret Door",
@@ -68,11 +68,11 @@
         { "category": "Photos/Video", "percentage": 70 }
       ]
     },
-    "summary": "Champ Chat: A fast, private, and fun way to talk that respects your privacy."
+    "summary": "OVii Chat: A fast, private, and fun way to talk that respects your privacy."
   },
   "medium": {
-    "title": "The Purpose & Architecture of Champ",
-    "intro": "Champ is an ephemeral messaging layer integrated into Novario. The goal is to provide native-app performance inside a web browser while ensuring data is never stored longer than 14 days.",
+    "title": "The Purpose & Architecture of OVii",
+    "intro": "OVii is an ephemeral messaging layer integrated into Novario. The goal is to provide native-app performance inside a web browser while ensuring data is never stored longer than 14 days.",
     "sections": [
       {
         "heading": "Architectural Direction",
@@ -109,7 +109,7 @@
   },
   "hard": {
     "title": "Technical Specification & Architectural Museum",
-    "intro": "Champ Chat is a high-performance React-based PWA utilizing a serverless architecture. It features a custom hardware-detection engine to throttle rendering based on client-side constraints and a real-time data synchronization layer.",
+    "intro": "OVii Chat is a high-performance React-based PWA utilizing a serverless architecture. It features a custom hardware-detection engine to throttle rendering based on client-side constraints and a real-time data synchronization layer.",
     "sections": [
       {
         "heading": "The Core Technology Stack",
@@ -191,7 +191,7 @@
         { "name": "Cyber Blue", "value": "#3B82F6", "hex": "#3B82F6", "usage": "Technical Layer" }
       ]
     },
-    "projectTree": ".\n├── public\n│   ├── avatars\n│   │   ├── ... (16 custom high-fidelity avatars)\n│   ├── apple-touch-icon.png\n│   ├── favicon.png\n│   ├── hp_dark_bg.png\n│   ├── hp_light_bg.png\n│   ├── manifest.json\n│   └── sw.js\n├── src\n│   ├── components\n│   │   ├── novario\n│   │   │   ├── ArticleTimeline.tsx\n│   │   │   ├── BottomNav.tsx\n│   │   │   ├── BreakingTicker.tsx\n│   │   │   ├── CategoryGrid.tsx\n│   │   │   ├── Header.tsx\n│   │   │   ├── HeroSlider.tsx\n│   │   │   ├── LanguageMenu.tsx\n│   │   │   ├── LiveCounter.tsx\n│   │   │   ├── LiveIllustration.tsx\n│   │   │   ├── ChampChat.tsx\n│   │   │   ├── PasswordModal.tsx\n│   │   │   ├── ShareCard.tsx\n│   │   │   ├── TrendingPeople.tsx\n│   │   │   ├── TrendingRow.tsx\n│   │   │   └── WeatherWidget.tsx\n│   │   └── ui\n│   │       ├── ... (40+ shadcn/radix components)\n│   ├── hooks\n│   │   └── use-mobile.tsx\n│   ├── lib\n│   │   ├── avatars.ts\n│   │   ├── changelog.json\n│   │   ├── firebase.ts\n│   │   ├── history.json\n│   │   └── utils.ts\n│   ├── routes\n│   │   ├── about.tsx\n│   │   ├── contact.tsx\n│   │   ├── index.tsx\n│   │   ├── news.$slug.tsx\n│   │   ├── news.tsx\n│   │   ├── newsroom.tsx\n│   │   ├── ovii.tsx\n│   │   ├── privacy.tsx\n│   │   └── terms.tsx\n│   ├── server\n│   │   └── newsapi.functions.ts\n│   ├── main.tsx\n│   ├── router.tsx\n│   └── styles.css\n├── package.json\n└── vite.config.ts",
+    "projectTree": ".\n├── public\n│   ├── avatars\n│   │   ├── ... (16 custom high-fidelity avatars)\n│   ├── apple-touch-icon.png\n│   ├── favicon.png\n│   ├── hp_dark_bg.png\n│   ├── hp_light_bg.png\n│   ├── manifest.json\n│   └── sw.js\n├── src\n│   ├── components\n│   │   ├── novario\n│   │   │   ├── ArticleTimeline.tsx\n│   │   │   ├── BottomNav.tsx\n│   │   │   ├── BreakingTicker.tsx\n│   │   │   ├── CategoryGrid.tsx\n│   │   │   ├── Header.tsx\n│   │   │   ├── HeroSlider.tsx\n│   │   │   ├── LanguageMenu.tsx\n│   │   │   ├── LiveCounter.tsx\n│   │   │   ├── LiveIllustration.tsx\n│   │   │   ├── OViiChat.tsx\n│   │   │   ├── PasswordModal.tsx\n│   │   │   ├── ShareCard.tsx\n│   │   │   ├── TrendingPeople.tsx\n│   │   │   ├── TrendingRow.tsx\n│   │   │   └── WeatherWidget.tsx\n│   │   └── ui\n│   │       ├── ... (40+ shadcn/radix components)\n│   ├── hooks\n│   │   └── use-mobile.tsx\n│   ├── lib\n│   │   ├── avatars.ts\n│   │   ├── changelog.json\n│   │   ├── firebase.ts\n│   │   ├── history.json\n│   │   └── utils.ts\n│   ├── routes\n│   │   ├── about.tsx\n│   │   ├── contact.tsx\n│   │   ├── index.tsx\n│   │   ├── news.$slug.tsx\n│   │   ├── news.tsx\n│   │   ├── newsroom.tsx\n│   │   ├── ovii.tsx\n│   │   ├── privacy.tsx\n│   │   └── terms.tsx\n│   ├── server\n│   │   └── newsapi.functions.ts\n│   ├── main.tsx\n│   ├── router.tsx\n│   └── styles.css\n├── package.json\n└── vite.config.ts",
     "summary": "Technical Summary: A high-performance, hardware-aware React messaging engine with sub-second sync and automated cryptographic data purging."
   }
 }

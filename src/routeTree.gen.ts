@@ -9,7 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ChampRouteImport } from './routes/champ'
+import { Route as OviiRouteImport } from './routes/ovii'
 import { Route as NewsroomRouteImport } from './routes/newsroom'
 import { Route as NewsRouteImport } from './routes/news'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -19,9 +19,9 @@ import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as NewsSlugRouteImport } from './routes/news.$slug'
 
-const ChampRoute = ChampRouteImport.update({
-  id: '/champ',
-  path: '/champ',
+const OviiRoute = OviiRouteImport.update({
+  id: '/ovii',
+  path: '/ovii',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NewsroomRoute = NewsroomRouteImport.update({
@@ -73,7 +73,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
   '/newsroom': typeof NewsroomRoute
-  '/champ': typeof ChampRoute
+  '/ovii': typeof OviiRoute
   '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRoutesByTo {
@@ -84,7 +84,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
   '/newsroom': typeof NewsroomRoute
-  '/champ': typeof ChampRoute
+  '/ovii': typeof OviiRoute
   '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRoutesById {
@@ -96,7 +96,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/news': typeof NewsRouteWithChildren
   '/newsroom': typeof NewsroomRoute
-  '/champ': typeof ChampRoute
+  '/ovii': typeof OviiRoute
   '/news/$slug': typeof NewsSlugRoute
 }
 export interface FileRouteTypes {
@@ -109,7 +109,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/news'
     | '/newsroom'
-    | '/champ'
+    | '/ovii'
     | '/news/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -120,7 +120,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/news'
     | '/newsroom'
-    | '/champ'
+    | '/ovii'
     | '/news/$slug'
   id:
     | '__root__'
@@ -131,7 +131,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/news'
     | '/newsroom'
-    | '/champ'
+    | '/ovii'
     | '/news/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -143,16 +143,16 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   NewsRoute: typeof NewsRouteWithChildren
   NewsroomRoute: typeof NewsroomRoute
-  ChampRoute: typeof ChampRoute
+  OviiRoute: typeof OviiRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/champ': {
-      id: '/champ'
-      path: '/champ'
-      fullPath: '/champ'
-      preLoaderRoute: typeof ChampRouteImport
+    '/ovii': {
+      id: '/ovii'
+      path: '/ovii'
+      fullPath: '/ovii'
+      preLoaderRoute: typeof OviiRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/newsroom': {
@@ -232,7 +232,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   NewsRoute: NewsRouteWithChildren,
   NewsroomRoute: NewsroomRoute,
-  ChampRoute: ChampRoute,
+  OviiRoute: OviiRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
