@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PasswordModal } from "@/components/novario/PasswordModal";
 
 // Lazy load chat to keep initial bundle small
-const ChampChat = lazy(() => import("@/components/novario/ChampChat").then(m => ({ default: m.ChampChat })));
+const ChampChat = lazy(() => import("@/components/novario/ChampChat").then(m => ({ default: m.OViiChat })));
 
 export const Route = createFileRoute("/ovii")({
   head: () => ({
