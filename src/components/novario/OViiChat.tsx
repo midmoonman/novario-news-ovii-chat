@@ -1049,6 +1049,15 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const [showNoLockSubmenu, setShowNoLockSubmenu] = useState(false);
   const [activePaint, setActivePaint] = useState(() => localStorage.getItem("ovii_paint") || "default");
   const [showPaintsSubmenu, setShowPaintsSubmenu] = useState(false);
+
+  // -- Sync no-lock and paint to presence --
+  useEffect(() => {
+    if (!uid) return;
+    setDoc(doc(db, "ovii", ROOM, "presence", uid), {
+      noLockUntil, activePaint
+    }, { merge: true }).catch(() => { });
+  }, [uid, noLockUntil, activePaint]);
+
   const prevOnlineRef = useRef<Map<string, string>>(new Map());
 
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
@@ -1145,8 +1154,19 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         heartbeatId = setInterval(() => {
           setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
             uid: u.uid, avatar, name, lastSeen: serverTimestamp(),
+            noLockUntil, activePaint
           }, { merge: true }).catch(() => { });
         }, 10_000);
+
+        // -- Sync state to presence --
+        const syncState = () => {
+          if (!u.uid) return;
+          setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
+            noLockUntil, activePaint
+          }, { merge: true }).catch(() => { });
+        };
+        syncState(); // initial sync
+
 
         // ── Kick listener: Champ can force-logout this user ─────────────────
         const kickRef = doc(db, "ovii", ROOM, "kicked", u.uid);

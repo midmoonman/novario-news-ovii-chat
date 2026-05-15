@@ -1050,6 +1050,15 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
   const [showNoLockSubmenu, setShowNoLockSubmenu] = useState(false);
   const [activePaint, setActivePaint] = useState(() => localStorage.getItem("ovii_paint") || "default");
   const [showPaintsSubmenu, setShowPaintsSubmenu] = useState(false);
+
+  // -- Sync no-lock and paint to presence --
+  useEffect(() => {
+    if (!uid) return;
+    setDoc(doc(db, "ovii", ROOM, "presence", uid), {
+      noLockUntil, activePaint
+    }, { merge: true }).catch(() => { });
+  }, [uid, noLockUntil, activePaint]);
+
   const prevOnlineRef = useRef<Map<string, string>>(new Map());
 
   const typingTimer = useRef<NodeJS.Timeout | null>(null);
