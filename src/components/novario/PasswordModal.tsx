@@ -8,9 +8,10 @@ export function PasswordModal({ onUnlock }: { onUnlock: (mode: "chat" | "master"
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (val === "112233") {
+    const input = val.replace(/\D/g, "");
+    if (input === "112233") {
       onUnlock("chat", "champ-room");
-    } else if (val === "786786") {
+    } else if (input === "786786") {
       onUnlock("chat", "Champ");
     } else {
       setErr("Wrong key. Try again.");

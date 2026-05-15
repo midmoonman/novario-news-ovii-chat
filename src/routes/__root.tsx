@@ -39,7 +39,8 @@ function RootComponent() {
   });
   const [unlocked, setUnlocked] = useState(() => {
     const noLockUntil = localStorage.getItem("champ_unlocked_at");
-    return (noLockUntil && parseInt(noLockUntil) > Date.now());
+    const isUnlocked = localStorage.getItem("champ_unlocked") === "true";
+    return isUnlocked || (noLockUntil && parseInt(noLockUntil) > Date.now());
   });
   const [room, setRoom] = useState<string>("champ-room");
   const [password, setPassword] = useState<string>("112233");
@@ -101,6 +102,7 @@ function RootComponent() {
           setRoom(r); 
           setPassword(r === "Champ" ? "786786" : "112233");
           setUnlocked(true); 
+          localStorage.setItem("champ_unlocked", "true");
         }} />
       )}
       {chatOpen && (

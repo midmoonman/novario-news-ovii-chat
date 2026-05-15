@@ -20,7 +20,7 @@ export const Route = createFileRoute("/champ")({
 function OViiPage() {
   const [unlocked, setUnlocked] = useState(() => {
     if (typeof window !== "undefined") {
-      return localStorage.getItem("ovii_unlocked") === "true";
+      return localStorage.getItem("champ_unlocked") === "true";
     }
     return false;
   });
@@ -48,13 +48,13 @@ function OViiPage() {
     setUnlocked(true);
     setRoom(r);
     setPassword(r === "Champ" ? "786786" : "112233");
-    localStorage.setItem("ovii_unlocked", "true");
+    localStorage.setItem("champ_unlocked", "true");
   };
 
   const handleLock = () => {
     setUnlocked(false);
     setPassword(null);
-    localStorage.removeItem("ovii_unlocked");
+    localStorage.removeItem("champ_unlocked");
   };
 
   return (
