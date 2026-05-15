@@ -1,17 +1,15 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  Activity, Users, Shield, Zap, AlertTriangle, 
-  Terminal, BarChart3, HardDrive, Smartphone, 
+import {
+  Activity, Users, Shield, Zap, AlertTriangle,
+  Terminal, BarChart3, HardDrive, Smartphone,
   Globe, Cpu, Database, Signal, Clock, X,
-  Trash2, Lock, Unlock, Eye, EyeOff, RefreshCw,
-  Power, ChevronRight, Settings, Info, Bell,
-  Search, Filter, LayoutGrid, List
+  Trash2, Lock, EyeOff, RefreshCw,
+  Power, Info
 } from "lucide-react";
-import { 
-  collection, query, onSnapshot, doc, getDoc, 
-  deleteDoc, setDoc, getDocs, writeBatch, serverTimestamp,
-  Timestamp 
+import {
+  collection, query, onSnapshot,
+  Timestamp
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -22,204 +20,211 @@ interface ChampProps {
   msgs: any[];
 }
 
+const TABS = [
+  { id: "presence", icon: Users,         label: "Presence"    },
+  { id: "health",   icon: Activity,      label: "Health"      },
+  { id: "mod",      icon: Shield,        label: "Moderation"  },
+  { id: "events",   icon: Terminal,      label: "Events"      },
+  { id: "stats",    icon: BarChart3,     label: "Analytics"   },
+  { id: "device",   icon: Smartphone,    label: "Device"      },
+  { id: "danger",   icon: AlertTriangle, label: "Emergency"   },
+] as const;
+
+type TabId = typeof TABS[number]["id"];
+
 export function Champ({ isOpen, onClose, isDarkMode, msgs }: ChampProps) {
-  const [activeTab, setActiveTab] = useState<"presence" | "health" | "moderation" | "events" | "analytics" | "device" | "emergency">("presence");
+  const [activeTab, setActiveTab] = useState<TabId>("presence");
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
-  const [healthMetrics, setHealthMetrics] = useState<any>({
-    activeUsers: 0,
-    msgThroughput: 0,
-    mediaStatus: "Stable",
-    syncLatency: "12ms",
-    notificationHealth: "Healthy",
-    websocketIntegrity: "100%",
-    firebaseStatus: "Operational",
-    storageLoad: "12%"
+  const [healthMetrics] = useState<Record<string, string | number>>({
+    "Active Users":           0,
+    "Msg Throughput":         "Live",
+    "Media Status":           "Stable",
+    "Sync Latency":           "12 ms",
+    "Notification Health":    "Healthy",
+    "WebSocket Integrity":    "100%",
+    "Firebase Status":        "Operational",
+    "Storage Load":           "12%",
   });
   const [eventLogs, setEventLogs] = useState<any[]>([]);
   const [deviceQuality, setDeviceQuality] = useState<any>(null);
 
-  // Subscribe to presence
   useEffect(() => {
     if (!isOpen) return;
     const q = query(collection(db, "ovii", "ovii-room", "presence"));
     const unsub = onSnapshot(q, (snapshot) => {
-      const users: any[] = [];
       const now = Date.now();
+      const users: any[] = [];
       snapshot.forEach(d => {
         const data = d.data();
         const lastSeen = (data.lastSeen as Timestamp | undefined)?.toMillis() ?? 0;
-        const isOnline = now - lastSeen < 30000;
-        users.push({ 
-          id: d.id, 
-          ...data, 
-          isOnline,
-          lastSeenFormatted: lastSeen ? new Date(lastSeen).toLocaleTimeString() : "N/A"
+        users.push({
+          id: d.id, ...data,
+          isOnline: now - lastSeen < 30000,
+          lastSeenFormatted: lastSeen ? new Date(lastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—",
         });
       });
       setOnlineUsers(users);
-      setHealthMetrics((prev: any) => ({ ...prev, activeUsers: users.length }));
     });
 
-    // Mock initial events
     setEventLogs([
-      { id: 1, type: "system", message: "CHAMP Operational Layer Initialized", severity: "info", time: new Date() },
-      { id: 2, type: "network", message: "Firebase connection established", severity: "success", time: new Date() },
+      { id: 1, severity: "info",    message: "CHAMP Operational Layer initialized",  time: new Date() },
+      { id: 2, severity: "success", message: "Firebase realtime connection active",   time: new Date() },
+      { id: 3, severity: "info",    message: "Presence stream subscribed",            time: new Date() },
     ]);
+
+    try {
+      const ram   = (navigator as any).deviceMemory || "—";
+      const cores = navigator.hardwareConcurrency  || "—";
+      const conn  = (navigator as any).connection  || {};
+      setDeviceQuality({
+        ram, cores,
+        effectiveType: conn.effectiveType || "—",
+        downlink:      conn.downlink      || "—",
+        rtt:           conn.rtt           || "—",
+        isLowEnd: (typeof ram === "number" && ram <= 4) || (typeof cores === "number" && cores <= 4),
+        reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+      });
+    } catch (_) {}
 
     return () => unsub();
   }, [isOpen]);
 
-  // Detect device intelligence
-  useEffect(() => {
-    if (!isOpen) return;
-    const detect = () => {
-      try {
-        const ram = (navigator as any).deviceMemory || "Unknown";
-        const cores = navigator.hardwareConcurrency || "Unknown";
-        const conn = (navigator as any).connection || {};
-        const isLowEnd = (typeof ram === 'number' && ram <= 4) || (typeof cores === 'number' && cores <= 4);
-        
-        setDeviceQuality({
-          ram,
-          cores,
-          effectiveType: conn.effectiveType || "N/A",
-          downlink: conn.downlink || "N/A",
-          rtt: conn.rtt || "N/A",
-          isLowEnd,
-          reducedMotion: window.matchMedia('(prefers-reduced-motion: reduce)').matches
-        });
-      } catch (e) {}
-    };
-    detect();
-  }, [isOpen]);
-
   if (!isOpen) return null;
 
-  const NavItem = ({ id, icon: Icon, label }: { id: any, icon: any, label: string }) => (
-    <button
-      onClick={() => setActiveTab(id)}
-      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all uppercase tracking-wider ${
-        activeTab === id 
-          ? "bg-primary text-white shadow-[0_0_15px_rgba(245,158,11,0.3)]" 
-          : "text-white/40 hover:text-white/70 hover:bg-white/5"
-      }`}
-    >
-      <Icon className="w-4 h-4" />
-      <span className="hidden sm:inline">{label}</span>
-    </button>
-  );
+  /* ── shared classes ── */
+  const card  = "rounded-2xl bg-white/[0.04] border border-white/[0.07] transition-all duration-300";
+  const label = "text-[10px] font-medium text-white/35 tracking-widest uppercase";
+  const value = "text-sm font-semibold text-white leading-snug";
 
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-md flex flex-col p-4 md:p-8"
+      className="fixed inset-0 z-[1000] flex flex-col p-4 md:p-6"
+      style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(16px)" }}
     >
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6 shrink-0">
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between mb-5 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.4)]">
-            <Zap className="w-6 h-6 text-white" />
+          <div
+            className="w-9 h-9 rounded-xl flex items-center justify-center"
+            style={{ background: "linear-gradient(135deg,#f59e0b,#d97706)", boxShadow: "0 0 18px rgba(245,158,11,0.35)" }}
+          >
+            <Zap className="w-5 h-5 text-white" strokeWidth={2.5} />
           </div>
           <div>
-            <h1 className="text-xl font-black text-white tracking-tight uppercase italic">CHAMP</h1>
-            <p className="text-[10px] font-bold text-white/40 uppercase tracking-[0.2em]">Operational Intelligence Layer</p>
+            <h1
+              className="text-lg text-white leading-none"
+              style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, letterSpacing: "-0.02em" }}
+            >
+              Champ
+            </h1>
+            <p className="text-[10px] text-white/35 mt-0.5 font-medium tracking-widest uppercase">
+              Operational Intelligence
+            </p>
           </div>
         </div>
-        <button 
+        <button
           onClick={onClose}
-          className="p-2 rounded-full bg-white/5 hover:bg-white/10 text-white/60 transition-all active:scale-90"
+          className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all active:scale-90"
         >
-          <X className="w-6 h-6" />
+          <X className="w-5 h-5" />
         </button>
       </div>
 
-      {/* Main Container */}
-      <div className="flex-1 min-h-0 bg-[#0a0a0a] border border-white/10 rounded-[32px] flex flex-col overflow-hidden shadow-2xl relative">
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent pointer-events-none" />
-        
-        {/* Navigation */}
-        <div className="flex items-center gap-2 p-4 border-b border-white/5 overflow-x-auto scrollbar-hide shrink-0 z-10">
-          <NavItem id="presence" icon={Users} label="Presence" />
-          <NavItem id="health" icon={Activity} label="Health" />
-          <NavItem id="moderation" icon={Shield} label="Mod" />
-          <NavItem id="events" icon={Terminal} label="Events" />
-          <NavItem id="analytics" icon={BarChart3} label="Stats" />
-          <NavItem id="device" icon={Smartphone} label="Device" />
-          <NavItem id="emergency" icon={AlertTriangle} label="Danger" />
+      {/* ── Shell ── */}
+      <div className="flex-1 min-h-0 rounded-[28px] border border-white/[0.08] flex flex-col overflow-hidden relative" style={{ background: "#0c0c0e" }}>
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.04] via-transparent to-transparent pointer-events-none rounded-[28px]" />
+
+        {/* Nav */}
+        <div className="flex items-center gap-1 px-4 pt-3 pb-2 border-b border-white/[0.06] overflow-x-auto scrollbar-hide shrink-0 z-10">
+          {TABS.map(({ id, icon: Icon, label: lbl }) => (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${
+                activeTab === id
+                  ? "bg-amber-500/15 text-amber-400 border border-amber-500/20"
+                  : "text-white/35 hover:text-white/65 hover:bg-white/5"
+              }`}
+            >
+              <Icon className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden sm:inline">{lbl}</span>
+            </button>
+          ))}
         </div>
 
-        {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-6 relative z-10 custom-scrollbar">
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar z-10 relative">
           <AnimatePresence mode="wait">
-            
-            {/* 1. LIVE PRESENCE GRID */}
+
+            {/* 1 · PRESENCE */}
             {activeTab === "presence" && (
-              <motion.div
-                key="presence"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+              <motion.div key="presence" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
               >
                 {onlineUsers.map(user => (
-                  <div key={user.id} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-3 group hover:border-primary/30 transition-all duration-300">
+                  <div key={user.id} className={`${card} p-4 flex flex-col gap-3 hover:border-amber-500/20`}>
                     <div className="flex items-center gap-3">
-                      <div className="relative">
-                        <img src={user.avatar} className="w-12 h-12 rounded-full border-2 border-white/10" alt="" />
-                        <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#0a0a0a] ${user.isOnline ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 'bg-white/20'}`} />
+                      <div className="relative shrink-0">
+                        <img src={user.avatar} className="w-11 h-11 rounded-full border border-white/10 object-cover" alt="" />
+                        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c0e] ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`}
+                          style={user.isOnline ? { boxShadow: "0 0 8px #10b981" } : {}}
+                        />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-black text-white truncate">{user.name}</div>
-                        <div className="text-[10px] text-white/40 uppercase font-bold tracking-wider">{user.isOnline ? "Active Session" : "Idle"}</div>
+                      <div className="min-w-0">
+                        <div className="text-[13px] font-semibold text-white truncate">{user.name}</div>
+                        <div className="text-[10px] text-white/35 font-medium mt-0.5">
+                          {user.isOnline ? "Online" : "Away"}
+                        </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-2 mt-auto">
-                      <div className="p-2 rounded-lg bg-black/40 border border-white/5">
-                        <div className="text-[8px] text-white/30 uppercase font-bold">Last Seen</div>
-                        <div className="text-[10px] text-white/80 font-mono">{user.lastSeenFormatted}</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                        <div className={label}>Last seen</div>
+                        <div className="text-[11px] font-mono text-white/70 mt-0.5">{user.lastSeenFormatted}</div>
                       </div>
-                      <div className="p-2 rounded-lg bg-black/40 border border-white/5">
-                        <div className="text-[8px] text-white/30 uppercase font-bold">State</div>
-                        <div className="text-[10px] text-white/80 flex items-center gap-1.5">
-                          {user.typing ? <span className="text-emerald-400 animate-pulse font-bold">Typing</span> : 
-                           user.recording ? <span className="text-red-400 animate-pulse font-bold">Recording</span> : "Quiet"}
+                      <div className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.05]">
+                        <div className={label}>Status</div>
+                        <div className="text-[11px] mt-0.5">
+                          {user.typing
+                            ? <span className="text-emerald-400 font-medium animate-pulse">Typing</span>
+                            : user.recording
+                              ? <span className="text-red-400 font-medium animate-pulse">Recording</span>
+                              : <span className="text-white/50">Quiet</span>}
                         </div>
                       </div>
                     </div>
                   </div>
                 ))}
                 {onlineUsers.length === 0 && (
-                  <div className="col-span-full flex flex-col items-center justify-center py-20 opacity-20">
-                    <Users className="w-16 h-16 mb-4" />
-                    <p className="text-sm font-bold uppercase tracking-widest">No active sessions detected</p>
+                  <div className="col-span-full flex flex-col items-center justify-center py-24 text-white/20">
+                    <Users className="w-12 h-12 mb-3" />
+                    <p className="text-sm font-medium">No active sessions</p>
+                    <p className="text-[11px] mt-1 font-normal opacity-60">Waiting for users to connect</p>
                   </div>
                 )}
               </motion.div>
             )}
 
-            {/* 2. ROOM HEALTH ENGINE */}
+            {/* 2 · HEALTH */}
             {activeTab === "health" && (
-              <motion.div
-                key="health"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+              <motion.div key="health" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
               >
-                {Object.entries(healthMetrics).map(([key, val]: [string, any]) => (
-                  <div key={key} className="p-5 rounded-2xl bg-white/5 border border-white/5 flex flex-col gap-4">
+                {Object.entries(healthMetrics).map(([key, val]) => (
+                  <div key={key} className={`${card} p-5 flex flex-col gap-3 hover:border-amber-500/15`}>
                     <div className="flex items-center justify-between">
-                      <div className="text-[10px] text-white/40 uppercase font-black tracking-widest">{key.replace(/([A-Z])/g, ' $1')}</div>
-                      <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+                      <span className={label}>{key}</span>
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" style={{ boxShadow: "0 0 6px #10b981" }} />
                     </div>
-                    <div className="text-2xl font-mono text-white font-black tracking-tighter">{val}</div>
-                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
-                      <motion.div 
-                        initial={{ width: 0 }}
-                        animate={{ width: "70%" }}
-                        className="h-full bg-primary" 
+                    <div className="text-2xl font-semibold text-white" style={{ fontFamily: "Poppins, sans-serif", letterSpacing: "-0.02em" }}>
+                      {val}
+                    </div>
+                    <div className="h-px w-full bg-white/[0.06] rounded-full overflow-hidden">
+                      <motion.div initial={{ width: 0 }} animate={{ width: "68%" }} transition={{ duration: 1, ease: "easeOut" }}
+                        className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
                       />
                     </div>
                   </div>
@@ -227,191 +232,180 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs }: ChampProps) {
               </motion.div>
             )}
 
-            {/* 3. MODERATION LAYER */}
-            {activeTab === "moderation" && (
-              <motion.div
-                key="moderation"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
+            {/* 3 · MODERATION */}
+            {activeTab === "mod" && (
+              <motion.div key="mod" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                 className="space-y-6"
               >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-sm font-black text-white/60 uppercase tracking-widest flex items-center gap-2">
+                <div>
+                  <h3 className="text-[13px] font-semibold text-white/60 flex items-center gap-2 mb-4">
                     <Shield className="w-4 h-4" /> Moderation Controls
                   </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {[
+                      { label: "Purge Old Messages",  desc: "Remove messages older than 24 h",       icon: Trash2,    accent: "text-red-400"    },
+                      { label: "Force Room Sync",      desc: "Re-trigger presence for all sessions",  icon: RefreshCw, accent: "text-blue-400"   },
+                      { label: "Media Lockdown",       desc: "Disable uploads temporarily",           icon: EyeOff,    accent: "text-orange-400" },
+                      { label: "Maintenance Mode",     desc: "Set room to read-only for 5 min",       icon: Lock,      accent: "text-amber-400"  },
+                    ].map(t => (
+                      <button key={t.label} className={`${card} p-5 text-left hover:bg-white/[0.07] group`}>
+                        <t.icon className={`w-6 h-6 mb-4 ${t.accent}`} />
+                        <div className="text-[13px] font-semibold text-white mb-1">{t.label}</div>
+                        <div className="text-[11px] text-white/35 leading-relaxed font-normal">{t.desc}</div>
+                      </button>
+                    ))}
+                  </div>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              </motion.div>
+            )}
+
+            {/* 4 · EVENTS */}
+            {activeTab === "events" && (
+              <motion.div key="events" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="space-y-1.5"
+              >
+                {eventLogs.map(log => (
+                  <div key={log.id} className={`${card} flex gap-4 px-4 py-3 text-[12px]`}>
+                    <span className="text-white/25 shrink-0 font-mono tabular-nums">
+                      {log.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
+                    </span>
+                    <span className={`font-semibold shrink-0 capitalize ${
+                      log.severity === "success" ? "text-emerald-400" :
+                      log.severity === "error"   ? "text-red-400"     : "text-amber-400"
+                    }`}>
+                      {log.severity}
+                    </span>
+                    <span className="text-white/65 font-normal">{log.message}</span>
+                  </div>
+                ))}
+                <div className="flex items-center gap-3 px-4 py-3 text-[12px] opacity-50">
+                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
+                  <span className="text-white/50 font-normal">Listening for events…</span>
+                </div>
+              </motion.div>
+            )}
+
+            {/* 5 · ANALYTICS */}
+            {activeTab === "stats" && (
+              <motion.div key="stats" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+              >
+                <div className={`${card} p-5 space-y-4`}>
+                  <p className={label}>Message traffic · 24 h</p>
+                  <div className="h-32 flex items-end gap-1.5">
+                    {[40,70,45,90,65,30,55,85,50,75,40,60].map((h, i) => (
+                      <div key={i} className="flex-1 relative group cursor-pointer">
+                        <div className="absolute bottom-0 inset-x-0 rounded-t bg-white/5" style={{ height: "100%" }} />
+                        <motion.div
+                          initial={{ height: 0 }}
+                          animate={{ height: `${h}%` }}
+                          transition={{ duration: 0.6, delay: i * 0.03, ease: "easeOut" }}
+                          className="absolute bottom-0 inset-x-0 rounded-t bg-gradient-to-t from-amber-500 to-amber-400/60 group-hover:from-amber-400 transition-colors"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className={`${card} p-5 space-y-5`}>
+                  <p className={label}>Media type ratio</p>
                   {[
-                    { label: "Purge Inactive Messages", desc: "Clear all messages older than 24h", icon: Trash2, color: "text-red-500" },
-                    { label: "Force Sync Room", desc: "Re-trigger presence for all users", icon: RefreshCw, color: "text-blue-500" },
-                    { label: "Media Lockdown", desc: "Disable all media uploads temporarily", icon: EyeOff, color: "text-orange-500" },
-                    { label: "Maintenance Mode", desc: "Set room to read-only for 5 mins", icon: Lock, color: "text-primary" },
-                  ].map(tool => (
-                    <button key={tool.label} className="p-5 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all text-left group">
-                      <tool.icon className={`w-8 h-8 mb-4 ${tool.color}`} />
-                      <div className="text-sm font-bold text-white mb-1">{tool.label}</div>
-                      <div className="text-[10px] text-white/40 leading-relaxed font-medium uppercase tracking-wider">{tool.desc}</div>
-                    </button>
+                    { name: "Text",   pct: 70, color: "#10b981" },
+                    { name: "Images", pct: 15, color: "#3b82f6" },
+                    { name: "Voice",  pct: 10, color: "#ef4444" },
+                    { name: "Files",  pct:  5, color: "#f59e0b" },
+                  ].map(item => (
+                    <div key={item.name} className="space-y-1.5">
+                      <div className="flex justify-between text-[11px] font-medium text-white/50">
+                        <span>{item.name}</span>
+                        <span>{item.pct}%</span>
+                      </div>
+                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${item.pct}%` }}
+                          transition={{ duration: 0.7, ease: "easeOut" }}
+                          className="h-full rounded-full"
+                          style={{ background: item.color }}
+                        />
+                      </div>
+                    </div>
                   ))}
                 </div>
               </motion.div>
             )}
 
-            {/* 4. PINNED EVENT INTELLIGENCE */}
-            {activeTab === "events" && (
-              <motion.div
-                key="events"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-2 font-mono"
-              >
-                {eventLogs.map(log => (
-                  <div key={log.id} className="flex gap-4 p-3 rounded-xl bg-white/5 border border-white/5 text-[11px]">
-                    <span className="text-white/30 shrink-0">[{log.time.toLocaleTimeString()}]</span>
-                    <span className={`font-black uppercase shrink-0 ${
-                      log.severity === 'success' ? 'text-emerald-500' : 
-                      log.severity === 'error' ? 'text-red-500' : 'text-primary'
-                    }`}>{log.severity}</span>
-                    <span className="text-white/80">{log.message}</span>
-                  </div>
-                ))}
-                <div className="flex items-center gap-2 p-3 text-[11px] animate-pulse">
-                  <span className="text-white/30">[{new Date().toLocaleTimeString()}]</span>
-                  <span className="text-primary font-black uppercase tracking-widest flex items-center gap-2">
-                    <div className="w-1 h-1 bg-primary rounded-full" /> LISTENING FOR EVENTS...
-                  </span>
-                </div>
-              </motion.div>
-            )}
-
-            {/* 5. CHAMP ANALYTICS */}
-            {activeTab === "analytics" && (
-              <motion.div
-                key="analytics"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="space-y-8"
-              >
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Message Distribution (24h)</h4>
-                    <div className="h-40 flex items-end gap-2 px-2">
-                      {[40, 70, 45, 90, 65, 30, 55, 85, 50, 75, 40, 60].map((h, i) => (
-                        <div key={i} className="flex-1 bg-primary/20 rounded-t-lg relative group">
-                          <motion.div 
-                            initial={{ height: 0 }}
-                            animate={{ height: `${h}%` }}
-                            className="absolute bottom-0 inset-x-0 bg-primary rounded-t-lg group-hover:bg-primary/80 transition-colors" 
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <h4 className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">Media Type Ratio</h4>
-                    <div className="space-y-4">
-                      {[
-                        { label: "Text", p: 70, color: "bg-emerald-500" },
-                        { label: "Images", p: 15, color: "bg-blue-500" },
-                        { label: "Voice", p: 10, color: "bg-red-500" },
-                        { label: "Files", p: 5, color: "bg-primary" },
-                      ].map(item => (
-                        <div key={item.label} className="space-y-1.5">
-                          <div className="flex justify-between text-[10px] font-black uppercase tracking-wider text-white/60">
-                            <span>{item.label}</span>
-                            <span>{item.p}%</span>
-                          </div>
-                          <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                            <div className={`h-full ${item.color}`} style={{ width: `${item.p}%` }} />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* 6. DEVICE INTELLIGENCE */}
+            {/* 6 · DEVICE */}
             {activeTab === "device" && deviceQuality && (
-              <motion.div
-                key="device"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+              <motion.div key="device" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
               >
                 {[
-                  { label: "Processor Cores", val: deviceQuality.cores, icon: Cpu },
-                  { label: "Device RAM", val: `${deviceQuality.ram}GB`, icon: HardDrive },
-                  { label: "Network Type", val: deviceQuality.effectiveType, icon: Signal },
-                  { label: "Connection Speed", val: `${deviceQuality.downlink} Mbps`, icon: Globe },
-                  { label: "Round Trip Time", val: `${deviceQuality.rtt}ms`, icon: Clock },
-                  { label: "Performance Mode", val: deviceQuality.isLowEnd ? "Eco / Low-End" : "Performance", icon: Zap },
+                  { label: "CPU Cores",        val: deviceQuality.cores,          icon: Cpu      },
+                  { label: "Device RAM",       val: `${deviceQuality.ram} GB`,    icon: HardDrive},
+                  { label: "Network Type",     val: deviceQuality.effectiveType,  icon: Signal   },
+                  { label: "Downlink Speed",   val: `${deviceQuality.downlink} Mbps`, icon: Globe },
+                  { label: "Round Trip Time",  val: `${deviceQuality.rtt} ms`,    icon: Clock    },
+                  { label: "Performance",      val: deviceQuality.isLowEnd ? "Eco Mode" : "High Performance", icon: Zap },
                 ].map(info => (
-                  <div key={info.label} className="p-4 rounded-2xl bg-white/5 border border-white/5 flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
-                      <info.icon className="w-5 h-5 text-primary" />
+                  <div key={info.label} className={`${card} p-4 flex items-center gap-4 hover:border-amber-500/15`}>
+                    <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
+                      <info.icon className="w-4.5 h-4.5 text-amber-400" />
                     </div>
-                    <div>
-                      <div className="text-[8px] text-white/30 uppercase font-black tracking-widest">{info.label}</div>
-                      <div className="text-sm font-black text-white">{info.val}</div>
+                    <div className="min-w-0">
+                      <div className={label}>{info.label}</div>
+                      <div className="text-[13px] font-semibold text-white mt-0.5 truncate">{info.val}</div>
                     </div>
                   </div>
                 ))}
                 {deviceQuality.isLowEnd && (
-                  <div className="col-span-full p-4 rounded-2xl bg-primary/10 border border-primary/20 flex items-center gap-4">
-                    <Info className="w-6 h-6 text-primary shrink-0" />
+                  <div className="col-span-full flex items-center gap-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/15">
+                    <Info className="w-5 h-5 text-amber-400 shrink-0" />
                     <div>
-                      <div className="text-xs font-bold text-primary uppercase">Low-End Device Optimization Active</div>
-                      <div className="text-[10px] text-primary/70 uppercase font-medium tracking-wider">Animations and blur reduced to preserve stability</div>
+                      <div className="text-[12px] font-semibold text-amber-400">Eco optimisation active</div>
+                      <div className="text-[11px] text-amber-400/50 font-normal mt-0.5">Animations and blur reduced to improve stability on this device.</div>
                     </div>
                   </div>
                 )}
               </motion.div>
             )}
 
-            {/* 7. EMERGENCY OPERATIONS PANEL */}
-            {activeTab === "emergency" && (
-              <motion.div
-                key="emergency"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex flex-col items-center justify-center py-12 space-y-8"
+            {/* 7 · EMERGENCY */}
+            {activeTab === "danger" && (
+              <motion.div key="danger" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex flex-col items-center justify-center py-10 space-y-8"
               >
-                <div className="text-center max-w-md">
-                  <div className="w-20 h-20 bg-red-500/20 border-2 border-red-500/40 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-                    <Power className="w-10 h-10 text-red-500" />
+                <div className="text-center max-w-sm">
+                  <div className="w-16 h-16 rounded-full border border-red-500/30 bg-red-500/10 flex items-center justify-center mx-auto mb-5 animate-pulse">
+                    <Power className="w-8 h-8 text-red-400" />
                   </div>
-                  <h3 className="text-2xl font-black text-white mb-2 uppercase tracking-tight italic">Emergency Lockdown</h3>
-                  <p className="text-xs text-white/40 uppercase font-medium tracking-[0.2em]">Authorized personnel only. Destructive actions follow.</p>
+                  <h3 className="text-xl font-semibold text-white mb-1.5" style={{ fontFamily: "Poppins, sans-serif", letterSpacing: "-0.02em" }}>
+                    Emergency Operations
+                  </h3>
+                  <p className="text-[11px] text-white/35 font-normal leading-relaxed">
+                    Authorised personnel only. These actions affect the live ecosystem.
+                  </p>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-2xl">
-                  <button className="p-6 rounded-[24px] bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all group flex flex-col items-center text-center">
-                    <Lock className="w-8 h-8 text-red-500 mb-4 group-hover:scale-110 transition-transform" />
-                    <div className="text-sm font-black text-white mb-1 uppercase">Freeze Ecosystem</div>
-                    <div className="text-[10px] text-red-500/60 uppercase font-bold tracking-widest">Global read-only mode</div>
-                  </button>
-                  <button className="p-6 rounded-[24px] bg-red-500/10 border border-red-500/20 hover:bg-red-500/20 transition-all group flex flex-col items-center text-center">
-                    <Trash2 className="w-8 h-8 text-red-500 mb-4 group-hover:scale-110 transition-transform" />
-                    <div className="text-sm font-black text-white mb-1 uppercase">Wipe Presence</div>
-                    <div className="text-[10px] text-red-500/60 uppercase font-bold tracking-widest">Invalidate all sessions</div>
-                  </button>
-                  <button className="p-6 rounded-[24px] bg-white/5 border border-white/10 hover:bg-white/10 transition-all group flex flex-col items-center text-center">
-                    <RefreshCw className="w-8 h-8 text-white/60 mb-4 group-hover:rotate-180 transition-transform duration-700" />
-                    <div className="text-sm font-black text-white mb-1 uppercase">Restart Signal</div>
-                    <div className="text-[10px] text-white/30 uppercase font-bold tracking-widest">Re-initialize SSE layers</div>
-                  </button>
-                  <button className="p-6 rounded-[24px] bg-white/5 border border-white/10 hover:bg-white/10 transition-all group flex flex-col items-center text-center">
-                    <Database className="w-8 h-8 text-white/60 mb-4 group-hover:scale-110 transition-transform" />
-                    <div className="text-sm font-black text-white mb-1 uppercase">Clear Cache</div>
-                    <div className="text-[10px] text-white/30 uppercase font-bold tracking-widest">Global media reset</div>
-                  </button>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl">
+                  {[
+                    { label: "Freeze Ecosystem",   desc: "Global read-only mode",          icon: Lock,      danger: true  },
+                    { label: "Wipe Presence",       desc: "Invalidate all active sessions", icon: Trash2,    danger: true  },
+                    { label: "Restart Signal",      desc: "Re-initialise SSE layers",       icon: RefreshCw, danger: false },
+                    { label: "Clear Cache",         desc: "Global media reset",             icon: Database,  danger: false },
+                  ].map(op => (
+                    <button
+                      key={op.label}
+                      className={`flex flex-col items-center text-center p-5 rounded-2xl border transition-all group ${
+                        op.danger
+                          ? "bg-red-500/5 border-red-500/15 hover:bg-red-500/10 hover:border-red-500/25"
+                          : "bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06]"
+                      }`}
+                    >
+                      <op.icon className={`w-7 h-7 mb-3 transition-transform group-hover:scale-110 ${op.danger ? "text-red-400" : "text-white/50"}`} />
+                      <div className={`text-[13px] font-semibold mb-0.5 ${op.danger ? "text-white" : "text-white/80"}`}>{op.label}</div>
+                      <div className={`text-[10px] font-normal ${op.danger ? "text-red-400/50" : "text-white/25"}`}>{op.desc}</div>
+                    </button>
+                  ))}
                 </div>
               </motion.div>
             )}
@@ -420,19 +414,19 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs }: ChampProps) {
         </div>
 
         {/* Footer */}
-        <div className="p-4 border-t border-white/5 bg-black/40 flex items-center justify-between shrink-0 z-10">
-          <div className="flex items-center gap-4 text-[9px] font-black text-white/30 uppercase tracking-[0.2em]">
-            <div className="flex items-center gap-2">
+        <div className="px-5 py-3 border-t border-white/[0.06] flex items-center justify-between shrink-0 z-10">
+          <div className="flex items-center gap-4 text-[10px] text-white/25 font-medium">
+            <div className="flex items-center gap-1.5">
               <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              SYSTEM SYNCED
+              System synced
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5">
               <Signal className="w-3 h-3" />
-              LATENCY: 12MS
+              12 ms
             </div>
           </div>
-          <div className="text-[9px] font-black text-white/20 uppercase tracking-widest">
-            NOVARIO OS // BUILD 2.4.1
+          <div className="text-[10px] text-white/15 font-medium tracking-widest uppercase">
+            Novario · Build 2.4.1
           </div>
         </div>
       </div>
