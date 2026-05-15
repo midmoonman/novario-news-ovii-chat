@@ -1,15 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Activity, Users, Shield, Zap, AlertTriangle,
-  Terminal, BarChart3, HardDrive, Smartphone,
-  Globe, Cpu, Database, Signal, Clock, X,
-  Trash2, Lock, EyeOff, RefreshCw,
-  Power, Info
+  Users, Zap, X, LogOut, Trash2, Eye, RefreshCw,
+  MessageSquare, Mic, Image as ImageIcon, File,
+  AlertTriangle, CheckCircle2, Clock, Signal, Info
 } from "lucide-react";
 import {
-  collection, query, onSnapshot,
-  Timestamp
+  collection, query, onSnapshot, doc,
+  deleteDoc, getDocs, orderBy, Timestamp, limit
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -17,419 +15,502 @@ interface ChampProps {
   isOpen: boolean;
   onClose: () => void;
   isDarkMode: boolean;
-  msgs: any[];
+  msgs: any[];        // already-decrypted messages from parent
+  room?: string;
 }
 
-const TABS = [
-  { id: "presence", icon: Users,         label: "Presence"    },
-  { id: "health",   icon: Activity,      label: "Health"      },
-  { id: "mod",      icon: Shield,        label: "Moderation"  },
-  { id: "events",   icon: Terminal,      label: "Events"      },
-  { id: "stats",    icon: BarChart3,     label: "Analytics"   },
-  { id: "device",   icon: Smartphone,    label: "Device"      },
-  { id: "danger",   icon: AlertTriangle, label: "Emergency"   },
-] as const;
+type Tab = "users" | "preview" | "wipe";
 
-type TabId = typeof TABS[number]["id"];
-
-export function Champ({ isOpen, onClose, isDarkMode, msgs }: ChampProps) {
-  const [activeTab, setActiveTab] = useState<TabId>("presence");
-  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
-  const [healthMetrics] = useState<Record<string, string | number>>({
-    "Active Users":           0,
-    "Msg Throughput":         "Live",
-    "Media Status":           "Stable",
-    "Sync Latency":           "12 ms",
-    "Notification Health":    "Healthy",
-    "WebSocket Integrity":    "100%",
-    "Firebase Status":        "Operational",
-    "Storage Load":           "12%",
-  });
-  const [eventLogs, setEventLogs] = useState<any[]>([]);
-  const [deviceQuality, setDeviceQuality] = useState<any>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const q = query(collection(db, "ovii", "ovii-room", "presence"));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const now = Date.now();
-      const users: any[] = [];
-      snapshot.forEach(d => {
-        const data = d.data();
-        const lastSeen = (data.lastSeen as Timestamp | undefined)?.toMillis() ?? 0;
-        users.push({
-          id: d.id, ...data,
-          isOnline: now - lastSeen < 30000,
-          lastSeenFormatted: lastSeen ? new Date(lastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "—",
-        });
-      });
-      setOnlineUsers(users);
-    });
-
-    setEventLogs([
-      { id: 1, severity: "info",    message: "CHAMP Operational Layer initialized",  time: new Date() },
-      { id: 2, severity: "success", message: "Firebase realtime connection active",   time: new Date() },
-      { id: 3, severity: "info",    message: "Presence stream subscribed",            time: new Date() },
-    ]);
-
-    try {
-      const ram   = (navigator as any).deviceMemory || "—";
-      const cores = navigator.hardwareConcurrency  || "—";
-      const conn  = (navigator as any).connection  || {};
-      setDeviceQuality({
-        ram, cores,
-        effectiveType: conn.effectiveType || "—",
-        downlink:      conn.downlink      || "—",
-        rtt:           conn.rtt           || "—",
-        isLowEnd: (typeof ram === "number" && ram <= 4) || (typeof cores === "number" && cores <= 4),
-        reducedMotion: window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-      });
-    } catch (_) {}
-
-    return () => unsub();
-  }, [isOpen]);
-
-  if (!isOpen) return null;
-
-  /* ── shared classes ── */
-  const card  = "rounded-2xl bg-white/[0.04] border border-white/[0.07] transition-all duration-300";
-  const label = "text-[10px] font-medium text-white/35 tracking-widest uppercase";
-  const value = "text-sm font-semibold text-white leading-snug";
-
+// ─── Confirmation Dialog ────────────────────────────────────────────────────
+function ConfirmDialog({
+  title, body, danger = true,
+  onConfirm, onCancel
+}: {
+  title: string; body: string; danger?: boolean;
+  onConfirm: () => void; onCancel: () => void;
+}) {
   return (
     <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[1000] flex flex-col p-4 md:p-6"
-      style={{ background: "rgba(0,0,0,0.88)", backdropFilter: "blur(16px)" }}
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className="fixed inset-0 z-[1100] flex items-center justify-center p-6"
+      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }}
     >
-      {/* ── Top bar ── */}
-      <div className="flex items-center justify-between mb-5 shrink-0">
-        <div className="flex items-center gap-3">
-          <div
-            className="w-9 h-9 rounded-xl flex items-center justify-center"
-            style={{ background: "linear-gradient(135deg,#f59e0b,#d97706)", boxShadow: "0 0 18px rgba(245,158,11,0.35)" }}
+      <div className="w-full max-w-sm rounded-2xl p-6 border border-white/10" style={{ background: "#16161a" }}>
+        <h3 className="text-base font-semibold text-white mb-2">{title}</h3>
+        <p className="text-sm text-white/45 font-normal leading-relaxed mb-6">{body}</p>
+        <div className="flex gap-3">
+          <button
+            onClick={onCancel}
+            className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-sm font-medium transition-all"
           >
-            <Zap className="w-5 h-5 text-white" strokeWidth={2.5} />
-          </div>
-          <div>
-            <h1
-              className="text-lg text-white leading-none"
-              style={{ fontFamily: "Poppins, sans-serif", fontWeight: 700, letterSpacing: "-0.02em" }}
-            >
-              Champ
-            </h1>
-            <p className="text-[10px] text-white/35 mt-0.5 font-medium tracking-widest uppercase">
-              Operational Intelligence
-            </p>
-          </div>
-        </div>
-        <button
-          onClick={onClose}
-          className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all active:scale-90"
-        >
-          <X className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* ── Shell ── */}
-      <div className="flex-1 min-h-0 rounded-[28px] border border-white/[0.08] flex flex-col overflow-hidden relative" style={{ background: "#0c0c0e" }}>
-        <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.04] via-transparent to-transparent pointer-events-none rounded-[28px]" />
-
-        {/* Nav */}
-        <div className="flex items-center gap-1 px-4 pt-3 pb-2 border-b border-white/[0.06] overflow-x-auto scrollbar-hide shrink-0 z-10">
-          {TABS.map(({ id, icon: Icon, label: lbl }) => (
-            <button
-              key={id}
-              onClick={() => setActiveTab(id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${
-                activeTab === id
-                  ? "bg-amber-500/15 text-amber-400 border border-amber-500/20"
-                  : "text-white/35 hover:text-white/65 hover:bg-white/5"
-              }`}
-            >
-              <Icon className="w-3.5 h-3.5 shrink-0" />
-              <span className="hidden sm:inline">{lbl}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 overflow-y-auto p-5 custom-scrollbar z-10 relative">
-          <AnimatePresence mode="wait">
-
-            {/* 1 · PRESENCE */}
-            {activeTab === "presence" && (
-              <motion.div key="presence" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"
-              >
-                {onlineUsers.map(user => (
-                  <div key={user.id} className={`${card} p-4 flex flex-col gap-3 hover:border-amber-500/20`}>
-                    <div className="flex items-center gap-3">
-                      <div className="relative shrink-0">
-                        <img src={user.avatar} className="w-11 h-11 rounded-full border border-white/10 object-cover" alt="" />
-                        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c0e] ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`}
-                          style={user.isOnline ? { boxShadow: "0 0 8px #10b981" } : {}}
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-[13px] font-semibold text-white truncate">{user.name}</div>
-                        <div className="text-[10px] text-white/35 font-medium mt-0.5">
-                          {user.isOnline ? "Online" : "Away"}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                        <div className={label}>Last seen</div>
-                        <div className="text-[11px] font-mono text-white/70 mt-0.5">{user.lastSeenFormatted}</div>
-                      </div>
-                      <div className="p-2 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                        <div className={label}>Status</div>
-                        <div className="text-[11px] mt-0.5">
-                          {user.typing
-                            ? <span className="text-emerald-400 font-medium animate-pulse">Typing</span>
-                            : user.recording
-                              ? <span className="text-red-400 font-medium animate-pulse">Recording</span>
-                              : <span className="text-white/50">Quiet</span>}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {onlineUsers.length === 0 && (
-                  <div className="col-span-full flex flex-col items-center justify-center py-24 text-white/20">
-                    <Users className="w-12 h-12 mb-3" />
-                    <p className="text-sm font-medium">No active sessions</p>
-                    <p className="text-[11px] mt-1 font-normal opacity-60">Waiting for users to connect</p>
-                  </div>
-                )}
-              </motion.div>
-            )}
-
-            {/* 2 · HEALTH */}
-            {activeTab === "health" && (
-              <motion.div key="health" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-              >
-                {Object.entries(healthMetrics).map(([key, val]) => (
-                  <div key={key} className={`${card} p-5 flex flex-col gap-3 hover:border-amber-500/15`}>
-                    <div className="flex items-center justify-between">
-                      <span className={label}>{key}</span>
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" style={{ boxShadow: "0 0 6px #10b981" }} />
-                    </div>
-                    <div className="text-2xl font-semibold text-white" style={{ fontFamily: "Poppins, sans-serif", letterSpacing: "-0.02em" }}>
-                      {val}
-                    </div>
-                    <div className="h-px w-full bg-white/[0.06] rounded-full overflow-hidden">
-                      <motion.div initial={{ width: 0 }} animate={{ width: "68%" }} transition={{ duration: 1, ease: "easeOut" }}
-                        className="h-full bg-gradient-to-r from-amber-500 to-amber-400"
-                      />
-                    </div>
-                  </div>
-                ))}
-              </motion.div>
-            )}
-
-            {/* 3 · MODERATION */}
-            {activeTab === "mod" && (
-              <motion.div key="mod" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="space-y-6"
-              >
-                <div>
-                  <h3 className="text-[13px] font-semibold text-white/60 flex items-center gap-2 mb-4">
-                    <Shield className="w-4 h-4" /> Moderation Controls
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                    {[
-                      { label: "Purge Old Messages",  desc: "Remove messages older than 24 h",       icon: Trash2,    accent: "text-red-400"    },
-                      { label: "Force Room Sync",      desc: "Re-trigger presence for all sessions",  icon: RefreshCw, accent: "text-blue-400"   },
-                      { label: "Media Lockdown",       desc: "Disable uploads temporarily",           icon: EyeOff,    accent: "text-orange-400" },
-                      { label: "Maintenance Mode",     desc: "Set room to read-only for 5 min",       icon: Lock,      accent: "text-amber-400"  },
-                    ].map(t => (
-                      <button key={t.label} className={`${card} p-5 text-left hover:bg-white/[0.07] group`}>
-                        <t.icon className={`w-6 h-6 mb-4 ${t.accent}`} />
-                        <div className="text-[13px] font-semibold text-white mb-1">{t.label}</div>
-                        <div className="text-[11px] text-white/35 leading-relaxed font-normal">{t.desc}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* 4 · EVENTS */}
-            {activeTab === "events" && (
-              <motion.div key="events" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="space-y-1.5"
-              >
-                {eventLogs.map(log => (
-                  <div key={log.id} className={`${card} flex gap-4 px-4 py-3 text-[12px]`}>
-                    <span className="text-white/25 shrink-0 font-mono tabular-nums">
-                      {log.time.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}
-                    </span>
-                    <span className={`font-semibold shrink-0 capitalize ${
-                      log.severity === "success" ? "text-emerald-400" :
-                      log.severity === "error"   ? "text-red-400"     : "text-amber-400"
-                    }`}>
-                      {log.severity}
-                    </span>
-                    <span className="text-white/65 font-normal">{log.message}</span>
-                  </div>
-                ))}
-                <div className="flex items-center gap-3 px-4 py-3 text-[12px] opacity-50">
-                  <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse shrink-0" />
-                  <span className="text-white/50 font-normal">Listening for events…</span>
-                </div>
-              </motion.div>
-            )}
-
-            {/* 5 · ANALYTICS */}
-            {activeTab === "stats" && (
-              <motion.div key="stats" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-              >
-                <div className={`${card} p-5 space-y-4`}>
-                  <p className={label}>Message traffic · 24 h</p>
-                  <div className="h-32 flex items-end gap-1.5">
-                    {[40,70,45,90,65,30,55,85,50,75,40,60].map((h, i) => (
-                      <div key={i} className="flex-1 relative group cursor-pointer">
-                        <div className="absolute bottom-0 inset-x-0 rounded-t bg-white/5" style={{ height: "100%" }} />
-                        <motion.div
-                          initial={{ height: 0 }}
-                          animate={{ height: `${h}%` }}
-                          transition={{ duration: 0.6, delay: i * 0.03, ease: "easeOut" }}
-                          className="absolute bottom-0 inset-x-0 rounded-t bg-gradient-to-t from-amber-500 to-amber-400/60 group-hover:from-amber-400 transition-colors"
-                        />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className={`${card} p-5 space-y-5`}>
-                  <p className={label}>Media type ratio</p>
-                  {[
-                    { name: "Text",   pct: 70, color: "#10b981" },
-                    { name: "Images", pct: 15, color: "#3b82f6" },
-                    { name: "Voice",  pct: 10, color: "#ef4444" },
-                    { name: "Files",  pct:  5, color: "#f59e0b" },
-                  ].map(item => (
-                    <div key={item.name} className="space-y-1.5">
-                      <div className="flex justify-between text-[11px] font-medium text-white/50">
-                        <span>{item.name}</span>
-                        <span>{item.pct}%</span>
-                      </div>
-                      <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${item.pct}%` }}
-                          transition={{ duration: 0.7, ease: "easeOut" }}
-                          className="h-full rounded-full"
-                          style={{ background: item.color }}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* 6 · DEVICE */}
-            {activeTab === "device" && deviceQuality && (
-              <motion.div key="device" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-              >
-                {[
-                  { label: "CPU Cores",        val: deviceQuality.cores,          icon: Cpu      },
-                  { label: "Device RAM",       val: `${deviceQuality.ram} GB`,    icon: HardDrive},
-                  { label: "Network Type",     val: deviceQuality.effectiveType,  icon: Signal   },
-                  { label: "Downlink Speed",   val: `${deviceQuality.downlink} Mbps`, icon: Globe },
-                  { label: "Round Trip Time",  val: `${deviceQuality.rtt} ms`,    icon: Clock    },
-                  { label: "Performance",      val: deviceQuality.isLowEnd ? "Eco Mode" : "High Performance", icon: Zap },
-                ].map(info => (
-                  <div key={info.label} className={`${card} p-4 flex items-center gap-4 hover:border-amber-500/15`}>
-                    <div className="w-9 h-9 rounded-xl bg-white/5 flex items-center justify-center shrink-0">
-                      <info.icon className="w-4.5 h-4.5 text-amber-400" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className={label}>{info.label}</div>
-                      <div className="text-[13px] font-semibold text-white mt-0.5 truncate">{info.val}</div>
-                    </div>
-                  </div>
-                ))}
-                {deviceQuality.isLowEnd && (
-                  <div className="col-span-full flex items-center gap-3 p-4 rounded-2xl bg-amber-500/5 border border-amber-500/15">
-                    <Info className="w-5 h-5 text-amber-400 shrink-0" />
-                    <div>
-                      <div className="text-[12px] font-semibold text-amber-400">Eco optimisation active</div>
-                      <div className="text-[11px] text-amber-400/50 font-normal mt-0.5">Animations and blur reduced to improve stability on this device.</div>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            )}
-
-            {/* 7 · EMERGENCY */}
-            {activeTab === "danger" && (
-              <motion.div key="danger" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                className="flex flex-col items-center justify-center py-10 space-y-8"
-              >
-                <div className="text-center max-w-sm">
-                  <div className="w-16 h-16 rounded-full border border-red-500/30 bg-red-500/10 flex items-center justify-center mx-auto mb-5 animate-pulse">
-                    <Power className="w-8 h-8 text-red-400" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-1.5" style={{ fontFamily: "Poppins, sans-serif", letterSpacing: "-0.02em" }}>
-                    Emergency Operations
-                  </h3>
-                  <p className="text-[11px] text-white/35 font-normal leading-relaxed">
-                    Authorised personnel only. These actions affect the live ecosystem.
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full max-w-xl">
-                  {[
-                    { label: "Freeze Ecosystem",   desc: "Global read-only mode",          icon: Lock,      danger: true  },
-                    { label: "Wipe Presence",       desc: "Invalidate all active sessions", icon: Trash2,    danger: true  },
-                    { label: "Restart Signal",      desc: "Re-initialise SSE layers",       icon: RefreshCw, danger: false },
-                    { label: "Clear Cache",         desc: "Global media reset",             icon: Database,  danger: false },
-                  ].map(op => (
-                    <button
-                      key={op.label}
-                      className={`flex flex-col items-center text-center p-5 rounded-2xl border transition-all group ${
-                        op.danger
-                          ? "bg-red-500/5 border-red-500/15 hover:bg-red-500/10 hover:border-red-500/25"
-                          : "bg-white/[0.03] border-white/[0.07] hover:bg-white/[0.06]"
-                      }`}
-                    >
-                      <op.icon className={`w-7 h-7 mb-3 transition-transform group-hover:scale-110 ${op.danger ? "text-red-400" : "text-white/50"}`} />
-                      <div className={`text-[13px] font-semibold mb-0.5 ${op.danger ? "text-white" : "text-white/80"}`}>{op.label}</div>
-                      <div className={`text-[10px] font-normal ${op.danger ? "text-red-400/50" : "text-white/25"}`}>{op.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-          </AnimatePresence>
-        </div>
-
-        {/* Footer */}
-        <div className="px-5 py-3 border-t border-white/[0.06] flex items-center justify-between shrink-0 z-10">
-          <div className="flex items-center gap-4 text-[10px] text-white/25 font-medium">
-            <div className="flex items-center gap-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              System synced
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Signal className="w-3 h-3" />
-              12 ms
-            </div>
-          </div>
-          <div className="text-[10px] text-white/15 font-medium tracking-widest uppercase">
-            Novario · Build 2.4.1
-          </div>
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className={`flex-1 py-2.5 rounded-xl text-white text-sm font-semibold transition-all active:scale-95 ${
+              danger ? "bg-red-500 hover:bg-red-600" : "bg-amber-500 hover:bg-amber-600"
+            }`}
+          >
+            Confirm
+          </button>
         </div>
       </div>
     </motion.div>
+  );
+}
+
+export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }: ChampProps) {
+  const [tab, setTab] = useState<Tab>("users");
+  const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null);
+  const [confirm, setConfirm] = useState<null | {
+    title: string; body: string; danger?: boolean; action: () => Promise<void>;
+  }>(null);
+  const [acting, setActing] = useState<string | null>(null); // uid being acted on
+  const previewRef = useRef<HTMLDivElement>(null);
+
+  const showToast = (msg: string, ok = true) => {
+    setToast({ msg, ok });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  const ask = (title: string, body: string, action: () => Promise<void>, danger = true) =>
+    setConfirm({ title, body, danger, action });
+
+  // ── Realtime presence ──────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isOpen) return;
+    const q = query(collection(db, "ovii", room, "presence"));
+    const unsub = onSnapshot(q, (snap) => {
+      const now = Date.now();
+      const users: any[] = [];
+      snap.forEach(d => {
+        const data = d.data();
+        const lastSeen = (data.lastSeen as Timestamp | undefined)?.toMillis() ?? 0;
+        users.push({
+          uid: d.id,
+          name: data.name || "Unknown",
+          avatar: data.avatar || "",
+          isOnline: now - lastSeen < 30_000,
+          typing: !!data.typing,
+          recording: !!data.recording,
+          lastSeen,
+          lastSeenStr: lastSeen
+            ? new Date(lastSeen).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+            : "—",
+        });
+      });
+      // Sort: online first
+      users.sort((a, b) => (b.isOnline ? 1 : 0) - (a.isOnline ? 1 : 0));
+      setOnlineUsers(users);
+    });
+    return () => unsub();
+  }, [isOpen, room]);
+
+  // ── Force logout: write to ovii/{room}/kicked/{uid} ──────────────────────
+  // OViiChat listens to this doc and calls onLock() when it appears
+  const forceLogout = async (uid: string, name: string) => {
+    setActing(uid);
+    try {
+      // Delete presence so user shows offline immediately
+      await deleteDoc(doc(db, "ovii", room, "presence", uid));
+      // Write kicked signal — OViiChat picks this up and locks the screen
+      const { setDoc, serverTimestamp } = await import("firebase/firestore");
+      await setDoc(doc(db, "ovii", room, "kicked", uid), {
+        kickedAt: serverTimestamp(),
+        kickedBy: "champ",
+      });
+      showToast(`${name} has been removed`, true);
+    } catch (e: any) {
+      showToast("Force logout failed: " + e.message, false);
+    } finally {
+      setActing(null);
+    }
+  };
+
+  // ── Wipe all messages ─────────────────────────────────────────────────────
+  const wipeAll = async () => {
+    setActing("wipe-all");
+    try {
+      const snap = await getDocs(collection(db, "ovii", room, "messages"));
+      const chunks: Promise<void>[][] = [];
+      const ids = snap.docs.map(d => d.id);
+      // Delete in parallel batches of 20
+      for (let i = 0; i < ids.length; i += 20) {
+        chunks.push(ids.slice(i, i + 20).map(id =>
+          deleteDoc(doc(db, "ovii", room, "messages", id))
+        ));
+      }
+      for (const chunk of chunks) await Promise.all(chunk);
+      showToast(`${ids.length} messages wiped`, true);
+    } catch (e: any) {
+      showToast("Wipe failed: " + e.message, false);
+    } finally {
+      setActing(null);
+    }
+  };
+
+  // ── Wipe media only ───────────────────────────────────────────────────────
+  const wipeMedia = async () => {
+    setActing("wipe-media");
+    try {
+      const snap = await getDocs(collection(db, "ovii", room, "messages"));
+      const mediaDocs = snap.docs.filter(d => {
+        const t = d.data().type;
+        return t === "image" || t === "voice" || t === "audio" || t === "video" || t === "file";
+      });
+      await Promise.all(mediaDocs.map(d => deleteDoc(d.ref)));
+      showToast(`${mediaDocs.length} media files wiped`, true);
+    } catch (e: any) {
+      showToast("Wipe failed: " + e.message, false);
+    } finally {
+      setActing(null);
+    }
+  };
+
+  if (!isOpen) return null;
+
+  // ── Derived stats from msgs prop (already live-decrypted from parent) ──────
+  const textCount  = msgs.filter(m => m.type === "text").length;
+  const imgCount   = msgs.filter(m => m.type === "image").length;
+  const voiceCount = msgs.filter(m => m.type === "voice" || m.type === "audio").length;
+  const fileCount  = msgs.filter(m => m.type === "file" || m.type === "video").length;
+  const onlineCount = onlineUsers.filter(u => u.isOnline).length;
+
+  const card = "rounded-2xl bg-white/[0.04] border border-white/[0.07]";
+
+  return (
+    <>
+      {/* ── Main panel ── */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 z-[1000] flex flex-col p-4 md:p-6"
+        style={{ background: "rgba(0,0,0,0.90)", backdropFilter: "blur(16px)" }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4 shrink-0">
+          <div className="flex items-center gap-3">
+            <div
+              className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg,#f59e0b,#d97706)", boxShadow: "0 0 18px rgba(245,158,11,0.35)" }}
+            >
+              <Zap className="w-5 h-5 text-white" strokeWidth={2.5} />
+            </div>
+            <div>
+              <h1 className="text-lg text-white leading-none font-bold tracking-tight">Champ</h1>
+              <p className="text-[10px] text-white/35 mt-0.5 font-medium tracking-widest uppercase">
+                Control Centre · {room}
+              </p>
+            </div>
+          </div>
+          <button onClick={onClose}
+            className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Stats strip */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 shrink-0">
+          {[
+            { label: "Online",  val: onlineCount,  icon: Users,          color: "text-emerald-400" },
+            { label: "Text",    val: textCount,    icon: MessageSquare,  color: "text-blue-400"    },
+            { label: "Voice",   val: voiceCount,   icon: Mic,            color: "text-orange-400"  },
+            { label: "Images",  val: imgCount,     icon: ImageIcon,      color: "text-purple-400"  },
+          ].map(s => (
+            <div key={s.label} className={`${card} p-3 flex items-center gap-3`}>
+              <s.icon className={`w-4 h-4 ${s.color} shrink-0`} />
+              <div>
+                <div className="text-[10px] text-white/35 font-medium">{s.label}</div>
+                <div className="text-lg font-bold text-white leading-none">{s.val}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Shell */}
+        <div className="flex-1 min-h-0 rounded-[24px] border border-white/[0.08] flex flex-col overflow-hidden relative" style={{ background: "#0c0c0e" }}>
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.04] via-transparent to-transparent pointer-events-none rounded-[24px]" />
+
+          {/* Nav */}
+          <div className="flex items-center gap-1 px-4 pt-3 pb-2 border-b border-white/[0.06] shrink-0 z-10">
+            {([
+              { id: "users",   icon: Users,         label: "Live Users" },
+              { id: "preview", icon: Eye,            label: "Chat Preview" },
+              { id: "wipe",    icon: Trash2,         label: "Wipe Room" },
+            ] as const).map(({ id, icon: Icon, label }) => (
+              <button key={id} onClick={() => setTab(id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${
+                  tab === id
+                    ? "bg-amber-500/15 text-amber-400 border border-amber-500/20"
+                    : "text-white/35 hover:text-white/65 hover:bg-white/5"
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Content */}
+          <div className="flex-1 overflow-y-auto p-4 custom-scrollbar z-10 relative">
+            <AnimatePresence mode="wait">
+
+              {/* ── TAB 1: LIVE USERS ── */}
+              {tab === "users" && (
+                <motion.div key="users" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="space-y-2"
+                >
+                  {onlineUsers.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 text-white/20">
+                      <Users className="w-10 h-10 mb-3" />
+                      <p className="text-sm font-medium">No users in room</p>
+                    </div>
+                  )}
+                  {onlineUsers.map(user => (
+                    <div key={user.uid} className={`${card} flex items-center gap-3 px-4 py-3`}>
+                      {/* Avatar + status */}
+                      <div className="relative shrink-0">
+                        {user.avatar
+                          ? <img src={user.avatar} className="w-10 h-10 rounded-full border border-white/10 object-cover" alt="" />
+                          : <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/40 text-lg">{user.name[0]}</div>
+                        }
+                        <div
+                          className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c0e] ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`}
+                          style={user.isOnline ? { boxShadow: "0 0 6px #10b981" } : {}}
+                        />
+                      </div>
+
+                      {/* Info */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[13px] font-semibold text-white truncate">{user.name}</span>
+                          {user.typing    && <span className="text-[9px] text-emerald-400 font-medium border border-emerald-500/30 px-1.5 py-0.5 rounded-full animate-pulse">Typing</span>}
+                          {user.recording && <span className="text-[9px] text-red-400 font-medium border border-red-500/30 px-1.5 py-0.5 rounded-full animate-pulse">Recording</span>}
+                        </div>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className={`text-[10px] font-medium ${user.isOnline ? "text-emerald-400" : "text-white/30"}`}>
+                            {user.isOnline ? "● Online" : "○ Offline"}
+                          </span>
+                          {!user.isOnline && (
+                            <span className="text-[10px] text-white/20">· seen {user.lastSeenStr}</span>
+                          )}
+                        </div>
+                        <div className="text-[9px] text-white/15 font-mono mt-0.5 truncate">{user.uid}</div>
+                      </div>
+
+                      {/* Force logout */}
+                      <button
+                        onClick={() => ask(
+                          `Remove ${user.name}?`,
+                          `This will immediately log "${user.name}" out of the chat room. They can re-enter using the password.`,
+                          () => forceLogout(user.uid, user.name),
+                          true
+                        )}
+                        disabled={acting === user.uid}
+                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-[11px] font-medium transition-all active:scale-95 disabled:opacity-40"
+                      >
+                        {acting === user.uid ? (
+                          <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                        ) : (
+                          <LogOut className="w-3.5 h-3.5" />
+                        )}
+                        <span>Remove</span>
+                      </button>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+
+              {/* ── TAB 2: CHAT PREVIEW ── */}
+              {tab === "preview" && (
+                <motion.div key="preview" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="space-y-2" ref={previewRef}
+                >
+                  {msgs.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 text-white/20">
+                      <MessageSquare className="w-10 h-10 mb-3" />
+                      <p className="text-sm font-medium">No messages yet</p>
+                    </div>
+                  )}
+                  {[...msgs].reverse().map(m => {
+                    const time = m.createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) ?? "";
+                    const isDeleted = m.isDeleted;
+                    return (
+                      <div key={m.id} className={`${card} flex gap-3 px-3 py-2.5`}>
+                        {/* Avatar */}
+                        <img src={m.avatar} className="w-8 h-8 rounded-full border border-white/10 object-cover shrink-0 mt-0.5" alt="" />
+                        {/* Body */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[11px] font-semibold text-white/80">{m.name || "Unknown"}</span>
+                            <span className="text-[9px] text-white/20 font-mono">{time}</span>
+                            {/* type badge */}
+                            <span className={`text-[8px] font-medium border px-1 rounded ml-auto ${
+                              m.type === "text"  ? "border-blue-500/20 text-blue-400" :
+                              m.type === "image" ? "border-purple-500/20 text-purple-400" :
+                              m.type === "voice" || m.type === "audio" ? "border-orange-500/20 text-orange-400" :
+                              "border-white/10 text-white/30"
+                            }`}>
+                              {m.type}
+                            </span>
+                          </div>
+                          {/* Content */}
+                          {isDeleted ? (
+                            <p className="text-[11px] text-white/20 italic">Message deleted</p>
+                          ) : m.type === "text" ? (
+                            <p className="text-[12px] text-white/60 font-normal leading-relaxed line-clamp-3 break-words">{m.content}</p>
+                          ) : m.type === "image" ? (
+                            <img src={m.content} className="h-16 w-auto rounded-lg object-cover border border-white/10 mt-1" alt="" />
+                          ) : m.type === "voice" || m.type === "audio" ? (
+                            <div className="flex items-center gap-2 mt-1">
+                              <Mic className="w-3.5 h-3.5 text-orange-400" />
+                              <span className="text-[11px] text-white/40">Voice note</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 mt-1">
+                              <File className="w-3.5 h-3.5 text-white/40" />
+                              <span className="text-[11px] text-white/40 truncate">{m.fileName || "File"}</span>
+                            </div>
+                          )}
+                          {m.caption && (
+                            <p className="text-[11px] text-white/40 mt-1 italic leading-relaxed">{m.caption}</p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </motion.div>
+              )}
+
+              {/* ── TAB 3: WIPE ROOM ── */}
+              {tab === "wipe" && (
+                <motion.div key="wipe" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center py-10 space-y-4 max-w-md mx-auto"
+                >
+                  <div className="w-14 h-14 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mb-2">
+                    <AlertTriangle className="w-7 h-7 text-red-400" />
+                  </div>
+                  <h3 className="text-base font-semibold text-white">Room Wipe Controls</h3>
+                  <p className="text-[12px] text-white/35 text-center leading-relaxed font-normal">
+                    These actions are permanent and cannot be undone. Messages are deleted from the database immediately.
+                  </p>
+
+                  <div className="w-full space-y-3 mt-4">
+                    {/* Wipe all */}
+                    <button
+                      disabled={!!acting}
+                      onClick={() => ask(
+                        "Wipe ALL messages?",
+                        `This will permanently delete ALL ${msgs.length} messages in the room — text, voice notes, images and files. This cannot be undone.`,
+                        wipeAll,
+                        true
+                      )}
+                      className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-red-500/10 border border-red-500/20 hover:bg-red-500/15 transition-all group disabled:opacity-40"
+                    >
+                      <Trash2 className="w-5 h-5 text-red-400 shrink-0 group-hover:scale-110 transition-transform" />
+                      <div className="text-left flex-1">
+                        <div className="text-[13px] font-semibold text-white">Wipe Everything</div>
+                        <div className="text-[11px] text-red-400/50 mt-0.5">{msgs.length} messages · all types</div>
+                      </div>
+                      {acting === "wipe-all" && <RefreshCw className="w-4 h-4 text-red-400 animate-spin shrink-0" />}
+                    </button>
+
+                    {/* Wipe media */}
+                    <button
+                      disabled={!!acting}
+                      onClick={() => ask(
+                        "Wipe media files?",
+                        `This will permanently delete all images, voice notes, audio and video files from the room. Text messages will remain.`,
+                        wipeMedia,
+                        true
+                      )}
+                      className="w-full flex items-center gap-3 px-5 py-4 rounded-2xl bg-orange-500/10 border border-orange-500/20 hover:bg-orange-500/15 transition-all group disabled:opacity-40"
+                    >
+                      <ImageIcon className="w-5 h-5 text-orange-400 shrink-0 group-hover:scale-110 transition-transform" />
+                      <div className="text-left flex-1">
+                        <div className="text-[13px] font-semibold text-white">Wipe Media Only</div>
+                        <div className="text-[11px] text-orange-400/50 mt-0.5">
+                          {msgs.filter(m => ["image","voice","audio","video","file"].includes(m.type)).length} media files
+                        </div>
+                      </div>
+                      {acting === "wipe-media" && <RefreshCw className="w-4 h-4 text-orange-400 animate-spin shrink-0" />}
+                    </button>
+
+                    {/* Info */}
+                    <div className="flex gap-2.5 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
+                      <Info className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                      <p className="text-[11px] text-white/35 font-normal leading-relaxed">
+                        Wipe operations run directly against Firebase. Users currently in the room will see messages disappear in real time.
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+
+            </AnimatePresence>
+          </div>
+
+          {/* Footer */}
+          <div className="px-5 py-2.5 border-t border-white/[0.06] flex items-center justify-between shrink-0 z-10">
+            <div className="flex items-center gap-3 text-[10px] text-white/25 font-medium">
+              <div className="flex items-center gap-1.5">
+                <div className={`w-1.5 h-1.5 rounded-full ${onlineCount > 0 ? "bg-emerald-500 animate-pulse" : "bg-white/20"}`} />
+                {onlineCount} online
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Signal className="w-3 h-3" />
+                Live sync
+              </div>
+            </div>
+            <div className="text-[10px] text-white/15 font-medium tracking-widest uppercase">
+              Novario · Champ
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ── Confirm Dialog ── */}
+      <AnimatePresence>
+        {confirm && (
+          <ConfirmDialog
+            title={confirm.title}
+            body={confirm.body}
+            danger={confirm.danger}
+            onCancel={() => setConfirm(null)}
+            onConfirm={async () => {
+              setConfirm(null);
+              await confirm.action();
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* ── Toast ── */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 20, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[1200] flex items-center gap-2.5 px-5 py-3 rounded-2xl border shadow-2xl"
+            style={{
+              background: toast.ok ? "#166534" : "#7f1d1d",
+              borderColor: toast.ok ? "#16a34a40" : "#dc262640",
+            }}
+          >
+            {toast.ok
+              ? <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+              : <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+            }
+            <span className="text-[13px] font-medium text-white">{toast.msg}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

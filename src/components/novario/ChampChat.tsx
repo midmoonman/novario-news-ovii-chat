@@ -1082,6 +1082,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     if (!avatar) return;
     let unsubMsgs = () => { };
     let unsubPresence = () => { };
+    let unsubKick = () => { };
     let alive = true;
     let heartbeatId: NodeJS.Timeout | null = null;
     let currentUid: string | null = null;
@@ -1147,6 +1148,15 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
             uid: u.uid, avatar, name, lastSeen: serverTimestamp(),
           }, { merge: true }).catch(() => { });
         }, 10_000);
+
+        // ── Kick listener: Champ can force-logout this user ─────────────────
+        const kickRef = doc(db, "ovii", ROOM, "kicked", u.uid);
+        unsubKick = onSnapshot(kickRef, (snap) => {
+          if (snap.exists()) {
+            deleteDoc(kickRef).catch(() => { });
+            onLock();
+          }
+        });
 
         unsubPresence = onSnapshot(presCol, (s) => {
           const t: string[] = [];
@@ -1256,6 +1266,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
         return () => {
           if (heartbeatId) clearInterval(heartbeatId);
           unsubPresence();
+          unsubKick();
           deleteDoc(doc(db, "ovii", ROOM, "presence", u.uid)).catch(() => { });
         };
       } catch (e: unknown) {
@@ -1267,6 +1278,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
       alive = false;
       unsubMsgs();
       unsubPresence();
+      unsubKick();
       if (heartbeatId) clearInterval(heartbeatId);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handlePageHide);
@@ -2168,6 +2180,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
             onClose={() => setShowChamp(false)} 
             isDarkMode={isDarkMode}
             msgs={msgs}
+            room={ROOM}
           />
 
           {/* ── Error Toast (Up Front) ── */}
