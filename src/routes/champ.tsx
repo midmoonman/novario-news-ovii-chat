@@ -5,10 +5,10 @@ import { PasswordModal } from "@/components/novario/PasswordModal";
 // Lazy load chat to keep initial bundle small
 const ChampChat = lazy(() => import("@/components/novario/ChampChat").then(m => ({ default: m.ChampChat })));
 
-export const Route = createFileRoute("/ovii")({
+export const Route = createFileRoute("/champ")({
   head: () => ({
     meta: [
-      { title: "OVii" },
+      { title: "Champ" },
       { name: "robots", content: "noindex,nofollow" },
       { name: "google", content: "notranslate" },
       { name: "autocomplete", content: "off" },
@@ -42,7 +42,7 @@ function OViiPage() {
   }, []);
 
   const [password, setPassword] = useState<string | null>(null);
-  const [room, setRoom] = useState<string>("ovii-room");
+  const [room, setRoom] = useState<string>("champ-room");
 
   const handleUnlock = (mode: string, r: string) => {
     setUnlocked(true);

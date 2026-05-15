@@ -720,7 +720,7 @@ function usePerformanceShield() {
   return isLowEnd;
 }
 
-export function ChampChat({ onLock, password, room = "ovii-room" }: { onLock: () => void, password?: string, room?: string }) {
+export function ChampChat({ onLock, password, room = "champ-room" }: { onLock: () => void, password?: string, room?: string }) {
   const ROOM = room;
 
   const [encryptionKey, setEncryptionKey] = useState<CryptoKey | null>(null);

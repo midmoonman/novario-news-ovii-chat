@@ -33,15 +33,15 @@ export const Route = createRootRoute({
 
 
 function RootComponent() {
-  const [showOvii, setShowOvii] = useState(() => {
-    const noLockUntil = localStorage.getItem("ovii_no_lock_until");
+  const [showChamp, setShowOvii] = useState(() => {
+    const noLockUntil = localStorage.getItem("champ_unlocked_at");
     return (noLockUntil && parseInt(noLockUntil) > Date.now());
   });
   const [unlocked, setUnlocked] = useState(() => {
-    const noLockUntil = localStorage.getItem("ovii_no_lock_until");
+    const noLockUntil = localStorage.getItem("champ_unlocked_at");
     return (noLockUntil && parseInt(noLockUntil) > Date.now());
   });
-  const [room, setRoom] = useState<string>("ovii-room");
+  const [room, setRoom] = useState<string>("champ-room");
   const [password, setPassword] = useState<string>("112233");
   const initialLoadRef = useRef(true);
 
@@ -58,12 +58,12 @@ function RootComponent() {
 
 
 
-  const chatOpen = showOvii && unlocked;
+  const chatOpen = showChamp && unlocked;
 
   useEffect(() => {
     const handleOpen = () => setShowOvii(true);
-    window.addEventListener("open-ovii", handleOpen);
-    return () => window.removeEventListener("open-ovii", handleOpen);
+    window.addEventListener("open-champ", handleOpen);
+    return () => window.removeEventListener("open-champ", handleOpen);
   }, []);
 
   // Freeze EVERYTHING when chat is open — no leaking, no scrolling
@@ -96,7 +96,7 @@ function RootComponent() {
     <div className="w-full overflow-x-hidden relative flex flex-col min-h-screen">
       {/* Only render news page when chat is NOT open to prevent paint-through */}
       {!chatOpen && <Outlet />}
-      {showOvii && !unlocked && (
+      {showChamp && !unlocked && (
         <PasswordModal onUnlock={(mode, r) => { 
           setRoom(r); 
           setPassword(r === "Champ" ? "786786" : "112233");

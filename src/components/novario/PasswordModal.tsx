@@ -9,7 +9,7 @@ export function PasswordModal({ onUnlock }: { onUnlock: (mode: "chat" | "master"
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (val === "112233") {
-      onUnlock("chat", "ovii-room");
+      onUnlock("chat", "champ-room");
     } else if (val === "786786") {
       onUnlock("chat", "Champ");
     } else {
