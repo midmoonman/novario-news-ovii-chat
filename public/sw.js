@@ -35,6 +35,14 @@ self.addEventListener('push', (event) => {
       }
     }
 
+    // Check if we already have a window open to this room
+    const windowClients = await clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const isRoomOpen = windowClients.some(client => client.url.includes('/ovii') && client.visibilityState === 'visible');
+
+    // If room is open and visible, maybe don't show notification? 
+    // Actually, usually it's better to show it anyway or let the app handle it.
+    // For now, always show if it's a push from another device.
+
     const origin = self.location.origin;
     const fullUrl = data.url.startsWith('http') ? data.url : origin + data.url;
 
@@ -42,10 +50,10 @@ self.addEventListener('push', (event) => {
       body: data.body,
       icon: origin + '/favicon.png',
       badge: origin + '/favicon.png',
-      tag: 'novario-msg',
+      tag: 'ovii-msg',
       renotify: true,
       vibrate: [200, 100, 200, 100, 200],
-      requireInteraction: true, // Keep on screen on PC
+      requireInteraction: true, 
       silent: false,
       actions: [
         { action: 'open', title: '📖 Read Now' }

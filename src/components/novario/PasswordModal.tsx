@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 
-export function PasswordModal({ onUnlock }: { onUnlock: (mode: "chat" | "master") => void }) {
+export function PasswordModal({ onUnlock }: { onUnlock: (mode: "chat" | "master", val: string) => void }) {
   const [val, setVal] = useState("");
   const [err, setErr] = useState("");
   const [shake, setShake] = useState(0);
@@ -9,7 +9,7 @@ export function PasswordModal({ onUnlock }: { onUnlock: (mode: "chat" | "master"
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (val === "112233") {
-      onUnlock("chat");
+      onUnlock("chat", val);
     } else {
       setErr("Wrong key. Try again.");
       setShake((s) => s + 1);

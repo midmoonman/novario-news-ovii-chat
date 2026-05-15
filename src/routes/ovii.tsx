@@ -41,26 +41,30 @@ function OViiPage() {
     };
   }, []);
 
-  const handleUnlock = () => {
+  const [password, setPassword] = useState<string | null>(null);
+
+  const handleUnlock = (mode: string, pass: string) => {
     setUnlocked(true);
+    setPassword(pass);
     localStorage.setItem("ovii_unlocked", "true");
   };
 
   const handleLock = () => {
     setUnlocked(false);
+    setPassword(null);
     localStorage.removeItem("ovii_unlocked");
   };
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background" style={{ position: 'fixed', inset: 0 }}>
-      {!unlocked && <PasswordModal onUnlock={handleUnlock} />}
+      {!unlocked && <PasswordModal onUnlock={(mode, pass) => handleUnlock(mode, pass)} />}
       {unlocked && (
         <Suspense fallback={
           <div className="flex items-center justify-center h-full w-full bg-[#0b141a]">
             <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           </div>
         }>
-          <OViiChat onLock={handleLock} />
+          <OViiChat onLock={handleLock} password={password || "112233"} />
         </Suspense>
       )}
     </div>

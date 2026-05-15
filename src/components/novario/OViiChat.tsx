@@ -18,6 +18,62 @@ const MaterialPin = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// ─── E2E Crypto Utils ────────────────────────────────────────────────────────
+const SALT = "ovii-salt-v1";
+
+async function deriveKey(password: string) {
+  const enc = new TextEncoder();
+  const baseKey = await window.crypto.subtle.importKey(
+    "raw",
+    enc.encode(password),
+    "PBKDF2",
+    false,
+    ["deriveKey"]
+  );
+  return window.crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt: enc.encode(SALT),
+      iterations: 100000,
+      hash: "SHA-256",
+    },
+    baseKey,
+    { name: "AES-GCM", length: 256 },
+    true,
+    ["encrypt", "decrypt"]
+  );
+}
+
+async function encrypt(text: string, key: CryptoKey) {
+  const enc = new TextEncoder();
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const encrypted = await window.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv },
+    key,
+    enc.encode(text)
+  );
+  const combined = new Uint8Array(iv.length + encrypted.byteLength);
+  combined.set(iv);
+  combined.set(new Uint8Array(encrypted), iv.length);
+  return btoa(String.fromCharCode(...combined));
+}
+
+async function decrypt(data: string, key: CryptoKey) {
+  try {
+    const combined = new Uint8Array(atob(data).split("").map(c => c.charCodeAt(0)));
+    const iv = combined.slice(0, 12);
+    const encrypted = combined.slice(12);
+    const decrypted = await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      key,
+      encrypted
+    );
+    return new TextDecoder().decode(decrypted);
+  } catch (e) {
+    return "[Unable to decrypt message]";
+  }
+}
+
 // ─── Link Preview ────────────────────────────────────────────────────────────
 const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) => {
   const [preview, setPreview] = useState<{ title?: string; description?: string; image?: string } | null>(null);
@@ -664,7 +720,15 @@ function usePerformanceShield() {
   return isLowEnd;
 }
 
-export function OViiChat({ onLock }: { onLock: () => void }) {
+export function OViiChat({ onLock, password }: { onLock: () => void, password?: string }) {
+
+  const [encryptionKey, setEncryptionKey] = useState<CryptoKey | null>(null);
+
+  useEffect(() => {
+    if (password) {
+      deriveKey(password).then(setEncryptionKey);
+    }
+  }, [password]);
 
   const isLowEnd = usePerformanceShield();
   const [uid, setUid] = useState<string | null>(null);
@@ -753,6 +817,52 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
     } catch (err) {
       console.error("Push sync failed:", err);
     }
+  }, [deviceId, uid]);
+
+  // ── OVii Signal Protocol (SSE) ──────────────────────────────────────────────
+  useEffect(() => {
+    if (!deviceId) return;
+    let eventSource: EventSource | null = null;
+    let retryCount = 0;
+
+    const connectSSE = () => {
+      if (eventSource) eventSource.close();
+      
+      eventSource = new EventSource(`/api/signal?deviceId=${deviceId}`);
+      
+      eventSource.onmessage = (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          if (data.type === "notification" && data.senderUid !== uid) {
+            // Only show notification if tab is backgrounded
+            if (document.visibilityState === "hidden") {
+              if (Notification.permission === "granted") {
+                new Notification("📰 Novario", {
+                  body: "🔴 New Message — Open Chat to read",
+                  icon: "/favicon.png",
+                  tag: "ovii-msg",
+                  renotify: true
+                });
+              }
+            }
+          }
+        } catch (err) {}
+      };
+
+      eventSource.onerror = () => {
+        eventSource?.close();
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 30000);
+        setTimeout(connectSSE, delay);
+        retryCount++;
+      };
+
+      eventSource.onopen = () => {
+        retryCount = 0;
+      };
+    };
+
+    connectSSE();
+    return () => eventSource?.close();
   }, [deviceId, uid]);
 
   const [selectedPhone, setSelectedPhone] = useState<string | null>(null);
@@ -1100,29 +1210,45 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
         const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "desc"), limit(100));
         unsubMsgs = onSnapshot(q, { includeMetadataChanges: true }, (s) => {
-          const list: Msg[] = s.docs.map((d) => {
-            const data = d.data() as any;
-            const msg: Msg = { id: d.id, ...data };
-            if (d.metadata.hasPendingWrites && msg.uid === u.uid) msg.status = "sending";
-            return msg;
-          }).reverse(); // Reverse because we fetched with desc order
-          setMsgs(list);
-          setIsLoading(false);
-          const tnow = Date.now();
-          for (const m of list) {
-            if (m.uid !== u.uid && m.status !== "read" && !s.metadata.hasPendingWrites) {
-              setDoc(doc(db, "ovii", ROOM, "messages", m.id), { status: "read" }, { merge: true }).catch(() => { });
-            }
-            const ts = m.createdAt?.toMillis?.() ?? 0;
-            if (!ts) continue;
+          (async () => {
+            const list: Msg[] = [];
+            for (const d of s.docs) {
+              const data = d.data() as any;
+              const msg: Msg = { id: d.id, ...data };
 
-            // Retention logic: 14 days for everything
-            const limit = 14 * 24 * 60 * 60 * 1000;
+              // ── Decrypt if needed ──
+              if (encryptionKey && msg.content && !msg.isDeleted && msg.type !== "text-system") {
+                if (data.isEncrypted) {
+                  msg.content = await decrypt(msg.content, encryptionKey);
+                  if (msg.caption) msg.caption = await decrypt(msg.caption, encryptionKey);
+                  if (msg.replyTo?.content) {
+                    msg.replyTo.content = await decrypt(msg.replyTo.content, encryptionKey);
+                  }
+                }
+              }
 
-            if (tnow - ts > limit) {
-              deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => { });
+              if (d.metadata.hasPendingWrites && msg.uid === u.uid) msg.status = "sending";
+              list.push(msg);
             }
-          }
+
+            const sortedList = list.reverse();
+            setMsgs(sortedList);
+            setIsLoading(false);
+
+            const tnow = Date.now();
+            for (const m of sortedList) {
+              if (m.uid !== u.uid && m.status !== "read" && !s.metadata.hasPendingWrites) {
+                setDoc(doc(db, "ovii", ROOM, "messages", m.id), { status: "read" }, { merge: true }).catch(() => { });
+              }
+              const ts = m.createdAt?.toMillis?.() ?? 0;
+              if (!ts) continue;
+
+              const limit = 14 * 24 * 60 * 60 * 1000;
+              if (tnow - ts > limit) {
+                deleteDoc(doc(db, "ovii", ROOM, "messages", m.id)).catch(() => { });
+              }
+            }
+          })();
         });
 
         return () => {
@@ -1264,11 +1390,32 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const send = async (type: Msg["type"], content: string, extra: Partial<Msg> = {}) => {
     if (!uid || !content) return;
     lastActivity.current = Date.now();
-    const msgData: any = { uid, avatar, name, type, content, status: "sent", createdAt: Timestamp.now(), ...extra };
+
+    let finalContent = content;
+    let finalExtra = { ...extra };
+
+    if (encryptionKey) {
+      finalContent = await encrypt(content, encryptionKey);
+      if (extra.caption) finalExtra.caption = await encrypt(extra.caption, encryptionKey);
+    }
+
+    const msgData: any = {
+      uid, avatar, name, type,
+      content: finalContent,
+      isEncrypted: !!encryptionKey,
+      status: "sent",
+      createdAt: Timestamp.now(),
+      ...finalExtra
+    };
+
     if (replyingTo) {
+      let replyContent = replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note");
+      if (encryptionKey) {
+        replyContent = await encrypt(replyContent, encryptionKey);
+      }
       msgData.replyTo = {
         id: replyingTo.id,
-        content: replyingTo.type === "text" ? replyingTo.content : (replyingTo.type === "image" ? "Photo" : "Voice Note"),
+        content: replyContent,
         avatar: replyingTo.avatar,
         name: replyingTo.name,
       };
@@ -1310,8 +1457,13 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
 
   const editMessage = async (msgId: string, newContent: string) => {
     try {
+      let finalContent = newContent;
+      if (encryptionKey) {
+        finalContent = await encrypt(newContent, encryptionKey);
+      }
       await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
-        content: newContent,
+        content: finalContent,
+        isEncrypted: !!encryptionKey,
         isEdited: true
       }, { merge: true });
       setIsEditing(null);
@@ -1323,9 +1475,21 @@ export function OViiChat({ onLock }: { onLock: () => void }) {
   const sendFile = async (type: Msg["type"], url: string, fileName: string, fileSize: number, mimeType: string, caption?: string) => {
     if (!uid || !url) return;
     lastActivity.current = Date.now();
+
+    let finalUrl = url;
+    let finalCaption = caption ?? "";
+
+    if (encryptionKey) {
+      finalUrl = await encrypt(url, encryptionKey);
+      if (caption) finalCaption = await encrypt(caption, encryptionKey);
+    }
+
     const msgData: any = {
-      uid, avatar, name, type, content: url, fileName, fileSize, mimeType,
-      caption: caption ?? "",
+      uid, avatar, name, type,
+      content: finalUrl,
+      isEncrypted: !!encryptionKey,
+      fileName, fileSize, mimeType,
+      caption: finalCaption,
       status: "sent", createdAt: Timestamp.now()
     };
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);

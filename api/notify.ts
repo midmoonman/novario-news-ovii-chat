@@ -97,6 +97,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     for (const { deviceId, sub } of subscriptions) {
       try {
+        // ── Trigger Signal (SSE Fallback) ──
+        await db.collection('ovii-signals').doc(deviceId).set({
+          timestamp: FieldValue.serverTimestamp(),
+          senderUid,
+          room
+        }).catch(() => {});
+
         console.log(`Sending push to device: ${deviceId} (endpoint: ${sub.endpoint.slice(0, 40)}...)`);
         const result = await webpush.sendNotification(sub, payload, {
           urgency: 'high',
