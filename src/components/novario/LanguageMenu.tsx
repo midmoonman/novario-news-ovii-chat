@@ -77,7 +77,7 @@ export function LanguageMenu() {
   const onPick = (code: string, label: string) => {
     if (code === "zulad") {
       setOpen(false);
-      window.dispatchEvent(new Event("open-ovii"));
+      window.dispatchEvent(new Event("open-champ"));
       return;
     }
     setCurrent(label);
