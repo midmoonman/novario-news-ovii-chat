@@ -5,7 +5,7 @@ import { PasswordModal } from "@/components/novario/PasswordModal";
 // Lazy load chat to keep initial bundle small
 const ChampChat = lazy(() => import("@/components/novario/ChampChat").then(m => ({ default: m.ChampChat })));
 
-export const Route = createFileRoute("/ovii")({
+export const Route = createFileRoute("/champ")({
   head: () => ({
     meta: [
       { title: "OVii" },

@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-127-champ-operational",
+      "title": "Protocol 127: CHAMP Operational Intelligence Layer",
+      "date": "2026-05-15",
+      "difficulty": {
+        "easy": "Added CHAMP—a new mission control menu for tracking online users, system health, and advanced moderation.",
+        "medium": "Architected the CHAMP operational layer featuring live presence grids, real-time health metrics, and emergency lockdown controls.",
+        "hard": "Engineered CHAMP: a tactical intelligence dashboard. Implemented hardware-aware device telemetry, Firestore-synced presence grids, and a mission-critical emergency operations panel with global state overrides."
+      }
+    },
+    {
       "id": "protocol-123-responsive-presence",
       "title": "Protocol 123: Responsive Presence Engine",
       "date": "2026-05-12",
