@@ -5,11 +5,12 @@ import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
 } from "firebase/firestore";
 import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, ShieldAlert, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin, BellRing } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, Shield, ShieldOff, ShieldAlert, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin, BellRing } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
 const historyData = historyDataRaw as unknown as HistoryDataRoot;
+import { ChampIntelligence } from "./ChampIntelligence";
 
 
 const MaterialPin = ({ className }: { className?: string }) => (
@@ -775,6 +776,7 @@ export function ChampChat({ onLock, password, room = "champ-room" }: { onLock: (
   const [avatar, setAvatar] = useState<string>(() => localStorage.getItem("ovii-avatar-choice") || "");
   const [name, setName] = useState<string>(() => localStorage.getItem("ovii-name") || "");
   const [showAvatarPicker, setShowAvatarPicker] = useState(!isReturning);
+  const [showChampIntelligence, setShowChampIntelligence] = useState(false);
   const [inputName, setInputName] = useState(name);
 
   const syncPushSubscription = useCallback(async (forcedUid?: string) => {
@@ -1987,6 +1989,15 @@ export function ChampChat({ onLock, password, room = "champ-room" }: { onLock: (
                               <History className="w-4 h-4 text-primary" />
                               <div className="flex-1 text-left font-medium">Build Book</div>
                               <span className="text-[9px] font-bold opacity-40 uppercase">v2.4.1</span>
+                            </button>
+
+                            <button
+                              onClick={() => { setShowChampIntelligence(true); setShowMenu(false); }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <Shield className="w-4 h-4 text-orange-500" />
+                              <div className="flex-1 text-left font-medium">Champ</div>
+                              <span className="text-[9px] font-bold text-orange-500/60 uppercase">Operational</span>
                             </button>
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
@@ -3598,6 +3609,14 @@ export function ChampChat({ onLock, password, room = "champ-room" }: { onLock: (
                 </motion.div>
               )}
             </AnimatePresence>
+            
+            {/* ── Champ Operational Intelligence Layer ── */}
+            <ChampIntelligence 
+              isOpen={showChampIntelligence} 
+              onClose={() => setShowChampIntelligence(false)}
+              isDarkMode={isDarkMode}
+              roomName={ROOM}
+            />
 
             {/* ── Phone Action Modal ── */}
             <AnimatePresence>
