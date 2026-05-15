@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PasswordModal } from "@/components/novario/PasswordModal";
 
 // Lazy load chat to keep initial bundle small
-const OViiChat = lazy(() => import("@/components/novario/OViiChat").then(m => ({ default: m.OViiChat })));
+const ChampChat = lazy(() => import("@/components/novario/ChampChat").then(m => ({ default: m.ChampChat })));
 
 export const Route = createFileRoute("/ovii")({
   head: () => ({
@@ -42,10 +42,12 @@ function OViiPage() {
   }, []);
 
   const [password, setPassword] = useState<string | null>(null);
+  const [room, setRoom] = useState<string>("ovii-room");
 
-  const handleUnlock = (mode: string, pass: string) => {
+  const handleUnlock = (mode: string, r: string) => {
     setUnlocked(true);
-    setPassword(pass);
+    setRoom(r);
+    setPassword(r === "Champ" ? "786786" : "112233");
     localStorage.setItem("ovii_unlocked", "true");
   };
 
@@ -57,14 +59,14 @@ function OViiPage() {
 
   return (
     <div className="h-screen w-screen overflow-hidden bg-background" style={{ position: 'fixed', inset: 0 }}>
-      {!unlocked && <PasswordModal onUnlock={(mode, pass) => handleUnlock(mode, pass)} />}
+      {!unlocked && <PasswordModal onUnlock={(mode, r) => handleUnlock(mode, r)} />}
       {unlocked && (
         <Suspense fallback={
           <div className="flex items-center justify-center h-full w-full bg-[#0b141a]">
             <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           </div>
         }>
-          <OViiChat onLock={handleLock} password={password || "112233"} />
+          <ChampChat onLock={handleLock} password={password || "112233"} room={room} />
         </Suspense>
       )}
     </div>

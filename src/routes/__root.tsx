@@ -4,7 +4,7 @@ import { PasswordModal } from "@/components/novario/PasswordModal";
 import { collection, query, orderBy, onSnapshot } from "firebase/firestore";
 import { db, ensureAnonAuth } from "@/lib/firebase";
 
-const OViiChat = lazy(() => import("@/components/novario/OViiChat").then(m => ({ default: m.OViiChat })));
+const ChampChat = lazy(() => import("@/components/novario/ChampChat").then(m => ({ default: m.ChampChat })));
 
 function NotFoundComponent() {
   return (
@@ -41,6 +41,8 @@ function RootComponent() {
     const noLockUntil = localStorage.getItem("ovii_no_lock_until");
     return (noLockUntil && parseInt(noLockUntil) > Date.now());
   });
+  const [room, setRoom] = useState<string>("ovii-room");
+  const [password, setPassword] = useState<string>("112233");
   const initialLoadRef = useRef(true);
 
   // ── Presence Logic ─────────────────────────────────────────────────────
@@ -95,7 +97,11 @@ function RootComponent() {
       {/* Only render news page when chat is NOT open to prevent paint-through */}
       {!chatOpen && <Outlet />}
       {showOvii && !unlocked && (
-        <PasswordModal onUnlock={() => setUnlocked(true)} />
+        <PasswordModal onUnlock={(mode, r) => { 
+          setRoom(r); 
+          setPassword(r === "Champ" ? "786786" : "112233");
+          setUnlocked(true); 
+        }} />
       )}
       {chatOpen && (
         <Suspense fallback={
@@ -103,7 +109,7 @@ function RootComponent() {
             <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           </div>
         }>
-          <OViiChat onLock={() => { setUnlocked(false); setShowOvii(false); }} />
+          <ChampChat onLock={() => { setUnlocked(false); setShowOvii(false); }} room={room} password={password} />
         </Suspense>
       )}
     </div>

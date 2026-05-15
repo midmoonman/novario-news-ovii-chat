@@ -9,7 +9,9 @@ export function PasswordModal({ onUnlock }: { onUnlock: (mode: "chat" | "master"
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     if (val === "112233") {
-      onUnlock("chat", val);
+      onUnlock("chat", "ovii-room");
+    } else if (val === "786786") {
+      onUnlock("chat", "Champ");
     } else {
       setErr("Wrong key. Try again.");
       setShake((s) => s + 1);
@@ -30,7 +32,7 @@ export function PasswordModal({ onUnlock }: { onUnlock: (mode: "chat" | "master"
       >
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 h-14 w-14 rounded-full gradient-gold flex items-center justify-center text-2xl">🔒</div>
-          <h1 className="serif text-2xl font-bold">OVii</h1>
+          <h1 className="serif text-2xl font-bold">Champ</h1>
           <p className="text-xs text-muted-foreground mt-1">Private channel · enter key to continue</p>
         </div>
         <input
