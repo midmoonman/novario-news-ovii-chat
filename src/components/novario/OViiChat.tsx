@@ -1157,6 +1157,24 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         setUid(u.uid);
         setCount(Math.min(2, fresh.docs.length + (fresh.docs.find((d) => d.id === u.uid) ? 0 : 1)));
 
+        // ── Device & IP fingerprint (Thumb Rule) ─────────────────────────────
+        {
+          const ua = navigator.userAgent;
+          const isMob = /Mobi|Android|iPhone/i.test(ua);
+          const deviceType = isMob ? "Mobile" : "Desktop";
+          const browser = ua.includes("Edg") ? "Edge" : ua.includes("Chrome") ? "Chrome" : ua.includes("Firefox") ? "Firefox" : ua.includes("Safari") ? "Safari" : "Other";
+          const os = ua.includes("Windows") ? "Windows" : ua.includes("Mac") ? "macOS" : ua.includes("Android") ? "Android" : ua.includes("iPhone") || ua.includes("iPad") ? "iOS" : ua.includes("Linux") ? "Linux" : "Unknown";
+          const screen = `${window.screen.width}×${window.screen.height}`;
+          const conn = (navigator as any).connection;
+          const network = conn ? `${conn.effectiveType || ""}${conn.downlink ? ` / ${conn.downlink}Mbps` : ""}` : "Unknown";
+          let ip = "Fetching...";
+          try { const r = await fetch("https://api.ipify.org?format=json"); const j = await r.json(); ip = j.ip; } catch {}
+          const fingerprint = { deviceType, browser, os, screen, network, ip, userAgent: ua.slice(0, 150), firstSeen: serverTimestamp() };
+          setDoc(doc(db, "ovii", ROOM, "telemetry", u.uid), {
+            uid: u.uid, name, avatar, deviceType, browser, os, screen, network, ip, userAgent: ua.slice(0, 150), firstSeen: serverTimestamp(), lastActive: serverTimestamp()
+          }, { merge: true }).catch(() => {});
+        }
+
         window.addEventListener("beforeunload", handleBeforeUnload);
         window.addEventListener("pagehide", handlePageHide);
         window.addEventListener("visibilitychange", handleVisibilityChange);
@@ -3097,31 +3115,130 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
             </AnimatePresence>
 
             {/* ── Desktop Sidebar (hidden on mobile via CSS/Tailwind) ── */}
-            <AnimatePresence>
-              {showFolder && (
-                <motion.div
-                  initial={{ width: 0, opacity: 0 }}
-                  animate={{ width: 380, opacity: 1 }}
-                  exit={{ width: 0, opacity: 0 }}
-                  transition={{ type: "spring", damping: 30, stiffness: 300 }}
-                  className={`hidden lg:flex flex-col border-l relative overflow-hidden shrink-0 ${isDarkMode ? "bg-[#202c33]/20 border-white/5" : "bg-white/40 border-black/5"
-                    }`}
-                >
-                  <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
-                    }`}>
-                    <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2.5">
-                      <Folder className="w-4 h-4 text-destructive" /> FILES
-                    </h2>
-                    <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-background/60 hover:bg-background text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                  <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
-                    <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* ── PC Right Panel (always visible on lg+) ── */}
+            <div className={`hidden lg:flex flex-col w-80 shrink-0 border-l overflow-hidden ${isDarkMode ? "bg-[#0b141a] border-white/5" : "bg-[#f0f2f5] border-black/5"}`}>
+
+              {/* Folder panel or default presence panel */}
+              <AnimatePresence mode="wait">
+                {showFolder ? (
+                  <motion.div key="folder" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="flex flex-col flex-1 overflow-hidden">
+                    <div className={`p-4 border-b flex items-center justify-between ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"}`}>
+                      <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2.5">
+                        <Folder className="w-4 h-4 text-destructive" /> Files
+                      </h2>
+                      <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-background/60 hover:bg-background text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
+                      <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
+                    </div>
+                  </motion.div>
+                ) : (
+                  <motion.div key="sidebar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col flex-1 overflow-hidden">
+
+                    {/* Sidebar Header */}
+                    <div className={`px-4 pt-4 pb-3 border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+                      <div className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Room Status</div>
+                      <div className="flex items-center gap-3">
+                        <div className={`flex-1 rounded-2xl p-3 border text-center ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
+                          <div className="text-xl font-black" style={{ color: activePaint !== "default" ? paintTheme.sent : "#25d366" }}>{count}</div>
+                          <div className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Online</div>
+                        </div>
+                        <div className={`flex-1 rounded-2xl p-3 border text-center ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
+                          <div className={`text-xl font-black ${isDarkMode ? "text-white" : "text-black"}`}>{msgs.length}</div>
+                          <div className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Messages</div>
+                        </div>
+                        <div className={`flex-1 rounded-2xl p-3 border text-center ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
+                          <div className={`text-xl font-black ${isDarkMode ? "text-white" : "text-black"}`}>{msgs.filter(m => m.type === "image").length}</div>
+                          <div className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Photos</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Scrollable area */}
+                    <div className="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-5">
+
+                      {/* No-Lock timer */}
+                      {noLockUntil && Date.now() < noLockUntil && (
+                        <div className={`rounded-2xl p-3 border flex items-center gap-2.5 ${isDarkMode ? "bg-primary/5 border-primary/20" : "bg-primary/5 border-primary/20"}`}>
+                          <ShieldOff className="w-4 h-4 text-primary shrink-0" />
+                          <div>
+                            <div className="text-[10px] font-bold text-primary uppercase tracking-widest">No Lock Active</div>
+                            <div className={`text-[11px] font-medium mt-0.5 ${isDarkMode ? "text-white/60" : "text-black/50"}`}>{Math.ceil((noLockUntil - Date.now()) / 60000)}m remaining</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Pinned messages */}
+                      {pinnedMsgs.length > 0 && (
+                        <div>
+                          <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>
+                            <Pin className="w-3 h-3" /> Pinned ({pinnedMsgs.length})
+                          </div>
+                          <div className="space-y-1.5">
+                            {pinnedMsgs.slice(0, 3).map(pm => (
+                              <div key={pm.id} className={`rounded-xl p-2.5 border text-[11px] flex items-start gap-2 cursor-pointer hover:opacity-80 transition-opacity ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}
+                                onClick={() => { const el = document.getElementById(`msg-${pm.id}`); el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
+                              >
+                                <Pin className="w-3 h-3 text-primary mt-0.5 shrink-0" />
+                                <span className={`truncate font-medium ${isDarkMode ? "text-white/70" : "text-black/70"}`}>{pm.type === "text" ? pm.content?.slice(0, 50) : `[${pm.type}]`}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Media quick access */}
+                      {msgs.filter(m => m.type === "image").length > 0 && (
+                        <div>
+                          <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Recent Photos</div>
+                          <div className="grid grid-cols-3 gap-1.5">
+                            {msgs.filter(m => m.type === "image").slice(-6).map(m => (
+                              <div key={m.id} className="aspect-square rounded-xl overflow-hidden cursor-pointer hover:scale-95 transition-transform border border-white/5"
+                                onClick={() => setSelectedImage(m.content)}>
+                                <img src={m.content} className="w-full h-full object-cover" alt="" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Voice notes count */}
+                      {msgs.filter(m => m.type === "voice" || m.type === "audio").length > 0 && (
+                        <div className={`rounded-2xl p-3 border flex items-center gap-3 ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
+                          <Mic className="w-4 h-4 text-primary shrink-0" />
+                          <div>
+                            <div className={`text-[12px] font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{msgs.filter(m => m.type === "voice" || m.type === "audio").length} Voice Notes</div>
+                            <button onClick={() => setShowFolder(true)} className="text-[10px] text-primary font-medium hover:underline">View all files →</button>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Quick actions */}
+                      <div>
+                        <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Quick Actions</div>
+                        <div className="space-y-1.5">
+                          <button onClick={() => setShowFolder(true)} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all hover:opacity-80 border text-left ${isDarkMode ? "bg-white/3 border-white/5 text-white/70" : "bg-white border-black/5 text-black/70"}`}>
+                            <Folder className="w-4 h-4 text-destructive" /><span className="text-[12px] font-medium">Open File Manager</span>
+                          </button>
+                          <button onClick={() => setShowLogs(true)} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all hover:opacity-80 border text-left ${isDarkMode ? "bg-white/3 border-white/5 text-white/70" : "bg-white border-black/5 text-black/70"}`}>
+                            <History className="w-4 h-4 text-primary" /><span className="text-[12px] font-medium">Build History</span>
+                          </button>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    {/* Sidebar footer */}
+                    <div className={`px-4 py-3 border-t text-[9px] font-bold uppercase tracking-widest ${isDarkMode ? "border-white/5 text-white/20" : "border-black/5 text-black/20"}`}>
+                      OVii Secure Room · {ROOM}
+                    </div>
+
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
 
             {/* ── Full Image Preview Overlay ── */}
@@ -3178,32 +3295,82 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className={`fixed inset-0 z-[600] flex items-center justify-center p-4 backdrop-blur-md ${isDarkMode ? "bg-black/40" : "bg-white/40"}`}
+                  className="fixed inset-0 z-[600] flex items-center justify-center p-4"
+                  style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(24px)" }}
                 >
-                  <div className={`w-full max-w-xs rounded-3xl border p-6 text-center shadow-2xl relative ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"}`}>
-                    <button
-                      onClick={() => { setShowChampPin(false); setChampPinInput(""); }}
-                      className={`absolute top-4 right-4 p-2 rounded-full transition-all active:scale-90 ${isDarkMode ? "bg-white/5 text-white/50" : "bg-black/5 text-black/40"}`}
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                    <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-black"}`}>Champ Access</h3>
-                    <input
-                      type="password"
-                      placeholder="Enter PIN"
-                      value={champPinInput}
-                      onChange={(e) => {
-                        setChampPinInput(e.target.value);
-                        if (e.target.value === "786786") {
-                          setShowChampPin(false);
-                          setChampPinInput("");
-                          setShowChamp(true);
-                          localStorage.setItem("ovii_champ_unlocked_until", String(Date.now() + 2 * 60 * 1000));
-                        }
-                      }}
-                      autoFocus
-                      className={`w-full border rounded-xl px-4 py-3 text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isDarkMode ? "bg-black/20 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"}`}
-                    />
+                  {/* Mobile: simple card │ PC: premium two-column layout */}
+                  <div className="w-full max-w-xs lg:max-w-2xl">
+
+                    {/* ── PC only left panel ── */}
+                    <div className="hidden lg:flex w-full rounded-[28px] overflow-hidden border border-white/10 shadow-2xl" style={{ background: "#0e0e12" }}>
+                      <div className="flex-1 p-10 flex flex-col justify-between" style={{ background: "linear-gradient(135deg,#0a1628,#0e0e12)" }}>
+                        <div>
+                          <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: "linear-gradient(135deg,#f59e0b,#d97706)", boxShadow: "0 0 32px rgba(245,158,11,0.35)" }}>
+                            <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
+                          </div>
+                          <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Champ Control</h2>
+                          <p className="text-white/40 text-sm leading-relaxed">Restricted-access admin interface.<br/>Authorized personnel only.</p>
+                        </div>
+                        <div className="mt-10 space-y-2">
+                          {["Real-time user presence", "Message preview & wipe", "Full telemetry & device data"].map(f => (
+                            <div key={f} className="flex items-center gap-2 text-[12px] text-white/40">
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500/60" />{f}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                      <div className="w-[1px] bg-white/5" />
+                      <div className="w-72 p-8 flex flex-col justify-center">
+                        <p className="text-[11px] text-white/30 font-medium uppercase tracking-widest mb-6">Enter Access PIN</p>
+                        <input
+                          type="password"
+                          placeholder="••••••"
+                          value={champPinInput}
+                          onChange={(e) => {
+                            setChampPinInput(e.target.value);
+                            if (e.target.value === "786786") {
+                              setShowChampPin(false); setChampPinInput(""); setShowChamp(true);
+                              localStorage.setItem("ovii_champ_unlocked_until", String(Date.now() + 2 * 60 * 1000));
+                            }
+                          }}
+                          autoFocus
+                          className="w-full rounded-2xl px-5 py-4 text-center tracking-[0.5em] text-xl font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all border border-white/10 text-white"
+                          style={{ background: "rgba(255,255,255,0.04)" }}
+                        />
+                        <p className="text-[10px] text-white/20 text-center mt-4">6-digit PIN required</p>
+                        <button
+                          onClick={() => { setShowChampPin(false); setChampPinInput(""); }}
+                          className="mt-6 w-full py-2.5 rounded-xl text-white/30 hover:text-white/60 text-xs transition-all border border-white/5 hover:border-white/10"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* ── Mobile: simple card (unchanged) ── */}
+                    <div className={`lg:hidden rounded-3xl border p-6 text-center shadow-2xl relative ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"}`}>
+                      <button
+                        onClick={() => { setShowChampPin(false); setChampPinInput(""); }}
+                        className={`absolute top-4 right-4 p-2 rounded-full transition-all active:scale-90 ${isDarkMode ? "bg-white/5 text-white/50" : "bg-black/5 text-black/40"}`}
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                      <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-black"}`}>Champ Access</h3>
+                      <input
+                        type="password"
+                        placeholder="Enter PIN"
+                        value={champPinInput}
+                        onChange={(e) => {
+                          setChampPinInput(e.target.value);
+                          if (e.target.value === "786786") {
+                            setShowChampPin(false); setChampPinInput(""); setShowChamp(true);
+                            localStorage.setItem("ovii_champ_unlocked_until", String(Date.now() + 2 * 60 * 1000));
+                          }
+                        }}
+                        className={`w-full border rounded-xl px-4 py-3 text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isDarkMode ? "bg-black/20 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"}`}
+                      />
+                    </div>
+
                   </div>
                 </motion.div>
               )}

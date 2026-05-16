@@ -4,12 +4,12 @@ import {
   Users, Zap, X, LogOut, Trash2, Eye, RefreshCw,
   MessageSquare, Mic, Image as ImageIcon, File,
   AlertTriangle, CheckCircle2, Clock, Signal, Info,
-  Unlock, Palette, Activity
+  Unlock, Palette, Activity, Monitor, Smartphone, Globe, Wifi
 } from "lucide-react";
 import {
   collection, query, onSnapshot, doc,
   deleteDoc, getDocs, orderBy, Timestamp, limit,
-  setDoc, serverTimestamp
+  setDoc, serverTimestamp, where
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -60,6 +60,41 @@ function ConfirmDialog({
         </div>
       </div>
     </motion.div>
+  );
+}
+
+// ── Inline device row inside user card ─────────────────────────────────────────────────────
+function TelemetryInlineRow({ uid, room }: { uid: string; room: string }) {
+  const [data, setData] = useState<any>(null);
+  useEffect(() => {
+    const unsub = onSnapshot(doc(db, "ovii", room, "telemetry", uid), (snap) => {
+      if (snap.exists()) setData(snap.data());
+    });
+    return () => unsub();
+  }, [uid, room]);
+  if (!data) return null;
+  return (
+    <div className="px-4 pb-3 pt-0 flex flex-wrap gap-x-4 gap-y-1">
+      {data.deviceType && (
+        <span className="flex items-center gap-1 text-[9px] text-white/35">
+          {data.deviceType === "Mobile" ? <Smartphone className="w-2.5 h-2.5" /> : <Monitor className="w-2.5 h-2.5" />}
+          {data.deviceType}
+        </span>
+      )}
+      {data.browser && <span className="text-[9px] text-white/35">{data.browser}</span>}
+      {data.os && <span className="text-[9px] text-white/35">{data.os}</span>}
+      {data.screen && <span className="text-[9px] text-white/35">🖥 {data.screen}</span>}
+      {data.ip && (
+        <span className="flex items-center gap-1 text-[9px] text-blue-400/60 font-mono">
+          <Globe className="w-2.5 h-2.5" /> {data.ip}
+        </span>
+      )}
+      {data.network && data.network !== "Unknown" && (
+        <span className="flex items-center gap-1 text-[9px] text-white/25">
+          <Wifi className="w-2.5 h-2.5" /> {data.network}
+        </span>
+      )}
+    </div>
   );
 }
 
@@ -271,48 +306,50 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
             <AnimatePresence mode="wait">
               {tab === "users" && (
                 <motion.div key="users" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-2">
+                  {onlineUsers.length === 0 && (
+                    <div className="text-center py-10 text-white/20 text-sm">No users in room</div>
+                  )}
                   {onlineUsers.map(user => (
-                    <div key={user.uid} className={`${card} flex items-center gap-3 px-4 py-3 group hover:bg-white/[0.02] transition-all`}>
-                      <div className="relative shrink-0">
-                        {user.avatar
-                          ? <img src={user.avatar} className="w-10 h-10 rounded-full border border-white/10 object-cover" alt="" />
-                          : <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/40 text-lg">{user.name[0]}</div>
-                        }
-                        <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c0e] ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`}
-                          style={user.isOnline ? { boxShadow: "0 0 6px #10b981" } : {}}
-                        />
+                    <div key={user.uid} className={`${card} flex flex-col gap-0 group hover:bg-white/[0.02] transition-all overflow-hidden`}>
+                      {/* Main row */}
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <div className="relative shrink-0">
+                          {user.avatar
+                            ? <img src={user.avatar} className="w-10 h-10 rounded-full border border-white/10 object-cover" alt="" />
+                            : <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/40 text-lg">{user.name[0]}</div>
+                          }
+                          <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c0e] ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`}
+                            style={user.isOnline ? { boxShadow: "0 0 6px #10b981" } : {}}
+                          />
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[13px] font-semibold text-white truncate">{user.name}</span>
+                            {user.isNoLock && (
+                              <span className="flex items-center gap-1 text-[9px] text-amber-400 font-bold border border-amber-500/30 px-1.5 py-0.5 rounded-full bg-amber-500/5">
+                                <Unlock className="w-2.5 h-2.5" /> No Lock
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5 text-[10px]">
+                            <span className={user.isOnline ? "text-emerald-400" : "text-white/30"}>
+                              {user.isOnline ? "Online" : `Last seen ${user.lastSeenStr}`}
+                            </span>
+                          </div>
+                        </div>
+
+                        <button onClick={() => ask(`Force Logout ${user.name}?`, `This will bypass any "No Lock" settings and throw the user to the entry screen immediately.`, () => forceLogout(user.uid, user.name))}
+                          disabled={acting === user.uid}
+                          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-[11px] font-medium transition-all"
+                        >
+                          {acting === user.uid ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <LogOut className="w-3.5 h-3.5" />}
+                          <span>Kick</span>
+                        </button>
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-[13px] font-semibold text-white truncate">{user.name}</span>
-                          {user.isNoLock && (
-                            <span className="flex items-center gap-1 text-[9px] text-amber-400 font-bold border border-amber-500/30 px-1.5 py-0.5 rounded-full bg-amber-500/5">
-                              <Unlock className="w-2.5 h-2.5" /> No Lock
-                            </span>
-                          )}
-                          {user.activePaint !== "default" && (
-                            <span className="flex items-center gap-1 text-[9px] text-blue-400 font-bold border border-blue-500/30 px-1.5 py-0.5 rounded-full bg-blue-500/5">
-                              <Palette className="w-2.5 h-2.5" /> {user.activePaint}
-                            </span>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2 mt-0.5 text-[10px]">
-                          <span className={user.isOnline ? "text-emerald-400" : "text-white/30"}>
-                            {user.isOnline ? "Online" : "Offline"}
-                          </span>
-                          <span className="text-white/15">·</span>
-                          <span className="text-white/30 truncate">{user.uid}</span>
-                        </div>
-                      </div>
-
-                      <button onClick={() => ask(`Force Logout ${user.name}?`, `This will bypass any "No Lock" settings and throw the user to the entry screen immediately.`, () => forceLogout(user.uid, user.name))}
-                        disabled={acting === user.uid}
-                        className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-[11px] font-medium transition-all"
-                      >
-                        {acting === user.uid ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <LogOut className="w-3.5 h-3.5" />}
-                        <span>Kick</span>
-                      </button>
+                      {/* Device info row - fetched from telemetry */}
+                      <TelemetryInlineRow uid={user.uid} room={room} />
                     </div>
                   ))}
                 </motion.div>
@@ -339,31 +376,57 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
 
               {tab === "telemetry" && (
                 <motion.div key="telemetry" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-2">
+                  {telemetry.length === 0 && (
+                    <div className="text-center py-10 text-white/20 text-sm">No telemetry data yet</div>
+                  )}
                   {telemetry.map(t => (
                     <div key={t.id} className={`${card} p-4`}>
+                      {/* Header row */}
                       <div className="flex items-center gap-3 mb-3">
                         {t.avatar ? (
-                          <img src={t.avatar} className="w-8 h-8 rounded-full border border-white/10" alt="" />
+                          <img src={t.avatar} className="w-9 h-9 rounded-full border border-white/10" alt="" />
                         ) : (
-                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/40">{t.name?.[0]}</div>
+                          <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center text-white/40">{t.name?.[0]}</div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="text-[13px] font-bold text-white truncate">{t.name}</div>
-                          <div className="text-[10px] text-white/40 truncate">ID: {t.uid}</div>
+                          <div className="text-[13px] font-bold text-white truncate">{t.name || "Unknown"}</div>
+                          <div className="text-[10px] text-white/30 font-mono truncate">{t.uid}</div>
                         </div>
-                        <div className="ml-auto text-right shrink-0">
-                          <div className="text-[12px] font-mono text-emerald-400 font-bold">{Math.floor((t.totalTimeSpentSeconds || 0) / 60)}m {(t.totalTimeSpentSeconds || 0) % 60}s</div>
-                          <div className="text-[9px] text-white/30 uppercase tracking-widest">Time Spent</div>
+                        <div className="text-right shrink-0">
+                          <div className="text-[14px] font-mono text-emerald-400 font-bold">{Math.floor((t.totalTimeSpentSeconds || 0) / 60)}m {(t.totalTimeSpentSeconds || 0) % 60}s</div>
+                          <div className="text-[9px] text-white/25 uppercase tracking-widest">Session Time</div>
                         </div>
                       </div>
-                      
+
+                      {/* Device grid */}
+                      <div className="grid grid-cols-2 gap-1.5 mb-3">
+                        {[
+                          { icon: t.deviceType === "Mobile" ? Smartphone : Monitor, label: "Device", val: t.deviceType },
+                          { icon: Globe, label: "Browser", val: t.browser },
+                          { icon: Monitor, label: "OS", val: t.os },
+                          { icon: Monitor, label: "Screen", val: t.screen },
+                          { icon: Globe, label: "IP", val: t.ip, mono: true, highlight: true },
+                          { icon: Wifi, label: "Network", val: t.network },
+                        ].filter(r => r.val && r.val !== "Unknown").map(r => (
+                          <div key={r.label} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2 flex items-center gap-2">
+                            <r.icon className={`w-3 h-3 shrink-0 ${r.highlight ? "text-blue-400" : "text-white/30"}`} />
+                            <div className="min-w-0">
+                              <div className="text-[8px] text-white/25 font-bold uppercase tracking-widest">{r.label}</div>
+                              <div className={`text-[11px] truncate font-medium ${r.highlight ? "text-blue-300 font-mono" : "text-white/70"}`}>{r.val}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Actions */}
                       {t.actions && t.actions.length > 0 ? (
-                        <div className="flex flex-wrap gap-1.5 mt-2">
-                          {t.actions.map((act: string, i: number) => (
-                            <span key={i} className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[9px] text-white/60 font-medium">
-                              {act}
-                            </span>
-                          ))}
+                        <div>
+                          <div className="text-[9px] text-white/25 font-bold uppercase tracking-widest mb-1.5">Explored</div>
+                          <div className="flex flex-wrap gap-1.5">
+                            {t.actions.map((act: string, i: number) => (
+                              <span key={i} className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] text-white/55 font-medium">{act}</span>
+                            ))}
+                          </div>
                         </div>
                       ) : (
                         <div className="text-[10px] text-white/20 italic">No actions recorded</div>
