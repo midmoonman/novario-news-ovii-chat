@@ -1,5 +1,5 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { ELEVONE_PROMPT } from "./elevonePrompt";
+import { ELEVONE_PROMPT } from "./elevonePrompt.js";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 

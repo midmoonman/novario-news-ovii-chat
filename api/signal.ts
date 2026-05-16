@@ -44,8 +44,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.error('Signal watch error:', err);
     });
 
+  // Max duration to avoid Vercel hard timeout (300s limit)
+  const timeoutId = setTimeout(() => {
+    clearInterval(keepAlive);
+    unsub();
+    if (!res.writableEnded) {
+      res.write('data: {"type": "reconnect"}\n\n');
+      res.end();
+    }
+  }, 250000); // 250s
+
   req.on('close', () => {
     clearInterval(keepAlive);
+    clearTimeout(timeoutId);
     unsub();
     res.end();
   });
