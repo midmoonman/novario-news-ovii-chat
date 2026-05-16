@@ -2599,7 +2599,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                     longPressTimer.current = setTimeout(() => {
                                       setContextMsg(m);
                                       if (window.navigator.vibrate) window.navigator.vibrate([20]);
-                                    }, 3000);
+                                    }, 2000);
                                   }
                                 }}
                                 onPointerUp={() => {
@@ -3069,21 +3069,21 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                     initial={{ scale: 0.9, opacity: 0, y: 20 }}
                     animate={{ scale: 1, opacity: 1, y: 0 }}
                     exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                    className={`w-full max-w-[280px] rounded-[32px] overflow-hidden shadow-2xl border ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
+                    className={`w-full max-w-[320px] max-h-[85vh] flex flex-col rounded-[28px] overflow-hidden shadow-2xl border ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"
                       }`}
                     onPointerDown={(e) => e.stopPropagation()}
                   >
 
-                    <div className="py-2">
+                    <div className="py-2 overflow-y-auto scrollbar-hide">
                       <button
                         onClick={() => {
                           setReplyingTo(contextMsg);
                           setContextMsg(null);
                           setTimeout(() => inputRef.current?.focus(), 100);
                         }}
-                        className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                        className={`w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                       >
-                        <Reply className="w-4 h-4 opacity-60" /> Reply
+                        <Reply className="w-[18px] h-[18px] opacity-60" /> Reply
                       </button>
 
                       {!contextMsg.isDeleted && (
@@ -3092,9 +3092,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             pinMessage(contextMsg.id, !!contextMsg.isPinned);
                             setContextMsg(null);
                           }}
-                          className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                          className={`w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                         >
-                          <MaterialPin className={`w-4 h-4 opacity-60 ${contextMsg.isPinned ? "fill-primary text-primary" : ""}`} /> {contextMsg.isPinned ? "Unpin Message" : "Pin Message"}
+                          <MaterialPin className={`w-[18px] h-[18px] opacity-60 ${contextMsg.isPinned ? "fill-primary text-primary" : ""}`} /> {contextMsg.isPinned ? "Unpin Message" : "Pin Message"}
                         </button>
                       )}
 
@@ -3106,9 +3106,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             setContextMsg(null);
                             setTimeout(() => inputRef.current?.focus(), 100);
                           }}
-                          className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                          className={`w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                         >
-                          <Pencil className="w-4 h-4 opacity-60" /> Edit Message
+                          <Pencil className="w-[18px] h-[18px] opacity-60" /> Edit Message
                         </button>
                       )}
 
@@ -3117,9 +3117,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                           deleteMessage(contextMsg.id, "me");
                           setContextMsg(null);
                         }}
-                        className="w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium text-destructive hover:bg-destructive/5"
+                        className="w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium text-destructive hover:bg-destructive/5"
                       >
-                        <Trash2 className="w-4 h-4 opacity-60" /> Delete for Me
+                        <Trash2 className="w-[18px] h-[18px] opacity-60" /> Delete for Me
                       </button>
 
                       {!contextMsg.isDeleted && contextMsg.uid === uid && (
@@ -3128,9 +3128,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             deleteMessage(contextMsg.id, "everyone");
                             setContextMsg(null);
                           }}
-                          className="w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium text-destructive hover:bg-destructive/5"
+                          className="w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium text-destructive hover:bg-destructive/5"
                         >
-                          <Users2 className="w-4 h-4 opacity-60" /> Delete for Everyone
+                          <Users2 className="w-[18px] h-[18px] opacity-60" /> Delete for Everyone
                         </button>
                       )}
 
@@ -3141,9 +3141,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             addNotification("Copied", "success");
                             setContextMsg(null);
                           }}
-                          className={`w-full flex items-center gap-4 px-6 py-3.5 text-sm font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                          className={`w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
                         >
-                          <CheckCircle2 className="w-4 h-4 opacity-60" /> Copy
+                          <CheckCircle2 className="w-[18px] h-[18px] opacity-60" /> Copy
                         </button>
                       )}
                     </div>
