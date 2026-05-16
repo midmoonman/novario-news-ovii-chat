@@ -2111,7 +2111,17 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
                             <button
-                              onClick={() => { setShowChampPin(true); setShowMenu(false); trackAction("Opened Champ PIN Layer"); }}
+                              onClick={() => { 
+                                const unlockedUntil = parseInt(localStorage.getItem("ovii_champ_unlocked_until") || "0", 10);
+                                if (Date.now() < unlockedUntil) {
+                                  setShowChamp(true);
+                                  trackAction("Opened Champ directly (Bypass)");
+                                } else {
+                                  setShowChampPin(true); 
+                                  trackAction("Opened Champ PIN Layer");
+                                }
+                                setShowMenu(false); 
+                              }}
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
                               <Zap className="w-4 h-4 text-primary" />
@@ -3188,6 +3198,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                           setShowChampPin(false);
                           setChampPinInput("");
                           setShowChamp(true);
+                          localStorage.setItem("ovii_champ_unlocked_until", String(Date.now() + 2 * 60 * 1000));
                         }
                       }}
                       autoFocus

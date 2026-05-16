@@ -4,7 +4,7 @@ import {
   Users, Zap, X, LogOut, Trash2, Eye, RefreshCw,
   MessageSquare, Mic, Image as ImageIcon, File,
   AlertTriangle, CheckCircle2, Clock, Signal, Info,
-  Unlock, Palette
+  Unlock, Palette, Activity
 } from "lucide-react";
 import {
   collection, query, onSnapshot, doc,
@@ -21,7 +21,7 @@ interface ChampProps {
   room?: string;
 }
 
-type Tab = "users" | "preview" | "wipe";
+type Tab = "users" | "preview" | "telemetry" | "wipe";
 
 // ─── Confirmation Dialog ────────────────────────────────────────────────────
 function ConfirmDialog({
@@ -81,6 +81,8 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
   const ask = (title: string, body: string, action: () => Promise<void>, danger = true) =>
     setConfirm({ title, body, danger, action });
 
+  const [telemetry, setTelemetry] = useState<any[]>([]);
+
   // ── Realtime presence ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!isOpen) return;
@@ -111,6 +113,16 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
       // Sort: online first
       users.sort((a, b) => (b.isOnline ? 1 : 0) - (a.isOnline ? 1 : 0));
       setOnlineUsers(users);
+    });
+    return () => unsub();
+  }, [isOpen, room]);
+
+  // ── Telemetry subscription ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isOpen) return;
+    const q = query(collection(db, "ovii", room, "telemetry"), orderBy("lastActive", "desc"), limit(50));
+    const unsub = onSnapshot(q, (snap) => {
+      setTelemetry(snap.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
   }, [isOpen, room]);
@@ -238,9 +250,10 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
           {/* Nav */}
           <div className="flex items-center gap-1 px-4 pt-3 pb-2 border-b border-white/[0.06] shrink-0 z-10">
             {([
-              { id: "users",   icon: Users,         label: "Users" },
-              { id: "preview", icon: Eye,            label: "Realtime View" },
-              { id: "wipe",    icon: Trash2,         label: "Cleanup" },
+              { id: "users",     icon: Users,          label: "Users" },
+              { id: "preview",   icon: Eye,            label: "Realtime View" },
+              { id: "telemetry", icon: Activity,       label: "Telemetry" },
+              { id: "wipe",      icon: Trash2,         label: "Cleanup" },
             ] as const).map(({ id, icon: Icon, label }) => (
               <button key={id} onClick={() => setTab(id)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
@@ -319,6 +332,42 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
                          m.type === "image" ? <img src={m.content} className="h-20 rounded-lg border border-white/10 mt-1" alt="" /> :
                          <div className="flex items-center gap-2 mt-1 text-[11px] text-white/40"><Mic className="w-3.5 h-3.5" /> {m.type} data</div>}
                       </div>
+                    </div>
+                  ))}
+                </motion.div>
+              )}
+
+              {tab === "telemetry" && (
+                <motion.div key="telemetry" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-2">
+                  {telemetry.map(t => (
+                    <div key={t.id} className={`${card} p-4`}>
+                      <div className="flex items-center gap-3 mb-3">
+                        {t.avatar ? (
+                          <img src={t.avatar} className="w-8 h-8 rounded-full border border-white/10" alt="" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white/40">{t.name?.[0]}</div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[13px] font-bold text-white truncate">{t.name}</div>
+                          <div className="text-[10px] text-white/40 truncate">ID: {t.uid}</div>
+                        </div>
+                        <div className="ml-auto text-right shrink-0">
+                          <div className="text-[12px] font-mono text-emerald-400 font-bold">{Math.floor((t.totalTimeSpentSeconds || 0) / 60)}m {(t.totalTimeSpentSeconds || 0) % 60}s</div>
+                          <div className="text-[9px] text-white/30 uppercase tracking-widest">Time Spent</div>
+                        </div>
+                      </div>
+                      
+                      {t.actions && t.actions.length > 0 ? (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {t.actions.map((act: string, i: number) => (
+                            <span key={i} className="px-2 py-1 rounded bg-white/5 border border-white/10 text-[9px] text-white/60 font-medium">
+                              {act}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <div className="text-[10px] text-white/20 italic">No actions recorded</div>
+                      )}
                     </div>
                   ))}
                 </motion.div>
