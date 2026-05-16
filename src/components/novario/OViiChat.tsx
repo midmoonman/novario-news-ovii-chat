@@ -2030,11 +2030,11 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                 {/* Paint swatches */}
                 {[
                   { val: "default", color: "#25d366" },
-                  { val: "paint1",  color: "#0ea5e9" },
-                  { val: "paint2",  color: "#a3a35a" },
-                  { val: "paint3",  color: "#f43f5e" },
-                  { val: "paint4",  color: "#8b5cf6" },
-                  { val: "paint5",  color: "#f59e0b" },
+                  { val: "paint1",  color: "#f97316" },
+                  { val: "paint2",  color: "#fdfbd4" },
+                  { val: "paint3",  color: "#355c7d" },
+                  { val: "paint4",  color: "#028175" },
+                  { val: "paint5",  color: "#662249" },
                 ].map(p => (
                   <button
                     key={p.val}
@@ -3214,12 +3214,11 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                   className="fixed inset-0 z-[600] flex items-center justify-center p-4"
                   style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(24px)" }}
                 >
-                  {/* Mobile: simple card │ PC: premium two-column layout */}
-                  <div className="w-full max-w-xs lg:max-w-2xl">
+                  <div className="w-full max-w-[340px] sm:max-w-2xl">
 
-                    {/* ── PC only left panel ── */}
-                    <div className="hidden lg:flex w-full rounded-[28px] overflow-hidden border border-white/10 shadow-2xl" style={{ background: "#0e0e12" }}>
-                      <div className="flex-1 p-10 flex flex-col justify-between" style={{ background: "linear-gradient(135deg,#0a1628,#0e0e12)" }}>
+                    {/* ── Unified Premium Champ PIN Panel ── */}
+                    <div className="w-full flex flex-col sm:flex-row rounded-[28px] overflow-hidden border border-white/10 shadow-2xl" style={{ background: "#0e0e12" }}>
+                      <div className="flex-1 p-8 sm:p-10 flex flex-col justify-between" style={{ background: "linear-gradient(135deg,#0a1628,#0e0e12)" }}>
                         <div>
                           <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ background: "linear-gradient(135deg,#f59e0b,#d97706)", boxShadow: "0 0 32px rgba(245,158,11,0.35)" }}>
                             <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
@@ -3227,17 +3226,17 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                           <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Champ Control</h2>
                           <p className="text-white/40 text-sm leading-relaxed">Restricted-access admin interface.<br/>Authorized personnel only.</p>
                         </div>
-                        <div className="mt-10 space-y-2">
-                          {["Real-time user presence", "Message preview & wipe", "Full telemetry & device data"].map(f => (
+                        <div className="mt-8 sm:mt-10 space-y-2">
+                          {["Real-time user presence", "Message preview & wipe", "Full telemetry data"].map(f => (
                             <div key={f} className="flex items-center gap-2 text-[12px] text-white/40">
-                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500/60" />{f}
+                              <div className="w-1.5 h-1.5 rounded-full bg-amber-500/60 shrink-0" />{f}
                             </div>
                           ))}
                         </div>
                       </div>
-                      <div className="w-[1px] bg-white/5" />
-                      <div className="w-72 p-8 flex flex-col justify-center">
-                        <p className="text-[11px] text-white/30 font-medium uppercase tracking-widest mb-6">Enter Access PIN</p>
+                      <div className="w-full sm:w-[1px] h-[1px] sm:h-auto bg-white/5" />
+                      <div className="w-full sm:w-72 p-8 flex flex-col justify-center">
+                        <p className="text-[11px] text-white/30 font-medium uppercase tracking-widest mb-6 text-center sm:text-left">Enter Access PIN</p>
                         <input
                           type="password"
                           placeholder="••••••"
@@ -3262,31 +3261,6 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         </button>
                       </div>
                     </div>
-
-                    {/* ── Mobile: simple card (unchanged) ── */}
-                    <div className={`lg:hidden rounded-3xl border p-6 text-center shadow-2xl relative ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"}`}>
-                      <button
-                        onClick={() => { setShowChampPin(false); setChampPinInput(""); }}
-                        className={`absolute top-4 right-4 p-2 rounded-full transition-all active:scale-90 ${isDarkMode ? "bg-white/5 text-white/50" : "bg-black/5 text-black/40"}`}
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                      <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-black"}`}>Champ Access</h3>
-                      <input
-                        type="password"
-                        placeholder="Enter PIN"
-                        value={champPinInput}
-                        onChange={(e) => {
-                          setChampPinInput(e.target.value);
-                          if (e.target.value === "786786") {
-                            setShowChampPin(false); setChampPinInput(""); setShowChamp(true);
-                            localStorage.setItem("ovii_champ_unlocked_until", String(Date.now() + 2 * 60 * 1000));
-                          }
-                        }}
-                        className={`w-full border rounded-xl px-4 py-3 text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isDarkMode ? "bg-black/20 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"}`}
-                      />
-                    </div>
-
                   </div>
                 </motion.div>
               )}
