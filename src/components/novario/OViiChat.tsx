@@ -752,6 +752,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const recTimerRef = useRef<any>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [showChamp, setShowChamp] = useState(false);
+  const [showChampPin, setShowChampPin] = useState(false);
+  const [champPinInput, setChampPinInput] = useState("");
 
   useEffect(() => {
     localStorage.setItem("ovii_dark_mode", String(isDarkMode));
@@ -972,7 +974,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       // If any modal is open, close it and prevent navigation
-      if (showLogs || showAvatarPicker || showFolder || selectedImage || selectedPhone || showClearConfirm || showMenu) {
+      if (showLogs || showAvatarPicker || showFolder || selectedImage || selectedPhone || showClearConfirm || showMenu || showChamp || showChampPin) {
         setShowLogs(false);
         setShowAvatarPicker(false);
         setShowFolder(false);
@@ -980,6 +982,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         setSelectedPhone(null);
         setShowClearConfirm(false);
         setShowMenu(false);
+        setShowChamp(false);
+        setShowChampPin(false);
         setShowPaintsSubmenu(false);
         setShowNoLockSubmenu(false);
         // Push state back to prevent exit
@@ -992,7 +996,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     window.addEventListener("popstate", handlePopState);
 
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [showLogs, showAvatarPicker, showFolder, selectedImage, selectedPhone, showClearConfirm, showMenu]);
+  }, [showLogs, showAvatarPicker, showFolder, selectedImage, selectedPhone, showClearConfirm, showMenu, showChamp, showChampPin]);
 
   // -- Stable layout handling (anti-jitter) --
   useEffect(() => {
@@ -2107,12 +2111,11 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
                             <button
-                              onClick={() => { setShowChamp(true); setShowMenu(false); }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-primary/10 text-primary" : "hover:bg-primary/5 text-primary"}`}
+                              onClick={() => { setShowChampPin(true); setShowMenu(false); trackAction("Opened Champ PIN Layer"); }}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
-                              <Zap className="w-4 h-4 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                              <div className="flex-1 text-left font-black uppercase tracking-widest italic">CHAMP</div>
-                              <span className="text-[8px] font-bold opacity-40 border border-primary/20 px-1 rounded">PRO</span>
+                              <Zap className="w-4 h-4 text-primary" />
+                              <div className="flex-1 text-left font-medium">Champ</div>
                             </button>
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
@@ -2530,7 +2533,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                     longPressTimer.current = setTimeout(() => {
                                       setContextMsg(m);
                                       if (window.navigator.vibrate) window.navigator.vibrate([20]);
-                                    }, 500);
+                                    }, 4500);
                                   }
                                 }}
                                 onPointerUp={() => {
@@ -3154,6 +3157,43 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                       className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl"
                     />
                   </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Champ PIN Modal ── */}
+            <AnimatePresence>
+              {showChampPin && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className={`fixed inset-0 z-[600] flex items-center justify-center p-4 backdrop-blur-md ${isDarkMode ? "bg-black/40" : "bg-white/40"}`}
+                >
+                  <div className={`w-full max-w-xs rounded-3xl border p-6 text-center shadow-2xl relative ${isDarkMode ? "bg-[#233138] border-white/10" : "bg-white border-black/10"}`}>
+                    <button
+                      onClick={() => { setShowChampPin(false); setChampPinInput(""); }}
+                      className={`absolute top-4 right-4 p-2 rounded-full transition-all active:scale-90 ${isDarkMode ? "bg-white/5 text-white/50" : "bg-black/5 text-black/40"}`}
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                    <h3 className={`text-lg font-bold mb-4 ${isDarkMode ? "text-white" : "text-black"}`}>Champ Access</h3>
+                    <input
+                      type="password"
+                      placeholder="Enter PIN"
+                      value={champPinInput}
+                      onChange={(e) => {
+                        setChampPinInput(e.target.value);
+                        if (e.target.value === "786786") {
+                          setShowChampPin(false);
+                          setChampPinInput("");
+                          setShowChamp(true);
+                        }
+                      }}
+                      autoFocus
+                      className={`w-full border rounded-xl px-4 py-3 text-center tracking-widest text-lg font-mono focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all ${isDarkMode ? "bg-black/20 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"}`}
+                    />
+                  </div>
                 </motion.div>
               )}
             </AnimatePresence>
