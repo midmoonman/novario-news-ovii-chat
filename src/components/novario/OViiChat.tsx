@@ -1854,6 +1854,13 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
             </div>
           )}
 
+          {/* ── INITIALIZATION SHIELD ── */}
+          {(isLoading || !uid) && !showAvatarPicker && !error && (
+            <div className={`absolute inset-0 z-[400] flex flex-col items-center justify-center ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"}`}>
+               <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+            </div>
+          )}
+
           {/* ── Mobile Folder Overlay ── */}
           <AnimatePresence>
             {showFolder && (
