@@ -74,26 +74,60 @@ function TelemetryInlineRow({ uid, room }: { uid: string; room: string }) {
   }, [uid, room]);
   if (!data) return null;
   return (
-    <div className="px-4 pb-3 pt-0 flex flex-wrap gap-x-4 gap-y-1">
-      {data.deviceType && (
-        <span className="flex items-center gap-1 text-[9px] text-white/35">
-          {data.deviceType === "Mobile" ? <Smartphone className="w-2.5 h-2.5" /> : <Monitor className="w-2.5 h-2.5" />}
-          {data.deviceType}
-        </span>
-      )}
-      {data.browser && <span className="text-[9px] text-white/35">{data.browser}</span>}
-      {data.os && <span className="text-[9px] text-white/35">{data.os}</span>}
-      {data.screen && <span className="text-[9px] text-white/35">🖥 {data.screen}</span>}
-      {data.ip && (
-        <span className="flex items-center gap-1 text-[9px] text-blue-400/60 font-mono">
-          <Globe className="w-2.5 h-2.5" /> {data.ip}
-        </span>
-      )}
-      {data.network && data.network !== "Unknown" && (
-        <span className="flex items-center gap-1 text-[9px] text-white/25">
-          <Wifi className="w-2.5 h-2.5" /> {data.network}
-        </span>
-      )}
+    <div className="px-4 pb-4 pt-1 flex flex-col gap-3">
+      <div className="flex flex-wrap gap-2">
+        {data.deviceType && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[9px] font-medium" style={{ backgroundColor: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>
+            {data.deviceType === "Mobile" ? <Smartphone className="w-3 h-3 text-white/40" /> : <Monitor className="w-3 h-3 text-white/40" />}
+            {data.deviceType}
+          </div>
+        )}
+        {data.browser && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[9px] font-medium" style={{ backgroundColor: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>
+            <Globe className="w-3 h-3 text-[#eab308]" />
+            {data.browser}
+          </div>
+        )}
+        {data.os && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[9px] font-medium" style={{ backgroundColor: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>
+            <Monitor className="w-3 h-3 text-[#3b82f6]" />
+            {data.os}
+          </div>
+        )}
+        {data.screen && (
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[9px] font-medium" style={{ backgroundColor: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.5)" }}>
+            <Monitor className="w-3 h-3 text-white/40" />
+            {data.screen}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {data.ip && (
+          <span className="flex items-center gap-2 text-[10px] text-blue-400 font-mono">
+            <Globe className="w-3.5 h-3.5 text-blue-400/60" /> {data.ip}
+          </span>
+        )}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            {data.network && data.network !== "Unknown" && (
+              <span className="flex items-center gap-1.5 text-[10px] text-white/40 font-medium">
+                <Wifi className="w-3.5 h-3.5 text-white/30" /> {data.network}
+              </span>
+            )}
+            {data.speed && (
+              <span className="flex items-center gap-1.5 text-[10px] text-white/40 font-medium">
+                <Activity className="w-3.5 h-3.5 text-white/30" /> {data.speed} Mbps
+              </span>
+            )}
+          </div>
+          <div className="flex gap-1 items-center opacity-40">
+            <div className="w-1 h-1 rounded-full bg-white"></div>
+            <div className="w-1 h-1 rounded-full bg-white"></div>
+            <div className="w-1 h-1 rounded-full bg-white"></div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
@@ -244,65 +278,67 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         className="fixed inset-0 z-[1000] flex flex-col p-4 md:p-6"
-        style={{ background: "rgba(0,0,0,0.90)", backdropFilter: "blur(16px)" }}
+        style={{ background: "#0b0f16" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between mb-4 shrink-0">
+        <div className="flex items-center justify-between mb-6 shrink-0 mt-2">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg,#f59e0b,#d97706)", boxShadow: "0 0 18px rgba(245,158,11,0.35)" }}
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
+              style={{ background: "#ff9900", boxShadow: "0 0 20px rgba(255,153,0,0.4)" }}
             >
-              <Zap className="w-5 h-5 text-white" strokeWidth={2.5} />
+              <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
             </div>
             <div>
-              <h1 className="text-lg text-white font-bold tracking-tight">Champ Control</h1>
-              <p className="text-[10px] text-white/35 mt-0.5 font-medium tracking-widest uppercase">
+              <h1 className="text-[22px] text-white font-bold tracking-tight leading-tight">Champ Control</h1>
+              <p className="text-[9px] text-white/40 mt-0 font-medium tracking-[0.15em] uppercase">
                 {room} · Admin Interface
               </p>
             </div>
           </div>
-          <button onClick={onClose} className="w-9 h-9 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all">
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/[0.03] hover:bg-white/10 flex items-center justify-center text-white/50 hover:text-white transition-all border border-white/[0.05]">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Stats strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-4 shrink-0">
+        <div className="flex overflow-x-auto custom-scrollbar gap-3 mb-6 shrink-0 snap-x">
           {[
-            { label: "Online",  val: onlineCount,  icon: Users,          color: "text-emerald-400" },
-            { label: "Text",    val: textCount,    icon: MessageSquare,  color: "text-blue-400"    },
-            { label: "Voice",   val: voiceCount,   icon: Mic,            color: "text-orange-400"  },
-            { label: "Images",  val: imgCount,     icon: ImageIcon,      color: "text-purple-400"  },
+            { label: "Online",  val: onlineCount,  sub: "Users online", icon: Users,          color: "text-emerald-400", bg: "bg-emerald-400/5", border: "border-emerald-400/10" },
+            { label: "Text",    val: textCount,    sub: "Messages",     icon: MessageSquare,  color: "text-blue-400", bg: "bg-blue-400/5", border: "border-blue-400/10" },
+            { label: "Voice",   val: voiceCount,   sub: "Active",       icon: Mic,            color: "text-orange-400", bg: "bg-orange-400/5", border: "border-orange-400/10" },
+            { label: "Images",  val: imgCount,     sub: "Shared",       icon: ImageIcon,      color: "text-purple-400", bg: "bg-purple-400/5", border: "border-purple-400/10" },
           ].map(s => (
-            <div key={s.label} className={`${card} p-3 flex items-center gap-3`}>
-              <s.icon className={`w-4 h-4 ${s.color} shrink-0`} />
-              <div>
-                <div className="text-[10px] text-white/35 font-medium">{s.label}</div>
-                <div className="text-lg font-bold text-white leading-none">{s.val}</div>
+            <div key={s.label} className={`rounded-[20px] p-4 flex flex-col items-center justify-center text-center border ${s.bg} ${s.border} shrink-0 snap-start`} style={{ width: "calc(50vw - 22px)", maxWidth: "120px" }}>
+              <div className={`flex items-center gap-1.5 mb-2 ${s.color}`}>
+                <s.icon className="w-3.5 h-3.5" /> <span className="text-[10px] font-medium">{s.label}</span>
               </div>
+              <div className="text-[26px] font-bold text-white mb-0 leading-none tracking-tight">{s.val}</div>
+              <div className="text-[9px] text-white/40 mt-1">{s.sub}</div>
             </div>
           ))}
         </div>
 
         {/* Shell */}
-        <div className="flex-1 min-h-0 rounded-[24px] border border-white/[0.08] flex flex-col overflow-hidden relative" style={{ background: "#0c0c0e" }}>
-          <div className="absolute inset-0 bg-gradient-to-br from-amber-500/[0.04] via-transparent to-transparent pointer-events-none rounded-[24px]" />
-
+        <div className="flex-1 min-h-0 rounded-[28px] border border-white/[0.04] flex flex-col overflow-hidden relative" style={{ background: "#0e1116" }}>
+          
           {/* Nav */}
-          <div className="flex items-center gap-1 px-4 pt-3 pb-2 border-b border-white/[0.06] shrink-0 z-10">
+          <div className="flex items-center justify-between px-3 pt-4 pb-4 border-b border-white/[0.04] shrink-0 z-10 overflow-x-auto custom-scrollbar">
             {([
               { id: "users",     icon: Users,          label: "Users" },
               { id: "preview",   icon: Eye,            label: "Realtime View" },
               { id: "telemetry", icon: Activity,       label: "Telemetry" },
-              { id: "wipe",      icon: Trash2,         label: "Cleanup" },
+              { id: "wipe",      icon: Trash2,         label: "Clean" },
             ] as const).map(({ id, icon: Icon, label }) => (
               <button key={id} onClick={() => setTab(id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${
-                  tab === id ? "bg-amber-500/15 text-amber-400 border border-amber-500/20" : "text-white/35 hover:text-white/65 hover:bg-white/5"
+                className={`relative flex items-center gap-1.5 px-4 py-2.5 rounded-[14px] text-[12px] font-medium transition-all shrink-0 ${
+                  tab === id ? "text-emerald-400 border border-emerald-500/30 bg-emerald-500/5" : "text-white/40 hover:text-white/70"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <Icon className="w-4 h-4 shrink-0" />
                 <span>{label}</span>
+                {tab === id && (
+                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-emerald-500 rounded-t-full" style={{ boxShadow: "0 -2px 10px rgba(16,185,129,0.5)" }} />
+                )}
               </button>
             ))}
           </div>
@@ -311,43 +347,45 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
           <div className="flex-1 overflow-y-auto p-4 custom-scrollbar z-10 relative">
             <AnimatePresence mode="wait">
               {tab === "users" && (
-                <motion.div key="users" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-2">
+                <motion.div key="users" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
                   {onlineUsers.length === 0 && (
                     <div className="text-center py-10 text-white/20 text-sm">No users in room</div>
                   )}
                   {onlineUsers.map(user => (
-                    <div key={user.uid} className={`${card} flex flex-col gap-0 group hover:bg-white/[0.02] transition-all overflow-hidden`}>
+                    <div key={user.uid} className={`rounded-[24px] bg-gradient-to-b from-white/[0.03] to-transparent border border-white/[0.04] relative overflow-hidden group`}>
+                      {/* Top glowing edge */}
+                      {user.isOnline && <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-emerald-500/0 via-emerald-500/30 to-emerald-500/0" />}
+                      
                       {/* Main row */}
-                      <div className="flex items-center gap-3 px-4 py-3">
-                        <div className="relative shrink-0">
-                          {user.avatar
-                            ? <img src={user.avatar} className="w-10 h-10 rounded-full border border-white/10 object-cover" alt="" />
-                            : <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white/40 text-lg">{user.name[0]}</div>
-                          }
-                          <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0c0c0e] ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`}
-                            style={user.isOnline ? { boxShadow: "0 0 6px #10b981" } : {}}
-                          />
-                        </div>
-
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[13px] font-semibold text-white truncate">{user.name}</span>
-                            {user.isNoLock && (
-                              <span className="flex items-center gap-1 text-[9px] text-amber-400 font-bold border border-amber-500/30 px-1.5 py-0.5 rounded-full bg-amber-500/5">
-                                <Unlock className="w-2.5 h-2.5" /> No Lock
-                              </span>
-                            )}
+                      <div className="flex items-center justify-between px-4 pt-4 pb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="relative shrink-0">
+                            {user.isOnline && <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />}
+                            {user.avatar
+                              ? <img src={user.avatar} className="w-12 h-12 rounded-full border border-white/10 object-cover relative z-10" alt="" />
+                              : <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white/40 text-xl relative z-10">{user.name[0]}</div>
+                            }
+                            <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#12161f] z-20 ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`} />
                           </div>
-                          <div className="flex items-center gap-2 mt-0.5 text-[10px]">
-                            <span className={user.isOnline ? "text-emerald-400" : "text-white/30"}>
+
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-[15px] font-bold text-white tracking-wide">{user.name}</span>
+                              {user.isNoLock && (
+                                <span className="flex items-center gap-1 text-[8px] text-amber-400 font-bold border border-amber-500/30 px-1.5 py-0.5 rounded-sm bg-amber-500/10 uppercase tracking-wider">
+                                  <Unlock className="w-2.5 h-2.5" /> No Lock
+                                </span>
+                              )}
+                            </div>
+                            <div className={`text-[11px] font-medium ${user.isOnline ? "text-emerald-500" : "text-white/30"}`}>
                               {user.isOnline ? "Online" : `Last seen ${user.lastSeenStr}`}
-                            </span>
+                            </div>
                           </div>
                         </div>
 
                         <button onClick={() => ask(`Force Logout ${user.name}?`, `This will bypass any "No Lock" settings and throw the user to the entry screen immediately.`, () => forceLogout(user.uid, user.name))}
                           disabled={acting === user.uid}
-                          className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 text-[11px] font-medium transition-all"
+                          className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-transparent hover:bg-red-500/10 border border-red-500/40 text-red-400 text-[11px] font-semibold transition-all"
                         >
                           {acting === user.uid ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <LogOut className="w-3.5 h-3.5" />}
                           <span>Kick</span>
