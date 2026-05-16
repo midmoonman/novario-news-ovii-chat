@@ -3137,23 +3137,103 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                 ) : (
                   <motion.div key="sidebar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col flex-1 overflow-hidden">
 
-                    {/* Sidebar Header */}
-                    <div className={`px-4 pt-4 pb-3 border-b ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-                      <div className={`text-[10px] font-bold uppercase tracking-widest mb-3 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Room Status</div>
-                      <div className="flex items-center gap-3">
-                        <div className={`flex-1 rounded-2xl p-3 border text-center ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
-                          <div className="text-xl font-black" style={{ color: activePaint !== "default" ? paintTheme.sent : "#25d366" }}>{count}</div>
-                          <div className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Online</div>
+                    {/* ── Sidebar Controls (3-dot features) ── */}
+                    <div className={`px-3 pt-3 pb-2 border-b space-y-1 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
+
+                      {/* Dark / Light mode */}
+                      <button
+                        onClick={() => { setIsDarkMode(!isDarkMode); trackAction("Toggled Dark Mode"); }}
+                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:opacity-80 border text-left ${isDarkMode ? "bg-white/3 border-white/5 text-white/80" : "bg-white border-black/5 text-black/70"}`}
+                      >
+                        {isDarkMode ? <Moon className="w-4 h-4 text-primary shrink-0" /> : <Sun className="w-4 h-4 text-primary shrink-0" />}
+                        <span className="text-[12px] font-medium flex-1">{isDarkMode ? "Dark Mode" : "Light Mode"}</span>
+                        <div className={`w-8 h-4 rounded-full transition-all ${isDarkMode ? "bg-primary" : "bg-black/20"} relative`}>
+                          <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${isDarkMode ? "left-4" : "left-0.5"}`} />
                         </div>
-                        <div className={`flex-1 rounded-2xl p-3 border text-center ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
-                          <div className={`text-xl font-black ${isDarkMode ? "text-white" : "text-black"}`}>{msgs.length}</div>
-                          <div className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Messages</div>
+                      </button>
+
+                      {/* Paints */}
+                      <div className={`rounded-xl border overflow-hidden ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
+                        <div className={`px-3 py-2 flex items-center gap-2 ${isDarkMode ? "text-white/80" : "text-black/70"}`}>
+                          <Palette className="w-4 h-4 text-primary shrink-0" />
+                          <span className="text-[12px] font-medium">Paints</span>
                         </div>
-                        <div className={`flex-1 rounded-2xl p-3 border text-center ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
-                          <div className={`text-xl font-black ${isDarkMode ? "text-white" : "text-black"}`}>{msgs.filter(m => m.type === "image").length}</div>
-                          <div className={`text-[9px] font-bold uppercase tracking-widest mt-0.5 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Photos</div>
+                        <div className="px-3 pb-2.5 grid grid-cols-3 gap-1.5">
+                          {[
+                            { label: "Default", val: "default", color: "#25d366" },
+                            { label: "Ocean", val: "paint1", color: "#0ea5e9" },
+                            { label: "Cream", val: "paint2", color: "#a3a35a" },
+                            { label: "Rose", val: "paint3", color: "#f43f5e" },
+                            { label: "Violet", val: "paint4", color: "#8b5cf6" },
+                            { label: "Amber", val: "paint5", color: "#f59e0b" },
+                          ].map(p => (
+                            <button
+                              key={p.val}
+                              onClick={() => { setActivePaint(p.val); localStorage.setItem("ovii_paint", p.val); trackAction("Changed Paint to: " + p.val); }}
+                              className={`flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all border ${activePaint === p.val ? "border-white/20 bg-white/10" : "border-transparent hover:border-white/10"}`}
+                            >
+                              <div className="w-6 h-6 rounded-full shadow-sm" style={{ backgroundColor: p.color, boxShadow: activePaint === p.val ? `0 0 8px ${p.color}80` : undefined }} />
+                              <span className={`text-[8px] font-medium ${isDarkMode ? "text-white/40" : "text-black/40"}`}>{p.label}</span>
+                            </button>
+                          ))}
                         </div>
                       </div>
+
+                      {/* No Lock */}
+                      <div className={`rounded-xl border overflow-hidden ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
+                        <div className={`px-3 py-2 flex items-center gap-2 ${isDarkMode ? "text-white/80" : "text-black/70"}`}>
+                          <ShieldOff className="w-4 h-4 text-primary shrink-0" />
+                          <span className="text-[12px] font-medium flex-1">No Lock</span>
+                          {noLockUntil && Date.now() < noLockUntil && (
+                            <span className="text-[9px] text-primary font-bold animate-pulse">{Math.ceil((noLockUntil - Date.now()) / 60000)}m left</span>
+                          )}
+                        </div>
+                        <div className="px-3 pb-2 flex flex-wrap gap-1">
+                          {[
+                            { label: "15m", val: 15 * 60 * 1000 },
+                            { label: "1h", val: 60 * 60 * 1000 },
+                            { label: "5h", val: 5 * 60 * 60 * 1000 },
+                            { label: "24h", val: 24 * 60 * 60 * 1000 },
+                          ].map(d => (
+                            <button
+                              key={d.label}
+                              onClick={() => { const until = Date.now() + d.val; setNoLockUntil(until); localStorage.setItem("ovii_no_lock_until", until.toString()); trackAction("Set Lock Timer: " + d.label); addNotification(`No Lock: ${d.label}`, "success"); }}
+                              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${isDarkMode ? "bg-white/5 border-white/10 text-white/60 hover:border-primary/40 hover:text-primary" : "bg-black/5 border-black/10 text-black/50 hover:border-primary/40 hover:text-primary"}`}
+                            >{d.label}</button>
+                          ))}
+                          {noLockUntil && Date.now() < noLockUntil && (
+                            <button
+                              onClick={() => { setNoLockUntil(null); localStorage.removeItem("ovii_no_lock_until"); trackAction("Cleared Lock Timer"); }}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-destructive/30 text-destructive/70 hover:bg-destructive/10 transition-all"
+                            >Clear</button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Notifications / Champ / Clear row */}
+                      <div className="flex gap-1.5">
+                        {typeof window !== "undefined" && Notification.permission !== "granted" && (
+                          <button
+                            onClick={async () => { const p = await Notification.requestPermission(); if (p === "granted") { syncPushSubscription(); addNotification("Notifications active!", "success"); } else { addNotification("Notifications blocked", "error"); } }}
+                            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-medium transition-all ${isDarkMode ? "bg-white/3 border-white/5 text-white/60 hover:bg-white/8" : "bg-white border-black/5 text-black/50 hover:bg-black/5"}`}
+                          >
+                            <BellRing className="w-3.5 h-3.5 text-primary" /> Notify
+                          </button>
+                        )}
+                        <button
+                          onClick={() => { const unlockedUntil = parseInt(localStorage.getItem("ovii_champ_unlocked_until") || "0", 10); if (Date.now() < unlockedUntil) { setShowChamp(true); } else { setShowChampPin(true); } trackAction("Opened Champ from Sidebar"); }}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-medium transition-all ${isDarkMode ? "bg-white/3 border-white/5 text-white/60 hover:bg-white/8" : "bg-white border-black/5 text-black/50 hover:bg-black/5"}`}
+                        >
+                          <Zap className="w-3.5 h-3.5 text-primary" /> Champ
+                        </button>
+                        <button
+                          onClick={() => setShowClearConfirm(true)}
+                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-medium transition-all border-destructive/20 text-destructive/70 hover:bg-destructive/10 ${isDarkMode ? "bg-white/3" : "bg-white"}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" /> Clear
+                        </button>
+                      </div>
+
                     </div>
 
                     {/* Scrollable area */}
