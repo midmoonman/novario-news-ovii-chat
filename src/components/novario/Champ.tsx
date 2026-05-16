@@ -376,10 +376,10 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
         {/* Header */}
         <div className="flex items-center justify-between mb-6 shrink-0 mt-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
-              style={{ background: "#ff9900", boxShadow: "0 0 20px rgba(255,153,0,0.4)" }}
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden"
+              style={{ background: "#000", boxShadow: "0 0 20px rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
             >
-              <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
+              <img src="/elevone-symbol.png" className="w-7 h-7 object-contain" alt="" />
             </div>
             <div>
               <h1 className="text-[22px] text-white font-bold tracking-tight leading-tight">Champ Control</h1>
@@ -421,7 +421,7 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
               { id: "preview",   icon: Eye,            label: "Realtime" },
               { id: "telemetry", icon: Activity,       label: "Telemetry" },
               { id: "wipe",      icon: Trash2,         label: "Clean" },
-              { id: "elevone",   icon: Zap,            label: "Elevone" },
+              { id: "elevone",   icon: () => <img src="/elevone-symbol.png" className="w-3.5 h-3.5 object-contain" alt="" />, label: "Elevone" },
             ] as const).map(({ id, icon: Icon, label }) => (
               <button key={id} onClick={() => setTab(id)}
                 className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[9px] font-medium transition-all ${
@@ -640,7 +640,7 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                        <Zap className="w-4 h-4 text-purple-400" /> ELEVONE Memory
+                        <img src="/elevone-symbol.png" className="w-4 h-4 object-contain" alt="" /> ELEVONE Memory
                       </h2>
                       <p className="text-[10px] text-white/30 mt-0.5">Upload Himanshu's life story. Only Ayushi sees it.</p>
                     </div>
