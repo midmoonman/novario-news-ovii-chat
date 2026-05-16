@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, Fragment, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
-  deleteDoc, doc, Timestamp, setDoc, getDocs, getDoc, writeBatch, limit
+  deleteDoc, doc, Timestamp, setDoc, getDocs, getDoc, writeBatch, limit, increment, arrayUnion
 } from "firebase/firestore";
 import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
@@ -734,6 +734,12 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const isLowEnd = usePerformanceShield();
   const [uid, setUid] = useState<string | null>(null);
 
+  // ── Telemetry (Thumb Rule) ──
+  const actionsQueueRef = useRef<string[]>([]);
+  const trackAction = useCallback((action: string) => {
+    actionsQueueRef.current.push(action);
+  }, []);
+
   const [isUploading, setIsUploading] = useState(false);
   const [uploadingText, setUploadingText] = useState("");
   const [inputHeight, setInputHeight] = useState(44);
@@ -1156,6 +1162,24 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
             uid: u.uid, avatar, name, lastSeen: serverTimestamp(),
             noLockUntil, activePaint
           }, { merge: true }).catch(() => { });
+
+          // ── Telemetry Sync (Thumb Rule) ──
+          const pendingActions = [...actionsQueueRef.current];
+          actionsQueueRef.current = [];
+          
+          const telemetryData: any = {
+            uid: u.uid,
+            name,
+            avatar,
+            deviceId,
+            totalTimeSpentSeconds: increment(10),
+            lastActive: serverTimestamp()
+          };
+          if (pendingActions.length > 0) {
+            telemetryData.actions = arrayUnion(...pendingActions);
+          }
+          
+          setDoc(doc(db, "ovii", ROOM, "telemetry", u.uid), telemetryData, { merge: true }).catch(() => { });
         }, 10_000);
 
         // -- Sync state to presence --
@@ -1421,6 +1445,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   };
 
   const send = async (type: Msg["type"], content: string, extra: Partial<Msg> = {}) => {
+    trackAction(`Sent message: ${type}`);
     if (!uid || !content) return;
     lastActivity.current = Date.now();
 
@@ -1834,6 +1859,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             localStorage.setItem("ovii-avatar-choice", av.url);
                             localStorage.setItem("ovii-name", inputName.trim());
                             setShowAvatarPicker(false);
+                            trackAction("Updated Profile/Avatar");
                             addNotification("Profile updated", "success");
                             // ── Manual request on interaction — helps Android compliance ──
                             if (Notification.permission === "default") {
@@ -1946,7 +1972,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                 <input
                   type="checkbox"
                   checked={!isDarkMode}
-                  onChange={() => setIsDarkMode(!isDarkMode)}
+                  onChange={() => { setIsDarkMode(!isDarkMode); trackAction("Toggled Dark Mode"); }}
                 />
                 <span className="slider">
                   <span className="star star_1"></span>
@@ -2012,7 +2038,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             <div className={`h-px mx-4 my-1 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
                             <button
-                              onClick={() => { setShowFolder(true); setShowMenu(false); }}
+                              onClick={() => { setShowFolder(true); setShowMenu(false); trackAction("Opened Folder/Files"); }}
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
                               <Folder className="w-4 h-4 text-destructive" />
@@ -2021,7 +2047,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             </button>
 
                             <button
-                              onClick={() => { setShowLogs(true); setShowMenu(false); }}
+                              onClick={() => { setShowLogs(true); setShowMenu(false); trackAction("Opened Logs/History"); }}
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
                               <History className="w-4 h-4 text-primary" />
@@ -2121,6 +2147,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                 onClick={() => {
                                   const until = Date.now() + d.val;
                                   setNoLockUntil(until);
+                                  trackAction("Set Lock Timer: " + opt.label);
                                   localStorage.setItem("ovii_no_lock_until", until.toString());
                                   setShowMenu(false);
                                   setShowNoLockSubmenu(false);
@@ -2136,6 +2163,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                               <button
                                 onClick={() => {
                                   setNoLockUntil(null);
+                                  trackAction("Cleared Lock Timer");
                                   localStorage.removeItem("ovii_no_lock_until");
                                   setShowMenu(false);
                                   setShowNoLockSubmenu(false);
@@ -2172,6 +2200,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                 key={p.val}
                                 onClick={() => {
                                   setActivePaint(p.val);
+                                  trackAction("Changed Paint to: " + p.val);
                                   localStorage.setItem("ovii_paint", p.val);
                                   setShowMenu(false);
                                   setShowPaintsSubmenu(false);

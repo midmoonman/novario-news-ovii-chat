@@ -1,5 +1,16 @@
 [
   {
+    "date": "2026-05-16",
+    "updates": [
+      {
+        "title": "Telemetry & Diagnostics System (Thumb Rule)",
+        "status": "DEPLOYED",
+        "description": "Engineered a comprehensive telemetry engine hooked into the 10-second presence heartbeat. Automatically logs session duration, device footprint, and specific UI interactions (paints, settings, media folders) to a dedicated Firestore collection.",
+        "rationale": "Applies the Thumb Rule of comprehensive tracking to monitor user engagement and feature exploration without compromising operational performance."
+      }
+    ]
+  },
+  {
     "date": "2026-05-13",
     "updates": [
       {
