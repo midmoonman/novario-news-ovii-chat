@@ -357,39 +357,43 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
                       {user.isOnline && <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-emerald-500/0 via-emerald-500/30 to-emerald-500/0" />}
                       
                       {/* Main row */}
-                      <div className="flex items-center justify-between px-4 pt-4 pb-3">
-                        <div className="flex items-center gap-3">
+                      <div className="flex items-center justify-between px-4 pt-4 pb-2">
+                        <div className="flex items-center gap-3 min-w-0">
                           <div className="relative shrink-0">
                             {user.isOnline && <div className="absolute inset-0 bg-emerald-500/20 blur-xl rounded-full" />}
                             {user.avatar
-                              ? <img src={user.avatar} className="w-12 h-12 rounded-full border border-white/10 object-cover relative z-10" alt="" />
-                              : <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-white/40 text-xl relative z-10">{user.name[0]}</div>
+                              ? <img src={user.avatar} className="w-11 h-11 sm:w-14 sm:h-14 rounded-full border border-white/10 object-cover relative z-10" alt="" />
+                              : <div className="w-11 h-11 sm:w-14 sm:h-14 rounded-full bg-white/10 flex items-center justify-center text-white/40 text-xl relative z-10">{user.name[0]}</div>
                             }
-                            <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 rounded-full border-2 border-[#12161f] z-20 ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`} />
+                            <div className={`absolute bottom-0 right-0 w-3.5 h-3.5 sm:w-4 sm:h-4 rounded-full border-2 border-[#12161f] z-20 ${user.isOnline ? "bg-emerald-500" : "bg-white/20"}`} />
                           </div>
 
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-[15px] font-bold text-white tracking-wide">{user.name}</span>
-                              {user.isNoLock && (
-                                <span className="flex items-center gap-1 text-[8px] text-amber-400 font-bold border border-amber-500/30 px-1.5 py-0.5 rounded-sm bg-amber-500/10 uppercase tracking-wider">
-                                  <Unlock className="w-2.5 h-2.5" /> No Lock
-                                </span>
-                              )}
-                            </div>
-                            <div className={`text-[11px] font-medium ${user.isOnline ? "text-emerald-500" : "text-white/30"}`}>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-[17px] sm:text-[20px] font-bold text-white tracking-wide truncate">{user.name}</span>
+                            <div className={`text-[12px] sm:text-[13px] font-medium mt-0.5 ${user.isOnline ? "text-emerald-500" : "text-white/30"}`}>
                               {user.isOnline ? "Online" : `Last seen ${user.lastSeenStr}`}
                             </div>
                           </div>
                         </div>
 
-                        <button onClick={() => ask(`Force Logout ${user.name}?`, `This will bypass any "No Lock" settings and throw the user to the entry screen immediately.`, () => forceLogout(user.uid, user.name))}
-                          disabled={acting === user.uid}
-                          className="shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-xl bg-transparent hover:bg-red-500/10 border border-red-500/40 text-red-400 text-[11px] font-semibold transition-all"
-                        >
-                          {acting === user.uid ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <LogOut className="w-3.5 h-3.5" />}
-                          <span>Kick</span>
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0 ml-2">
+                          {user.isNoLock && (
+                            <div className="flex items-center gap-1.5 px-2 py-1.5 sm:px-2.5 sm:py-2 rounded-[10px] sm:rounded-xl border border-amber-500/30 bg-transparent">
+                              <Unlock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400" />
+                              <div className="flex flex-col text-[8px] sm:text-[9px] font-bold text-amber-400 tracking-wider leading-[1.1]">
+                                <span>NO</span>
+                                <span>LOCK</span>
+                              </div>
+                            </div>
+                          )}
+                          <button onClick={() => ask(`Force Logout ${user.name}?`, `This will bypass any "No Lock" settings and throw the user to the entry screen immediately.`, () => forceLogout(user.uid, user.name))}
+                            disabled={acting === user.uid}
+                            className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl sm:rounded-[14px] bg-transparent hover:bg-red-500/10 border border-red-500/40 text-red-400 transition-all"
+                          >
+                            {acting === user.uid ? <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 animate-spin" /> : <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
+                            <span className="text-[11px] sm:text-[13px] font-bold">Kick</span>
+                          </button>
+                        </div>
                       </div>
 
                       {/* Device info row - fetched from telemetry */}
