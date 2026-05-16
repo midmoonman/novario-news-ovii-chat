@@ -1070,6 +1070,9 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
   const lastActivity = useRef<number>(Date.now());
   const chunksRef = useRef<Blob[]>([]);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const aggressiveMsgCount = useRef(0);
+  const elevoneRecentActionsRef = useRef<string[]>([]);
+
 
   const scrollToBottom = (instant = false) => {
     if (!scrollRef.current) return;
@@ -1539,6 +1542,73 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
       setTimeout(() => scrollToBottom(false), 300);
     }
   };
+
+  const triggerElevone = async (triggerText: string, isAutoTrigger: boolean = false, isSystemEvent: boolean = false) => {
+    try {
+      setTypingUsers(prev => Array.from(new Set([...prev, "ELEVONE"])));
+
+      const memoryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "context"));
+      const pdfContext = memoryDoc.exists() ? memoryDoc.data().text : "";
+
+      const summaryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "summaries"));
+      const summaries = summaryDoc.exists() ? summaryDoc.data().text : "";
+
+      const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "desc"), limit(20));
+      const snap = await getDocs(q);
+      const recentTextMsgs = await Promise.all(
+        snap.docs.map(d => d.data()).filter(d => d.type === "text").reverse().map(async (d) => {
+          let text = d.content;
+          if (d.isEncrypted && encryptionKey) {
+            text = await decrypt(d.content, encryptionKey);
+          }
+          return { role: d.uid === "elevone" ? "elevone" : "user", name: d.name, text };
+        })
+      );
+
+      if (isSystemEvent) {
+        recentTextMsgs.push({ role: "user", name: "SYSTEM", text: triggerText });
+      }
+
+      const response = await fetch("/api/elevone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: recentTextMsgs,
+          pdfContext,
+          summaries,
+          isAutoTrigger,
+          recentActions: elevoneRecentActionsRef.current.join("\n"),
+          allowSharing: memoryDoc.exists() ? memoryDoc.data().allowSharing : false,
+          triggeringUserName: name
+        })
+      });
+
+      if (!response.ok) throw new Error("Elevone API failed");
+      const data = await response.json();
+
+      let replyContent = data.text;
+      if (encryptionKey) {
+        replyContent = await encrypt(replyContent, encryptionKey);
+      }
+
+      await addDoc(collection(db, "ovii", ROOM, "messages"), {
+        uid: "elevone",
+        name: "ELEVONE",
+        avatar: "/elevone.png",
+        type: "text",
+        content: replyContent,
+        isEncrypted: !!encryptionKey,
+        status: "sent",
+        createdAt: Timestamp.now()
+      });
+
+    } catch (err) {
+      console.error("Elevone Error:", err);
+    } finally {
+      setTypingUsers(prev => prev.filter(n => n !== "ELEVONE"));
+    }
+  };
+
 
   const sendImage = async (url: string, caption?: string) => {
     await sendFile("image", url, "Photo", 0, "image/jpeg", caption);
