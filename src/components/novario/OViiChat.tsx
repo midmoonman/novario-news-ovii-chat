@@ -632,32 +632,7 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
   }, [tab, room]);
 
   const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || file.type !== "application/pdf") {
-      alert("Please upload a valid PDF file");
-      return;
-    }
-    setIsProcessingPdf(true);
-    try {
-      const arrayBuffer = await file.arrayBuffer();
-      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-      let fullText = "";
-      for (let i = 1; i <= pdf.numPages; i++) {
-        const page = await pdf.getPage(i);
-        const textContent = await page.getTextContent();
-        fullText += textContent.items.map((item: any) => item.str).join(" ") + "\n";
-      }
-      await setDoc(doc(db, "ovii", room, "elevone-memory", "context"), {
-        text: fullText,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-      alert("ELEVONE Context updated successfully!");
-    } catch (err) {
-      console.error(err);
-      alert("Failed to parse PDF context.");
-    } finally {
-      setIsProcessingPdf(false);
-    }
+    // PDF processing moved out of UI.
   };
 
   const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
@@ -678,16 +653,6 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
 
       {tab === "elevone" ? (
         <div className="flex-1 overflow-y-auto space-y-4">
-          <div className={`p-4 rounded-2xl border ${isDarkMode ? "bg-white/[0.02] border-white/10" : "bg-black/[0.02] border-black/10"}`}>
-            <h3 className="text-sm font-bold mb-2 flex items-center gap-2"><FileText className="w-4 h-4 text-purple-500" /> Context PDF</h3>
-            <p className="text-xs opacity-60 mb-4">Upload a PDF to build the primary memory and backstory for ELEVONE.</p>
-            <label className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs transition-all cursor-pointer">
-              {isProcessingPdf ? <RotateCw className="w-4 h-4 animate-spin" /> : <Folder className="w-4 h-4" />}
-              {isProcessingPdf ? "Extracting Text..." : "Upload Context PDF"}
-              <input type="file" accept="application/pdf" className="hidden" onChange={handlePdfUpload} disabled={isProcessingPdf} />
-            </label>
-          </div>
-          
           <div className={`p-4 rounded-2xl border flex-1 min-h-[200px] ${isDarkMode ? "bg-white/[0.02] border-white/10" : "bg-black/[0.02] border-black/10"}`}>
             <h3 className="text-sm font-bold mb-3 flex items-center gap-2"><History className="w-4 h-4 text-blue-500" /> Auto Summaries</h3>
             <div className={`text-xs leading-relaxed whitespace-pre-wrap opacity-80 ${isDarkMode ? "text-blue-100" : "text-blue-900"}`}>
@@ -813,10 +778,15 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const isLowEnd = usePerformanceShield();
   const [uid, setUid] = useState<string | null>(null);
 
-  // ── Telemetry (Thumb Rule) ──
+  // ── Telemetry (Thumb Rule) & Elevone Activity ──
   const actionsQueueRef = useRef<string[]>([]);
+  const elevoneRecentActionsRef = useRef<string[]>([]);
+  
   const trackAction = useCallback((action: string) => {
     actionsQueueRef.current.push(action);
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    elevoneRecentActionsRef.current.push(`[${time}] User action: ${action}`);
+    if (elevoneRecentActionsRef.current.length > 5) elevoneRecentActionsRef.current.shift();
   }, []);
 
   const [isUploading, setIsUploading] = useState(false);
@@ -1554,7 +1524,28 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     }).catch(() => { });
   };
 
-  const triggerElevone = async (triggerText: string, isAutoTrigger: boolean = false) => {
+  useEffect(() => {
+    if (!uid || !name) return;
+    if (!sessionStorage.getItem("elevone_welcomed")) {
+      sessionStorage.setItem("elevone_welcomed", "true");
+      
+      const isHimanshu = name.toLowerCase().startsWith('h');
+      const isAyushi = name.toLowerCase().startsWith('a');
+
+      let promptMsg = "";
+      if (isHimanshu) {
+         promptMsg = `[SYSTEM EVENT]: Himanshu has just entered the chat. Give him a unique, personal, and context-aware welcome message as ELEVONE.`;
+      } else if (isAyushi) {
+         promptMsg = `[SYSTEM EVENT]: Ayushi has just entered the chat. Give her a unique, teasing, and context-aware welcome message as ELEVONE.`;
+      } else {
+         promptMsg = `[SYSTEM EVENT]: A new user named ${name} has entered the chat. Welcome them casually as ELEVONE.`;
+      }
+      
+      setTimeout(() => triggerElevone(promptMsg, false, true), 1500);
+    }
+  }, [uid, name]);
+
+  const triggerElevone = async (triggerText: string, isAutoTrigger: boolean = false, isSystemEvent: boolean = false) => {
     try {
       setTypingUsers(prev => Array.from(new Set([...prev, "ELEVONE"])));
 
@@ -1576,6 +1567,10 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         })
       );
 
+      if (isSystemEvent) {
+        recentTextMsgs.push({ role: "user", name: "SYSTEM", text: triggerText });
+      }
+
       const response = await fetch("/api/elevone", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1583,7 +1578,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           messages: recentTextMsgs,
           pdfContext,
           summaries,
-          isAutoTrigger
+          isAutoTrigger,
+          recentActions: elevoneRecentActionsRef.current.join("\n")
         })
       });
 

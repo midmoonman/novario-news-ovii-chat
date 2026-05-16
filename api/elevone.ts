@@ -9,7 +9,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { messages, pdfContext, summaries, isAutoTrigger } = req.body;
+    const { messages, pdfContext, summaries, isAutoTrigger, recentActions } = req.body;
 
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ error: "GEMINI_API_KEY is not set" });
@@ -23,6 +23,9 @@ export default async function handler(req: any, res: any) {
     }
     if (pdfContext) {
       systemInstruction += `\n\n### EXTRACTED PDF KNOWLEDGE ###\n${pdfContext}`;
+    }
+    if (recentActions) {
+      systemInstruction += `\n\n### RECENT UI ACTIVITY (Context for you to seem highly observant) ###\nThe user has recently clicked/used these tools:\n${recentActions}`;
     }
     if (isAutoTrigger) {
       systemInstruction += `\n\n[URGENT CONTEXT: This is an auto-triggered response because the conversation is turning toxic or aggressive. Step in naturally to diffuse the situation, calm them down, or lightly roast them for fighting. Do NOT explicitly say 'I was auto-triggered', just act naturally.]`;
