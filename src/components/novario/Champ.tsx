@@ -23,6 +23,26 @@ interface ChampProps {
 
 type Tab = "users" | "preview" | "telemetry" | "wipe" | "elevone";
 
+const ElevoneIcon = ({ className, size = 16 }: { className?: string, size?: number }) => (
+  <svg 
+    width={size} 
+    height={size} 
+    viewBox="0 0 24 24" 
+    fill="none" 
+    xmlns="http://www.w3.org/2000/svg" 
+    className={className}
+  >
+    <path 
+      d="M8 20L12 4M4 18H9M16 20L20 4M12 18H17" 
+      stroke="currentColor" 
+      strokeWidth="2.5" 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+
 // ─── Confirmation Dialog ────────────────────────────────────────────────────
 function ConfirmDialog({
   title, body, danger = true,
@@ -376,10 +396,10 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
         {/* Header */}
         <div className="flex items-center justify-between mb-6 shrink-0 mt-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden"
-              style={{ background: "#000", boxShadow: "0 0 20px rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.1)" }}
+            <div className="w-10 h-10 rounded-2xl flex items-center justify-center"
+              style={{ background: "linear-gradient(135deg, #7c3aed, #4f46e5)", boxShadow: "0 0 20px rgba(124,58,237,0.4)" }}
             >
-              <img src="/elevone-symbol.png" className="w-7 h-7 object-contain" alt="" />
+              <ElevoneIcon size={24} className="text-white" />
             </div>
             <div>
               <h1 className="text-[22px] text-white font-bold tracking-tight leading-tight">Champ Control</h1>
@@ -421,7 +441,7 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
               { id: "preview",   icon: Eye,            label: "Realtime" },
               { id: "telemetry", icon: Activity,       label: "Telemetry" },
               { id: "wipe",      icon: Trash2,         label: "Clean" },
-              { id: "elevone",   icon: () => <img src="/elevone-symbol.png" className="w-3.5 h-3.5 object-contain" alt="" />, label: "Elevone" },
+              { id: "elevone",   icon: ElevoneIcon,    label: "Elevone" },
             ] as const).map(({ id, icon: Icon, label }) => (
               <button key={id} onClick={() => setTab(id)}
                 className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[9px] font-medium transition-all ${
@@ -640,7 +660,7 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
                   <div className="flex items-center justify-between">
                     <div>
                       <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                        <img src="/elevone-symbol.png" className="w-4 h-4 object-contain" alt="" /> ELEVONE Memory
+                        <ElevoneIcon size={16} className="text-purple-400" /> ELEVONE Memory
                       </h2>
                       <p className="text-[10px] text-white/30 mt-0.5">Upload Himanshu's life story. Only Ayushi sees it.</p>
                     </div>
