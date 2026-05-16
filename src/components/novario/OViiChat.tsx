@@ -1196,10 +1196,28 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           if (now - ts > 25_000 && d.id !== u.uid) await deleteDoc(d.ref).catch(() => { });
         }
         const fresh = await getDocs(presCol);
-        const others = fresh.docs.filter((d) => d.id !== u.uid).length;
-        if (others >= 2 - 0 && fresh.docs.length >= 2 && !fresh.docs.find((d) => d.id === u.uid)) {
-          setError("Room is full (2/2). Try again later.");
-          return;
+        const others = fresh.docs.filter((d) => d.id !== u.uid);
+        const isAuthUser = name && (name.toLowerCase().startsWith('h') || name.toLowerCase().startsWith('a'));
+
+        if (others.length >= 2 && !fresh.docs.find((d) => d.id === u.uid)) {
+          if (isAuthUser) {
+            // Chat Override: find a non-authorized user to kick
+            const kickable = others.find(d => {
+              const dName = (d.data().name || "").toLowerCase();
+              return !dName.startsWith('h') && !dName.startsWith('a');
+            });
+
+            if (kickable) {
+              await deleteDoc(kickable.ref);
+              // Proceed to join
+            } else {
+              setError("Room is full with authorized users.");
+              return;
+            }
+          } else {
+            setError("Room is full (2/2). Try again later.");
+            return;
+          }
         }
 
         await setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
