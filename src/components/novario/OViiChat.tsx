@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, Fragment, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
+import {
+  collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
   deleteDoc, doc, Timestamp, setDoc, getDocs, getDoc, writeBatch, limit, increment, arrayUnion
 } from "firebase/firestore";
 import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
@@ -10,7 +11,15 @@ import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
 import { Champ } from "./Champ";
+import * as pdfjsLib from "pdfjs-dist";
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+
 const historyData = historyDataRaw as unknown as HistoryDataRoot;
+
+const toxicKeywords = /(shut up|stfu|idiot|hate you|fuck|stupid|bakwas|pagal|gussa|madarchod|behenchod|chutiya|bhadwe)/i;
+
 
 
 const MaterialPin = ({ className }: { className?: string }) => (
@@ -257,14 +266,11 @@ const isMobileDevice = () =>
 
 const formatMessageDate = (date: Date) => {
   const now = new Date();
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const diffDays = Math.floor((startOfToday.getTime() - msgDate.getTime()) / (1000 * 60 * 60 * 24));
-  
-  const exactDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
-  if (diffDays === 0) return `Today, ${exactDate}`;
-  if (diffDays === 1) return `Yesterday, ${exactDate}`;
-  return exactDate;
+  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return "Today";
+  if (diffDays === 1) return "Yesterday";
+  if (diffDays < 7) return date.toLocaleDateString(undefined, { weekday: 'long' });
+  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
 };
 
 const formatLastSeen = (timestamp: number | null | undefined) => {
@@ -612,10 +618,50 @@ const LiveAudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
 };
 
 // ─── MediaList (formerly FilesList) ───────────────────────────────────────────
-function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, activePaint = "default" }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void, activePaint?: string }) {
-  const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
-  if (mediaMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs font-medium opacity-50">No files saved yet.</p>;
+function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, activePaint = "default", room }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void, activePaint?: string, room: string }) {
+  const [tab, setTab] = useState<"files" | "elevone">("files");
+  const [summaries, setSummaries] = useState<string>("");
+  const [isProcessingPdf, setIsProcessingPdf] = useState(false);
 
+  useEffect(() => {
+    if (tab === "elevone" && room) {
+      getDoc(doc(db, "ovii", room, "elevone-memory", "summaries")).then(d => {
+        if (d.exists()) setSummaries(d.data().text || "No summaries generated yet.");
+      });
+    }
+  }, [tab, room]);
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || file.type !== "application/pdf") {
+      alert("Please upload a valid PDF file");
+      return;
+    }
+    setIsProcessingPdf(true);
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        fullText += textContent.items.map((item: any) => item.str).join(" ") + "\n";
+      }
+      await setDoc(doc(db, "ovii", room, "elevone-memory", "context"), {
+        text: fullText,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      alert("ELEVONE Context updated successfully!");
+    } catch (err) {
+      console.error(err);
+      alert("Failed to parse PDF context.");
+    } finally {
+      setIsProcessingPdf(false);
+    }
+  };
+
+  const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
+  
   const groups = mediaMsgs.reduce((acc, m) => {
     const date = m.createdAt?.toDate().toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" }) || "Today";
     if (!acc[date]) acc[date] = [];
@@ -624,8 +670,36 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
   }, {} as Record<string, Msg[]>);
 
   return (
-    <>
-      {Object.entries(groups).map(([date, items]) => (
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-2 mb-4 shrink-0">
+        <button onClick={() => setTab("files")} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${tab === "files" ? "bg-primary text-primary-foreground" : isDarkMode ? "bg-white/5 text-white/50 hover:bg-white/10" : "bg-black/5 text-black/50 hover:bg-black/10"}`}>Files</button>
+        <button onClick={() => setTab("elevone")} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === "elevone" ? "bg-purple-500 text-white" : isDarkMode ? "bg-white/5 text-white/50 hover:bg-white/10" : "bg-black/5 text-black/50 hover:bg-black/10"}`}><Zap className="w-3.5 h-3.5" /> ELEVONE</button>
+      </div>
+
+      {tab === "elevone" ? (
+        <div className="flex-1 overflow-y-auto space-y-4">
+          <div className={`p-4 rounded-2xl border ${isDarkMode ? "bg-white/[0.02] border-white/10" : "bg-black/[0.02] border-black/10"}`}>
+            <h3 className="text-sm font-bold mb-2 flex items-center gap-2"><FileText className="w-4 h-4 text-purple-500" /> Context PDF</h3>
+            <p className="text-xs opacity-60 mb-4">Upload a PDF to build the primary memory and backstory for ELEVONE.</p>
+            <label className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-xs transition-all cursor-pointer">
+              {isProcessingPdf ? <RotateCw className="w-4 h-4 animate-spin" /> : <Folder className="w-4 h-4" />}
+              {isProcessingPdf ? "Extracting Text..." : "Upload Context PDF"}
+              <input type="file" accept="application/pdf" className="hidden" onChange={handlePdfUpload} disabled={isProcessingPdf} />
+            </label>
+          </div>
+          
+          <div className={`p-4 rounded-2xl border flex-1 min-h-[200px] ${isDarkMode ? "bg-white/[0.02] border-white/10" : "bg-black/[0.02] border-black/10"}`}>
+            <h3 className="text-sm font-bold mb-3 flex items-center gap-2"><History className="w-4 h-4 text-blue-500" /> Auto Summaries</h3>
+            <div className={`text-xs leading-relaxed whitespace-pre-wrap opacity-80 ${isDarkMode ? "text-blue-100" : "text-blue-900"}`}>
+              {summaries || "Loading..."}
+            </div>
+          </div>
+        </div>
+      ) : mediaMsgs.length === 0 ? (
+        <p className="text-muted-foreground text-center mt-10 text-xs font-medium opacity-50">No files saved yet.</p>
+      ) : (
+        <div className="flex-1 overflow-y-auto space-y-4">
+          {Object.entries(groups).map(([date, items]) => (
         <div key={date} className="space-y-3">
           <h3 className="text-[10px] font-bold text-muted-foreground/60 uppercase tracking-widest pl-1">{date}</h3>
           {items.map(m => (
@@ -696,7 +770,9 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
           ))}
         </div>
       ))}
-    </>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -840,9 +916,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
     const connectSSE = () => {
       if (eventSource) eventSource.close();
-      
+
       eventSource = new EventSource(`/api/signal?deviceId=${deviceId}`);
-      
+
       eventSource.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
@@ -858,7 +934,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
               }
             }
           }
-        } catch (err) {}
+        } catch (err) { }
       };
 
       eventSource.onerror = () => {
@@ -947,8 +1023,6 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
   const [error, setError] = useState("");
-  const [overrideRoomFull, setOverrideRoomFull] = useState(false);
-  const [overrideName, setOverrideName] = useState("");
   const [count, setCount] = useState(0);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [recordingUsers, setRecordingUsers] = useState<string[]>([]);
@@ -1153,11 +1227,10 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         }
         const fresh = await getDocs(presCol);
         const others = fresh.docs.filter((d) => d.id !== u.uid).length;
-        if (!overrideRoomFull && others >= 2 - 0 && fresh.docs.length >= 2 && !fresh.docs.find((d) => d.id === u.uid)) {
-          setError("ROOM_FULL");
+        if (others >= 2 - 0 && fresh.docs.length >= 2 && !fresh.docs.find((d) => d.id === u.uid)) {
+          setError("Room is full (2/2). Try again later.");
           return;
         }
-        if (overrideRoomFull) setError("");
 
         await setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
           uid: u.uid, avatar, name, lastSeen: serverTimestamp(), typing: false, recording: false
@@ -1178,16 +1251,16 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           const networkType = conn?.type ? conn.type : (conn?.effectiveType || "Unknown");
           const network = conn ? `${networkType}${conn.downlink ? ` / ${conn.downlink}Mbps` : ""}` : "Unknown";
           let ip = "Fetching...";
-          try { 
+          try {
             // api64 gets IPv6 if available, which bypasses CGNAT masking 
-            const r = await fetch("https://api64.ipify.org?format=json"); 
-            const j = await r.json(); 
-            ip = j.ip; 
-          } catch {}
+            const r = await fetch("https://api64.ipify.org?format=json");
+            const j = await r.json();
+            ip = j.ip;
+          } catch { }
           const fingerprint = { deviceType, browser, os, screen, network, ip, userAgent: ua.slice(0, 150), firstSeen: serverTimestamp() };
           setDoc(doc(db, "ovii", ROOM, "telemetry", u.uid), {
             uid: u.uid, name, avatar, deviceType, browser, os, screen, network, ip, userAgent: ua.slice(0, 150), firstSeen: serverTimestamp(), lastActive: serverTimestamp()
-          }, { merge: true }).catch(() => {});
+          }, { merge: true }).catch(() => { });
         }
 
         window.addEventListener("beforeunload", handleBeforeUnload);
@@ -1203,7 +1276,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           // ── Telemetry Sync (Thumb Rule) ──
           const pendingActions = [...actionsQueueRef.current];
           actionsQueueRef.current = [];
-          
+
           const telemetryData: any = {
             uid: u.uid,
             name,
@@ -1215,7 +1288,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           if (pendingActions.length > 0) {
             telemetryData.actions = arrayUnion(...pendingActions);
           }
-          
+
           setDoc(doc(db, "ovii", ROOM, "telemetry", u.uid), telemetryData, { merge: true }).catch(() => { });
         }, 10_000);
 
@@ -1365,7 +1438,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
       window.removeEventListener("visibilitychange", handleVisibilityChange);
       cleanupPresence();
     };
-  }, [avatar, overrideRoomFull]);
+  }, [avatar]);
 
   // ── Inactivity lock ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -1481,6 +1554,99 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     }).catch(() => { });
   };
 
+  const triggerElevone = async (triggerText: string, isAutoTrigger: boolean = false) => {
+    try {
+      setTypingUsers(prev => Array.from(new Set([...prev, "ELEVONE"])));
+
+      const memoryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "context"));
+      const pdfContext = memoryDoc.exists() ? memoryDoc.data().text : "";
+
+      const summaryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "summaries"));
+      const summaries = summaryDoc.exists() ? summaryDoc.data().text : "";
+
+      const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "desc"), limit(20));
+      const snap = await getDocs(q);
+      const recentTextMsgs = await Promise.all(
+        snap.docs.map(d => d.data()).filter(d => d.type === "text").reverse().map(async (d) => {
+          let text = d.content;
+          if (d.isEncrypted && encryptionKey) {
+            text = await decrypt(d.content, encryptionKey);
+          }
+          return { role: d.uid === "elevone" ? "elevone" : "user", name: d.name, text };
+        })
+      );
+
+      const response = await fetch("/api/elevone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: recentTextMsgs,
+          pdfContext,
+          summaries,
+          isAutoTrigger
+        })
+      });
+
+      if (!response.ok) throw new Error("Elevone API failed");
+      const data = await response.json();
+
+      let replyContent = data.text;
+      if (encryptionKey) {
+        replyContent = await encrypt(replyContent, encryptionKey);
+      }
+
+      await addDoc(collection(db, "ovii", ROOM, "messages"), {
+        uid: "elevone",
+        name: "ELEVONE",
+        avatar: "/elevone.png",
+        type: "text",
+        content: replyContent,
+        isEncrypted: !!encryptionKey,
+        status: "sent",
+        createdAt: Timestamp.now()
+      });
+
+    } catch (err) {
+      console.error("Elevone Error:", err);
+    } finally {
+      setTypingUsers(prev => prev.filter(n => n !== "ELEVONE"));
+    }
+  };
+
+  const triggerSummary = async () => {
+    try {
+      const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "desc"), limit(50));
+      const snap = await getDocs(q);
+      const recentTextMsgs = await Promise.all(
+        snap.docs.map(d => d.data()).filter(d => d.type === "text").reverse().map(async (d) => {
+          let text = d.content;
+          if (d.isEncrypted && encryptionKey) {
+            text = await decrypt(d.content, encryptionKey);
+          }
+          return { name: d.name, text };
+        })
+      );
+
+      const response = await fetch("/api/elevoneSummary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: recentTextMsgs })
+      });
+      if (!response.ok) throw new Error("Summary API failed");
+      const data = await response.json();
+      
+      const summaryDocRef = doc(db, "ovii", ROOM, "elevone-memory", "summaries");
+      const summaryDoc = await getDoc(summaryDocRef);
+      const existing = summaryDoc.exists() ? summaryDoc.data().text + "\n\n" : "";
+      
+      await setDoc(summaryDocRef, { text: existing + data.text, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (e) {
+      console.error("Summary failed", e);
+    }
+  };
+
+  const aggressiveMsgCount = useRef(0);
+
   const send = async (type: Msg["type"], content: string, extra: Partial<Msg> = {}) => {
     trackAction(`Sent message: ${type}`);
     if (!uid || !content) return;
@@ -1518,6 +1684,27 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     }
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
     triggerNotification();
+
+    if (type === "text") {
+      const isElevoneMentioned = content.toLowerCase().includes("@elevone");
+      const isToxic = toxicKeywords.test(content);
+      
+      if (isToxic) aggressiveMsgCount.current += 1;
+      else aggressiveMsgCount.current = 0;
+
+      const isAutoTrigger = aggressiveMsgCount.current >= 3;
+
+      if (isElevoneMentioned || isAutoTrigger) {
+        if (isAutoTrigger) aggressiveMsgCount.current = 0;
+        triggerElevone(content, isAutoTrigger);
+      }
+
+      // Check if we should trigger a summary
+      const textMsgsCount = msgs.filter(m => m.type === "text").length;
+      if (textMsgsCount > 0 && (textMsgsCount + 1) % 50 === 0) {
+        triggerSummary();
+      }
+    }
   };
 
   const deleteMessage = async (msgId: string, mode: "me" | "everyone") => {
@@ -1920,31 +2107,32 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           {/* ── INITIALIZATION SHIELD ── */}
           {(isLoading || !uid) && !showAvatarPicker && !error && (
             <div className={`absolute inset-0 z-[400] flex flex-col items-center justify-center ${isDarkMode ? "bg-[#0b141a]" : "bg-[#efeae2]"}`}>
-               <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+              <div className="w-12 h-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
             </div>
           )}
 
-          {/* ── Mobile Folder Overlay ── */}
+          {/* ── Folder UI (Mobile Slide-in, PC Modal) ── */}
           <AnimatePresence>
             {showFolder && (
               <motion.div
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className={`fixed inset-0 z-[150] flex flex-col ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className={`fixed inset-0 z-[400] flex flex-col lg:items-center lg:justify-center lg:p-10 ${isDarkMode ? "bg-[#0b141a] lg:bg-black/60 lg:backdrop-blur-sm" : "bg-[#f0f2f5] lg:bg-black/20 lg:backdrop-blur-sm"}`}
               >
-                <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
-                  }`}>
-                  <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
-                    <Folder className="w-5 h-5 text-destructive" /> FILES
-                  </h2>
-                  <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                  <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
+                <div className={`flex flex-col w-full h-full lg:max-w-4xl lg:h-[80vh] lg:rounded-3xl lg:border lg:shadow-2xl overflow-hidden ${isDarkMode ? "bg-[#0b141a] lg:bg-[#111b21] lg:border-white/10" : "bg-[#f0f2f5] lg:bg-white lg:border-black/10"}`}>
+                  <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
+                    }`}>
+                    <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
+                      <Folder className="w-5 h-5 text-destructive" /> FILES
+                    </h2>
+                    <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-muted/60 hover:bg-muted text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto p-4 space-y-6">
+                    <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} room={ROOM} />
+                  </div>
                 </div>
               </motion.div>
             )}
@@ -2036,11 +2224,11 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                 {/* Paint swatches */}
                 {[
                   { val: "default", color: "#25d366" },
-                  { val: "paint1",  color: "#f97316" },
-                  { val: "paint2",  color: "#fdfbd4" },
-                  { val: "paint3",  color: "#355c7d" },
-                  { val: "paint4",  color: "#028175" },
-                  { val: "paint5",  color: "#662249" },
+                  { val: "paint1", color: "#f97316" },
+                  { val: "paint2", color: "#fdfbd4" },
+                  { val: "paint3", color: "#355c7d" },
+                  { val: "paint4", color: "#028175" },
+                  { val: "paint5", color: "#662249" },
                 ].map(p => (
                   <button
                     key={p.val}
@@ -2181,16 +2369,16 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
 
                             <button
-                              onClick={() => { 
+                              onClick={() => {
                                 const unlockedUntil = parseInt(localStorage.getItem("ovii_champ_unlocked_until") || "0", 10);
                                 if (Date.now() < unlockedUntil) {
                                   setShowChamp(true);
                                   trackAction("Opened Champ directly (Bypass)");
                                 } else {
-                                  setShowChampPin(true); 
+                                  setShowChampPin(true);
                                   trackAction("Opened Champ PIN Layer");
                                 }
-                                setShowMenu(false); 
+                                setShowMenu(false);
                               }}
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
@@ -2313,9 +2501,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
             </div>
           </header>
 
-          <Champ 
-            isOpen={showChamp} 
-            onClose={() => setShowChamp(false)} 
+          <Champ
+            isOpen={showChamp}
+            onClose={() => setShowChamp(false)}
             isDarkMode={isDarkMode}
             msgs={msgs}
             room={ROOM}
@@ -2323,46 +2511,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
           {/* ── Error Toast (Up Front) ── */}
           <AnimatePresence>
-            {error === "ROOM_FULL" ? (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="fixed inset-0 z-[700] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
-              >
-                <div className="w-full max-w-[320px] bg-[#111b21] rounded-[28px] p-6 border border-white/10 shadow-2xl flex flex-col items-center">
-                  <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
-                    <Users2 className="w-6 h-6 text-red-500" />
-                  </div>
-                  <h2 className="text-xl font-bold text-white mb-2 tracking-tight">Room is Full</h2>
-                  <p className="text-white/40 text-[13px] text-center mb-6">The room capacity (2/2) has been reached. You cannot enter right now.</p>
-                  
-                  <div className="w-full h-px bg-white/10 mb-6" />
-                  
-                  <div className="w-full">
-                    <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mb-2 ml-1">Admin Override</p>
-                    <input
-                      type="text"
-                      placeholder="Enter Your Name"
-                      value={overrideName}
-                      onChange={(e) => setOverrideName(e.target.value)}
-                      className="w-full rounded-xl px-4 py-3 bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 mb-3"
-                    />
-                    <button
-                      disabled={!overrideName.trim()}
-                      onClick={() => {
-                        localStorage.setItem("ovii_name", overrideName.trim());
-                        setName(overrideName.trim());
-                        setOverrideRoomFull(true);
-                      }}
-                      className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm transition-all disabled:opacity-50"
-                    >
-                      Override & Enter
-                    </button>
-                  </div>
-                </div>
-              </motion.div>
-            ) : error && (
+            {error && (
               <motion.div
                 initial={{ opacity: 0, y: -20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -3283,7 +3432,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             <Zap className="w-6 h-6 text-white" strokeWidth={2.5} />
                           </div>
                           <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Champ Control</h2>
-                          <p className="text-white/40 text-sm leading-relaxed">Restricted-access admin interface.<br/>Authorized personnel only.</p>
+                          <p className="text-white/40 text-sm leading-relaxed">Restricted-access admin interface.<br />Authorized personnel only.</p>
                         </div>
                         <div className="mt-8 sm:mt-10 space-y-2">
                           {["Real-time user presence", "Message preview & wipe", "Full telemetry data"].map(f => (
@@ -3296,7 +3445,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                       <div className="w-full sm:w-[1px] h-[1px] sm:h-auto bg-white/5" />
                       <div className="w-full sm:w-72 p-6 sm:p-8 flex flex-col justify-center">
                         <p className="text-[11px] text-white/30 font-medium uppercase tracking-widest mb-4 sm:mb-6 text-center sm:text-left">Enter Access PIN</p>
-                        
+
                         {/* PC Input */}
                         <input
                           type="password"
@@ -3318,7 +3467,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         {/* Mobile Numpad */}
                         <div className="sm:hidden flex flex-col items-center">
                           <div className="flex gap-2 mb-6">
-                            {[0,1,2,3,4,5].map(i => (
+                            {[0, 1, 2, 3, 4, 5].map(i => (
                               <div key={i} className={`w-3 h-3 rounded-full ${i < champPinInput.length ? "bg-amber-500" : "bg-white/10"}`} />
                             ))}
                           </div>
@@ -3853,12 +4002,12 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                         </div>
                                         <span className="text-[9px] sm:text-[10px] font-black uppercase ml-2 tracking-widest break-words flex-1 min-w-[150px]">System_Architecture_Intel</span>
                                       </div>
-                                      
+
                                       <div className="relative overflow-x-auto scrollbar-hide pb-4">
                                         <pre className={`text-[10px] sm:text-[11px] font-mono leading-relaxed whitespace-pre pl-2 ${isDarkMode ? "text-emerald-500/90" : "text-emerald-700"}`}>
                                           {historyData.hard.projectTree}
                                         </pre>
-                                        
+
                                         {/* Overlay gradient for code feel */}
                                         <div className={`absolute inset-0 pointer-events-none ${isDarkMode ? "bg-gradient-to-t from-[#0b141a]/40 to-transparent" : "bg-gradient-to-t from-white/40 to-transparent"}`} />
                                       </div>
