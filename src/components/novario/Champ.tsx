@@ -117,6 +117,7 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
     setConfirm({ title, body, danger, action });
 
   const [telemetry, setTelemetry] = useState<any[]>([]);
+  const [expandedExplored, setExpandedExplored] = useState<Record<string, boolean>>({});
 
   // ── Realtime presence ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -439,16 +440,39 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
                       {/* Actions */}
                       {t.actions && t.actions.length > 0 ? (
                         <div>
-                          <div className="text-[9px] text-white/25 font-bold uppercase tracking-widest mb-1.5">Explored</div>
+                          <div className="flex items-center justify-between mb-1.5">
+                            <div className="text-[9px] text-white/25 font-bold uppercase tracking-widest">Explored ({t.actions.length})</div>
+                            <button
+                              onClick={() => setExpandedExplored(prev => ({ ...prev, [t.id]: !prev[t.id] }))}
+                              className="text-[9px] text-blue-400 font-bold uppercase tracking-widest hover:text-blue-300 transition-colors"
+                            >
+                              {expandedExplored[t.id] ? "Show Less" : "Show More"}
+                            </button>
+                          </div>
                           <div className="flex flex-wrap gap-1.5">
-                            {t.actions.map((act: string, i: number) => (
+                            {(expandedExplored[t.id] ? t.actions : t.actions.slice(0, 5)).map((act: string, i: number) => (
                               <span key={i} className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] text-white/55 font-medium">{act}</span>
                             ))}
+                            {!expandedExplored[t.id] && t.actions.length > 5 && (
+                              <span className="px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] text-white/40 font-medium italic">+{t.actions.length - 5} more...</span>
+                            )}
                           </div>
                         </div>
                       ) : (
                         <div className="text-[10px] text-white/20 italic">No actions recorded</div>
                       )}
+                      
+                      {/* Telemetry Actions */}
+                      <div className="mt-4 pt-4 border-t border-white/10 flex justify-end">
+                        <button
+                          onClick={() => ask("Force Logout?", `Kick this user (${t.uid}) immediately across all devices?`, () => forceLogout(t.uid, t.name || "User"))}
+                          disabled={acting === t.uid}
+                          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 text-[10px] font-bold transition-all border border-orange-500/20"
+                        >
+                          {acting === t.uid ? <RefreshCw className="w-3 h-3 animate-spin" /> : <LogOut className="w-3 h-3" />}
+                          Force Logout
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </motion.div>

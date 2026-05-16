@@ -5,7 +5,7 @@ import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
 } from "firebase/firestore";
 import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
-import { Mic, Paperclip, Image as ImageIcon, Send, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, ShieldAlert, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin, BellRing, Zap } from "lucide-react";
+import { Mic, Paperclip, Image as ImageIcon, Send, SendHorizontal, Trash2, Folder, FolderTree, Reply, Download, X, Play, Pause, XCircle, ArrowLeftRight, ChevronDown, ChevronLeft, ChevronRight, Sun, Moon, MoreVertical, ShieldOff, ShieldAlert, Clock, RotateCw, Phone, CheckCircle2, AlertCircle, Info, Pencil, Users2, File, FileText, Music, Video, FileArchive, History, Copy, Palette, Pin, BellRing, Zap } from "lucide-react";
 import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
@@ -2504,7 +2504,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${isDarkMode ? "bg-black/10" : "bg-white/80"}`}
                         style={{ borderColor: `${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}4D` }}
                       >
-                        <Send className="w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg]" style={{ color: activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent }} />
+                        <SendHorizontal className="w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg]" style={{ color: activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent }} />
                       </motion.div>
                     </motion.div>
 
@@ -2599,7 +2599,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                     longPressTimer.current = setTimeout(() => {
                                       setContextMsg(m);
                                       if (window.navigator.vibrate) window.navigator.vibrate([20]);
-                                    }, 2000);
+                                    }, 500);
                                   }
                                 }}
                                 onPointerUp={() => {
@@ -2962,7 +2962,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         Slide to cancel
                       </div>
                       <button type="button" onClick={stopAndSendRec} className="h-8 sm:h-9 px-3 sm:px-5 rounded-full bg-[#00a884] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#00a884]/90 transition-all shadow-lg flex items-center gap-1 sm:gap-2 active:scale-95">
-                        <Send className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Send</span>
+                        <SendHorizontal className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> <span className="hidden sm:inline">Send</span>
                       </button>
                     </motion.div>
                   </div>
@@ -3029,7 +3029,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             onClick={() => onText()}
                             className={`w-10 h-10 md:w-12 md:h-12 rounded-full ${isEditing ? "bg-orange-500" : "bg-[#00a884]"} text-white flex items-center justify-center shadow-md md:shadow-lg active:scale-90 transition-all shrink-0`}
                           >
-                            {isEditing ? <CheckCircle2 className="w-5 h-5" /> : <Send className="w-5 h-5 md:w-6 md:h-6 fill-white stroke-[1.5] md:stroke-2" />}
+                            {isEditing ? <CheckCircle2 className="w-5 h-5" /> : <SendHorizontal className="w-5 h-5 md:w-6 md:h-6 fill-white stroke-[1.5] md:stroke-2" />}
                           </motion.button>
                         ) : (
                           <motion.button
@@ -3211,7 +3211,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-[600] flex items-center justify-center p-4"
+                  className="fixed inset-0 z-[600] flex items-start sm:items-center justify-center p-4 pt-10 sm:pt-4 overflow-y-auto"
                   style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(24px)" }}
                 >
                   <div className="w-full max-w-[340px] sm:max-w-2xl">
