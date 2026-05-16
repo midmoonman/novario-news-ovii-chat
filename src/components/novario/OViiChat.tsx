@@ -1825,7 +1825,12 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     requestAnimationFrame(() => inputRef.current?.focus());
     const isImageUrl = /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(v);
     if (isImageUrl) send("image", v);
-    else send("text", v.slice(0, 5000));
+    else {
+      send("text", v.slice(0, 5000));
+      if (v.toLowerCase().includes("@elevone")) {
+        triggerElevone(v, false, false);
+      }
+    }
     setInputHeight(44); // Reset height after send
   };
 

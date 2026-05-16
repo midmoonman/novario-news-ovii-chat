@@ -723,6 +723,16 @@ function usePerformanceShield() {
 
 export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () => void, password?: string, room?: string }) {
   const ROOM = room;
+  const toxicKeywords = /fuck|shit|bitch|asshole|idiot|stupid|kill|hate|shut up|aggressive|toxic|hell/i;
+  const aggressiveMsgCount = useRef(0);
+  const elevoneRecentActionsRef = useRef<string[]>([]);
+  
+  const trackAction = useCallback((action: string) => {
+    const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    elevoneRecentActionsRef.current.push(`[${time}] User action: ${action}`);
+    if (elevoneRecentActionsRef.current.length > 5) elevoneRecentActionsRef.current.shift();
+  }, []);
+
 
   const [encryptionKey, setEncryptionKey] = useState<CryptoKey | null>(null);
 
@@ -1418,6 +1428,125 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     if (uid) setDoc(doc(db, "ovii", ROOM, "presence", uid), data, { merge: true }).catch(() => { });
   };
 
+  const triggerElevone = async (triggerText: string, isAutoTrigger: boolean = false, isSystemEvent: boolean = false) => {
+    try {
+      setTypingUsers(prev => Array.from(new Set([...prev, "ELEVONE"])));
+
+      const memoryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "context"));
+      const pdfContext = memoryDoc.exists() ? memoryDoc.data().text : "";
+
+      const summaryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "summaries"));
+      const summaries = summaryDoc.exists() ? summaryDoc.data().text : "";
+
+      const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "desc"), limit(20));
+      const snap = await getDocs(q);
+      const recentTextMsgs = await Promise.all(
+        snap.docs.map(d => d.data()).filter(d => d.type === "text").reverse().map(async (d) => {
+          let text = d.content;
+          if (d.isEncrypted && encryptionKey) {
+            text = await decrypt(d.content, encryptionKey);
+          }
+          return { role: d.uid === "elevone" ? "elevone" : "user", name: d.name, text };
+        })
+      );
+
+      if (isSystemEvent) {
+        recentTextMsgs.push({ role: "user", name: "SYSTEM", text: triggerText });
+      }
+
+      const response = await fetch("/api/elevone", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          messages: recentTextMsgs,
+          pdfContext,
+          summaries,
+          isAutoTrigger,
+          recentActions: elevoneRecentActionsRef.current.join("\n"),
+          allowSharing: memoryDoc.exists() ? memoryDoc.data().allowSharing : false,
+          triggeringUserName: name
+        })
+      });
+
+      if (!response.ok) throw new Error("Elevone API failed");
+      const data = await response.json();
+
+      let replyContent = data.text;
+      if (encryptionKey) {
+        replyContent = await encrypt(replyContent, encryptionKey);
+      }
+
+      await addDoc(collection(db, "ovii", ROOM, "messages"), {
+        uid: "elevone",
+        name: "ELEVONE",
+        avatar: "/elevone.png",
+        type: "text",
+        content: replyContent,
+        isEncrypted: !!encryptionKey,
+        status: "sent",
+        createdAt: Timestamp.now()
+      });
+
+    } catch (err) {
+      console.error("Elevone Error:", err);
+    } finally {
+      setTypingUsers(prev => prev.filter(n => n !== "ELEVONE"));
+    }
+  };
+
+  const triggerSummary = async () => {
+    try {
+      const q = query(collection(db, "ovii", ROOM, "messages"), orderBy("createdAt", "desc"), limit(50));
+      const snap = await getDocs(q);
+      const recentTextMsgs = await Promise.all(
+        snap.docs.map(d => d.data()).filter(d => d.type === "text").reverse().map(async (d) => {
+          let text = d.content;
+          if (d.isEncrypted && encryptionKey) {
+            text = await decrypt(d.content, encryptionKey);
+          }
+          return { name: d.name, text };
+        })
+      );
+
+      const response = await fetch("/api/elevoneSummary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: recentTextMsgs })
+      });
+      if (!response.ok) throw new Error("Summary API failed");
+      const data = await response.json();
+      
+      const summaryDocRef = doc(db, "ovii", ROOM, "elevone-memory", "summaries");
+      const summaryDoc = await getDoc(summaryDocRef);
+      const existing = summaryDoc.exists() ? summaryDoc.data().text + "\n\n" : "";
+      
+      await setDoc(summaryDocRef, { text: existing + data.text, updatedAt: serverTimestamp() }, { merge: true });
+    } catch (e) {
+      console.error("Summary failed", e);
+    }
+  };
+
+  useEffect(() => {
+    if (!uid || !name) return;
+    if (!sessionStorage.getItem("elevone_welcomed")) {
+      sessionStorage.setItem("elevone_welcomed", "true");
+      
+      const isHimanshu = name.toLowerCase().startsWith('h');
+      const isAyushi = name.toLowerCase().startsWith('a');
+
+      let promptMsg = "";
+      if (isHimanshu) {
+         promptMsg = `[SYSTEM EVENT]: Himanshu has just entered the chat via Champ dashboard. Welcome him as ELEVONE.`;
+      } else if (isAyushi) {
+         promptMsg = `[SYSTEM EVENT]: Ayushi has just entered the chat via Champ dashboard. Welcome her warmly as ELEVONE.`;
+      } else {
+         promptMsg = `[SYSTEM EVENT]: A new user named ${name} has entered the chat. Welcome them casually as ELEVONE.`;
+      }
+      
+      setTimeout(() => triggerElevone(promptMsg, false, true), 1500);
+    }
+  }, [uid, name]);
+
   const triggerNotification = () => {
     if (!uid) return;
     const deviceId = localStorage.getItem("ovii_device_id");
@@ -1464,6 +1593,27 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     }
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
     triggerNotification();
+
+    if (type === "text") {
+      const isElevoneMentioned = content.toLowerCase().includes("@elevone");
+      const isToxic = toxicKeywords.test(content);
+      
+      if (isToxic) aggressiveMsgCount.current += 1;
+      else aggressiveMsgCount.current = 0;
+
+      const isAutoTrigger = aggressiveMsgCount.current >= 3;
+
+      if (isElevoneMentioned || isAutoTrigger) {
+        if (isAutoTrigger) aggressiveMsgCount.current = 0;
+        triggerElevone(content, isAutoTrigger);
+      }
+
+      // Check if we should trigger a summary
+      const textMsgsCount = msgs.filter(m => m.type === "text").length;
+      if (textMsgsCount > 0 && (textMsgsCount + 1) % 50 === 0) {
+        triggerSummary();
+      }
+    }
   };
 
   const deleteMessage = async (msgId: string, mode: "me" | "everyone") => {
