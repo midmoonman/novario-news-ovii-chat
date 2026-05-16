@@ -2599,7 +2599,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                     longPressTimer.current = setTimeout(() => {
                                       setContextMsg(m);
                                       if (window.navigator.vibrate) window.navigator.vibrate([20]);
-                                    }, 4500);
+                                    }, 3000);
                                   }
                                 }}
                                 onPointerUp={() => {
