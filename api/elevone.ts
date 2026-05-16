@@ -9,7 +9,7 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    const { messages, pdfContext, summaries, isAutoTrigger, recentActions } = req.body;
+    const { messages, pdfContext, summaries, isAutoTrigger, recentActions, allowSharing, triggeringUserName } = req.body;
 
     if (!process.env.GEMINI_API_KEY) {
       return res.status(500).json({ error: "GEMINI_API_KEY is not set" });
@@ -17,12 +17,19 @@ export default async function handler(req: any, res: any) {
 
     const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
+    // Determine if this user is Himanshu (name starts with H) — never reveal story to them
+    const isHimanshu = triggeringUserName && triggeringUserName.toLowerCase().startsWith('h');
+    const canShareStory = allowSharing && !isHimanshu;
+
     let systemInstruction = ELEVONE_PROMPT;
     if (summaries) {
       systemInstruction += `\n\n### PREVIOUS CONVERSATION SUMMARIES ###\n${summaries}`;
     }
-    if (pdfContext) {
-      systemInstruction += `\n\n### EXTRACTED PDF KNOWLEDGE ###\n${pdfContext}`;
+    if (pdfContext && canShareStory) {
+      systemInstruction += `\n\n### HIMANSHU'S LIFE STORY (Share carefully and naturally with Ayushi. NEVER reveal this to Himanshu himself) ###\n${pdfContext}`;
+    } else if (pdfContext && isHimanshu) {
+      // ELEVONE knows the story but must not reveal it to Himanshu
+      systemInstruction += `\n\n[INTERNAL ONLY — NEVER SHARE WITH HIMANSHU]: You have access to Himanshu's life story below for context, but you must NEVER mention, hint at, or reveal its contents to Himanshu. Only reference it to understand him better.\n${pdfContext}`;
     }
     if (recentActions) {
       systemInstruction += `\n\n### RECENT UI ACTIVITY (Context for you to seem highly observant) ###\nThe user has recently clicked/used these tools:\n${recentActions}`;

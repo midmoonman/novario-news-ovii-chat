@@ -1579,7 +1579,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           pdfContext,
           summaries,
           isAutoTrigger,
-          recentActions: elevoneRecentActionsRef.current.join("\n")
+          recentActions: elevoneRecentActionsRef.current.join("\n"),
+          allowSharing: memoryDoc.exists() ? memoryDoc.data().allowSharing : false,
+          triggeringUserName: name
         })
       });
 

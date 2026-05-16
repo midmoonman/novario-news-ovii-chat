@@ -21,7 +21,7 @@ interface ChampProps {
   room?: string;
 }
 
-type Tab = "users" | "preview" | "telemetry" | "wipe";
+type Tab = "users" | "preview" | "telemetry" | "wipe" | "elevone";
 
 // ─── Confirmation Dialog ────────────────────────────────────────────────────
 function ConfirmDialog({
@@ -141,6 +141,69 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
   }>(null);
   const [acting, setActing] = useState<string | null>(null); // uid being acted on
   const previewRef = useRef<HTMLDivElement>(null);
+  
+  // Elevone Context State
+  const [elevoneContext, setElevoneContext] = useState<any>(null);
+  const [elevoneTabMode, setElevoneTabMode] = useState<"view"|"upload">("view");
+  const [allowSharing, setAllowSharing] = useState(false);
+  const [scheduleMinutes, setScheduleMinutes] = useState(30);
+  const [pdfUploadStatus, setPdfUploadStatus] = useState("");
+
+  useEffect(() => {
+    if (!isOpen || tab !== "elevone") return;
+    const unsub = onSnapshot(doc(db, "ovii", room, "elevone-memory", "context"), (doc) => {
+      setElevoneContext(doc.exists() ? doc.data() : null);
+    });
+    return () => unsub();
+  }, [isOpen, tab, room]);
+
+  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || file.type !== "application/pdf") return;
+    
+    setPdfUploadStatus("Extracting...");
+    try {
+      // Dynamic import to avoid loading pdfjs if not needed
+      const pdfjsLib = await import("pdfjs-dist");
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://unpkg.com/pdfjs-dist@5.7.284/build/pdf.worker.min.mjs";
+      
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = "";
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        fullText += textContent.items.map((item: any) => item.str).join(" ") + "\n";
+      }
+
+      setPdfUploadStatus("Scheduling...");
+      
+      await setDoc(doc(db, "ovii", room, "elevone-memory", "context"), {
+        text: fullText,
+        status: scheduleMinutes > 0 ? "scheduled" : "active",
+        allowSharing,
+        scheduledFor: Date.now() + (scheduleMinutes * 60 * 1000),
+        createdAt: serverTimestamp()
+      }, { merge: true });
+      
+      setPdfUploadStatus("");
+      setElevoneTabMode("view");
+      showToast("Story uploaded & scheduled!");
+    } catch (err) {
+      console.error(err);
+      setPdfUploadStatus("Error: Failed to parse PDF");
+    }
+  };
+
+  const revokeContext = async () => {
+    await setDoc(doc(db, "ovii", room, "elevone-memory", "context"), { status: "revoked" }, { merge: true });
+    showToast("Story revoked.");
+  };
+
+  const activateContextNow = async () => {
+    await setDoc(doc(db, "ovii", room, "elevone-memory", "context"), { status: "active", scheduledFor: Date.now() }, { merge: true });
+    showToast("Story is now active!");
+  };
 
   const showToast = (msg: string, ok = true) => {
     setToast({ msg, ok });
@@ -328,6 +391,7 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
               { id: "preview",   icon: Eye,            label: "Realtime" },
               { id: "telemetry", icon: Activity,       label: "Telemetry" },
               { id: "wipe",      icon: Trash2,         label: "Clean" },
+              { id: "elevone",   icon: Zap,            label: "Elevone" },
             ] as const).map(({ id, icon: Icon, label }) => (
               <button key={id} onClick={() => setTab(id)}
                 className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[9px] font-medium transition-all ${
@@ -536,6 +600,144 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
                       {acting === "wipe-media" && <RefreshCw className="w-4 h-4 animate-spin" />}
                     </button>
                   </div>
+                </motion.div>
+              )}
+
+              {tab === "elevone" && (
+                <motion.div key="elevone" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+                  
+                  {/* Header */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Zap className="w-4 h-4 text-purple-400" /> ELEVONE Memory
+                      </h2>
+                      <p className="text-[10px] text-white/30 mt-0.5">Upload Himanshu's life story. Only Ayushi sees it.</p>
+                    </div>
+                    <button
+                      onClick={() => setElevoneTabMode(elevoneTabMode === "view" ? "upload" : "view")}
+                      className="px-3 py-1.5 rounded-xl text-[10px] font-bold bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 transition-all"
+                    >
+                      {elevoneTabMode === "view" ? "Upload New" : "Cancel"}
+                    </button>
+                  </div>
+
+                  {/* Current Status Card */}
+                  {elevoneContext && (
+                    <div className={`rounded-2xl border p-4 space-y-3 ${
+                      elevoneContext.status === "active" ? "bg-green-500/5 border-green-500/20" :
+                      elevoneContext.status === "scheduled" ? "bg-yellow-500/5 border-yellow-500/20" :
+                      "bg-white/[0.02] border-white/[0.06]"
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div className={`w-2 h-2 rounded-full ${
+                            elevoneContext.status === "active" ? "bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.8)]" :
+                            elevoneContext.status === "scheduled" ? "bg-yellow-400 animate-pulse" :
+                            "bg-white/20"
+                          }`} />
+                          <span className="text-[11px] font-bold text-white/70 uppercase tracking-widest">
+                            {elevoneContext.status === "active" ? "Story Live" :
+                             elevoneContext.status === "scheduled" ? "Scheduled" : "Revoked"}
+                          </span>
+                        </div>
+                        <span className="text-[9px] text-white/30 font-mono">
+                          {elevoneContext.allowSharing ? "Sharing ON" : "Sharing OFF"}
+                        </span>
+                      </div>
+
+                      {elevoneContext.status === "scheduled" && elevoneContext.scheduledFor && (
+                        <div className="bg-yellow-500/10 rounded-xl p-3 space-y-1">
+                          <p className="text-[10px] text-yellow-300/80 font-medium">
+                            ⏱ Goes live at {new Date(elevoneContext.scheduledFor).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                          </p>
+                          <p className="text-[9px] text-white/30">You have until then to revert or edit.</p>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap gap-2 pt-1">
+                        {elevoneContext.status === "scheduled" && (
+                          <button onClick={activateContextNow} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-500/15 hover:bg-green-500/25 text-green-400 text-[10px] font-bold border border-green-500/20 transition-all">
+                            <CheckCircle2 className="w-3 h-3" /> Activate Now
+                          </button>
+                        )}
+                        {elevoneContext.status !== "revoked" && (
+                          <button
+                            onClick={() => ask("Revoke Story?", "This will stop Elevone from using or sharing this story context immediately.", revokeContext)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-bold border border-red-500/20 transition-all"
+                          >
+                            <X className="w-3 h-3" /> Revoke
+                          </button>
+                        )}
+                        <button onClick={() => setElevoneTabMode("upload")} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 text-[10px] font-bold border border-purple-500/20 transition-all">
+                          <RefreshCw className="w-3 h-3" /> Replace PDF
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload Form */}
+                  {elevoneTabMode === "upload" && (
+                    <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-4 space-y-4">
+                      <h3 className="text-xs font-bold text-purple-300 flex items-center gap-2">
+                        <File className="w-3.5 h-3.5" /> Upload Life Story PDF
+                      </h3>
+                      
+                      {/* PDF Drop Zone */}
+                      <label className="flex flex-col items-center justify-center gap-2 w-full py-6 rounded-xl border-2 border-dashed border-purple-500/30 hover:border-purple-500/50 bg-purple-500/5 hover:bg-purple-500/10 cursor-pointer transition-all text-center">
+                        {pdfUploadStatus ? (
+                          <><RefreshCw className="w-6 h-6 text-purple-400 animate-spin" /><span className="text-xs text-purple-300">{pdfUploadStatus}</span></>
+                        ) : (
+                          <><File className="w-6 h-6 text-purple-400/50" /><span className="text-xs text-white/50">Tap to select PDF</span><span className="text-[9px] text-white/20">Your story. Your context. Only Elevone sees this.</span></>
+                        )}
+                        <input type="file" accept="application/pdf" className="hidden" onChange={handlePdfUpload} disabled={!!pdfUploadStatus} />
+                      </label>
+
+                      {/* Options */}
+                      <div className="space-y-3">
+                        {/* Allow sharing toggle */}
+                        <div className="flex items-center justify-between p-3 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                          <div>
+                            <p className="text-[11px] text-white/70 font-semibold">Allow Sharing with Ayushi</p>
+                            <p className="text-[9px] text-white/30 mt-0.5">When ON, Elevone can share context with Ayushi. Never with Himanshu.</p>
+                          </div>
+                          <button
+                            onClick={() => setAllowSharing(!allowSharing)}
+                            className={`relative w-10 h-5.5 rounded-full transition-all border shrink-0 ml-3 ${allowSharing ? "bg-purple-500/80 border-purple-400/50" : "bg-white/10 border-white/10"}`}
+                            style={{ height: "22px", width: "40px" }}
+                          >
+                            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${allowSharing ? "left-5" : "left-0.5"}`} />
+                          </button>
+                        </div>
+
+                        {/* Schedule delay */}
+                        <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.06] space-y-2">
+                          <p className="text-[11px] text-white/70 font-semibold flex items-center gap-1.5">
+                            <Clock className="w-3 h-3" /> Decision Window
+                            <span className="ml-auto text-purple-300 font-mono">{scheduleMinutes}m</span>
+                          </p>
+                          <p className="text-[9px] text-white/30">Time before story goes live. You can revoke or edit within this window.</p>
+                          <div className="flex gap-2 flex-wrap">
+                            {[0, 15, 30, 60].map(m => (
+                              <button
+                                key={m}
+                                onClick={() => setScheduleMinutes(m)}
+                                className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all border ${scheduleMinutes === m ? "bg-purple-500 text-white border-purple-400" : "bg-white/5 text-white/40 border-white/10 hover:bg-white/10"}`}
+                              >
+                                {m === 0 ? "Instant" : `${m}min`}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {!elevoneContext && elevoneTabMode === "view" && (
+                    <div className="text-center py-10 text-white/20 text-sm border border-dashed border-white/10 rounded-2xl">
+                      No story uploaded yet. Tap "Upload New" to begin.
+                    </div>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
