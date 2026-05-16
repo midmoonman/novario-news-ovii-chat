@@ -257,11 +257,14 @@ const isMobileDevice = () =>
 
 const formatMessageDate = (date: Date) => {
   const now = new Date();
-  const diffDays = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
-  if (diffDays < 7) return date.toLocaleDateString(undefined, { weekday: 'long' });
-  return date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const msgDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.floor((startOfToday.getTime() - msgDate.getTime()) / (1000 * 60 * 60 * 24));
+  
+  const exactDate = date.toLocaleDateString(undefined, { day: 'numeric', month: 'long', year: 'numeric' });
+  if (diffDays === 0) return `Today, ${exactDate}`;
+  if (diffDays === 1) return `Yesterday, ${exactDate}`;
+  return exactDate;
 };
 
 const formatLastSeen = (timestamp: number | null | undefined) => {
@@ -944,6 +947,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const [text, setText] = useState("");
   const [recording, setRecording] = useState(false);
   const [error, setError] = useState("");
+  const [overrideRoomFull, setOverrideRoomFull] = useState(false);
+  const [overrideName, setOverrideName] = useState("");
   const [count, setCount] = useState(0);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [recordingUsers, setRecordingUsers] = useState<string[]>([]);
@@ -1148,10 +1153,11 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         }
         const fresh = await getDocs(presCol);
         const others = fresh.docs.filter((d) => d.id !== u.uid).length;
-        if (others >= 2 - 0 && fresh.docs.length >= 2 && !fresh.docs.find((d) => d.id === u.uid)) {
-          setError("Room is full (2/2). Try again later.");
+        if (!overrideRoomFull && others >= 2 - 0 && fresh.docs.length >= 2 && !fresh.docs.find((d) => d.id === u.uid)) {
+          setError("ROOM_FULL");
           return;
         }
+        if (overrideRoomFull) setError("");
 
         await setDoc(doc(db, "ovii", ROOM, "presence", u.uid), {
           uid: u.uid, avatar, name, lastSeen: serverTimestamp(), typing: false, recording: false
@@ -1359,7 +1365,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
       window.removeEventListener("visibilitychange", handleVisibilityChange);
       cleanupPresence();
     };
-  }, [avatar]);
+  }, [avatar, overrideRoomFull]);
 
   // ── Inactivity lock ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -1918,17 +1924,17 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
             </div>
           )}
 
-          {/* ── Folder UI (Mobile Slide-in, PC Modal) ── */}
+          {/* ── Mobile Folder Overlay ── */}
           <AnimatePresence>
             {showFolder && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                className={`fixed inset-0 z-[400] flex flex-col lg:items-center lg:justify-center lg:p-10 ${isDarkMode ? "bg-[#0b141a] lg:bg-black/60 lg:backdrop-blur-sm" : "bg-[#f0f2f5] lg:bg-black/20 lg:backdrop-blur-sm"}`}
+                initial={{ x: "100%" }}
+                animate={{ x: 0 }}
+                exit={{ x: "100%" }}
+                transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                className={`fixed inset-0 z-[150] flex flex-col ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
               >
-                <div className={`flex flex-col w-full h-full lg:max-w-4xl lg:h-[80vh] lg:rounded-3xl lg:border lg:shadow-2xl overflow-hidden ${isDarkMode ? "bg-[#0b141a] lg:bg-[#111b21] lg:border-white/10" : "bg-[#f0f2f5] lg:bg-white lg:border-black/10"}`}>
-                  <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
+                <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
                   }`}>
                   <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
                     <Folder className="w-5 h-5 text-destructive" /> FILES
@@ -1939,7 +1945,6 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
                   <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
-                </div>
                 </div>
               </motion.div>
             )}
@@ -2318,7 +2323,46 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
           {/* ── Error Toast (Up Front) ── */}
           <AnimatePresence>
-            {error && (
+            {error === "ROOM_FULL" ? (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[700] flex items-center justify-center p-4 bg-black/80 backdrop-blur-xl"
+              >
+                <div className="w-full max-w-[320px] bg-[#111b21] rounded-[28px] p-6 border border-white/10 shadow-2xl flex flex-col items-center">
+                  <div className="w-12 h-12 rounded-2xl bg-red-500/10 flex items-center justify-center mb-4 border border-red-500/20">
+                    <Users2 className="w-6 h-6 text-red-500" />
+                  </div>
+                  <h2 className="text-xl font-bold text-white mb-2 tracking-tight">Room is Full</h2>
+                  <p className="text-white/40 text-[13px] text-center mb-6">The room capacity (2/2) has been reached. You cannot enter right now.</p>
+                  
+                  <div className="w-full h-px bg-white/10 mb-6" />
+                  
+                  <div className="w-full">
+                    <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest mb-2 ml-1">Admin Override</p>
+                    <input
+                      type="text"
+                      placeholder="Enter Your Name"
+                      value={overrideName}
+                      onChange={(e) => setOverrideName(e.target.value)}
+                      className="w-full rounded-xl px-4 py-3 bg-white/5 border border-white/10 text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/50 mb-3"
+                    />
+                    <button
+                      disabled={!overrideName.trim()}
+                      onClick={() => {
+                        localStorage.setItem("ovii_name", overrideName.trim());
+                        setName(overrideName.trim());
+                        setOverrideRoomFull(true);
+                      }}
+                      className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-600 text-black font-bold text-sm transition-all disabled:opacity-50"
+                    >
+                      Override & Enter
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ) : error && (
               <motion.div
                 initial={{ opacity: 0, y: -20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
