@@ -148,6 +148,8 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
   const [allowSharing, setAllowSharing] = useState(false);
   const [scheduleMinutes, setScheduleMinutes] = useState(30);
   const [pdfUploadStatus, setPdfUploadStatus] = useState("");
+  const [gdocUrl, setGdocUrl] = useState("");
+  const [gdocSyncStatus, setGdocSyncStatus] = useState<"idle"|"syncing"|"done"|"error">("idle");
 
   useEffect(() => {
     if (!isOpen || tab !== "elevone") return;
@@ -203,6 +205,34 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
   const activateContextNow = async () => {
     await setDoc(doc(db, "ovii", room, "elevone-memory", "context"), { status: "active", scheduledFor: Date.now() }, { merge: true });
     showToast("Story is now active!");
+  };
+
+  const handleGdocSync = async () => {
+    const match = gdocUrl.match(/\/document\/d\/([a-zA-Z0-9_-]+)/);
+    if (!match) {
+      showToast("Invalid Google Doc URL", false);
+      return;
+    }
+    const docId = match[1];
+    setGdocSyncStatus("syncing");
+    try {
+      const res = await fetch("/api/injectGdoc", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ docId, room, allowSharing, scheduleMinutes })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      setGdocSyncStatus("done");
+      showToast(`Story synced! (${data.chars.toLocaleString()} characters)`);
+      setElevoneTabMode("view");
+      setGdocUrl("");
+      setTimeout(() => setGdocSyncStatus("idle"), 3000);
+    } catch (err: any) {
+      setGdocSyncStatus("error");
+      showToast("Sync failed: " + err.message, false);
+      setTimeout(() => setGdocSyncStatus("idle"), 4000);
+    }
   };
 
   const showToast = (msg: string, ok = true) => {
@@ -680,11 +710,45 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
                   {elevoneTabMode === "upload" && (
                     <div className="rounded-2xl border border-purple-500/20 bg-purple-500/5 p-4 space-y-4">
                       <h3 className="text-xs font-bold text-purple-300 flex items-center gap-2">
-                        <File className="w-3.5 h-3.5" /> Upload Life Story PDF
+                        <File className="w-3.5 h-3.5" /> Upload Life Story
                       </h3>
-                      
+
+                      {/* Google Doc Sync */}
+                      <div className="space-y-2">
+                        <p className="text-[9px] text-white/30 uppercase tracking-widest font-bold">Sync from Google Doc (Live)</p>
+                        <div className="flex gap-2">
+                          <input
+                            type="text"
+                            value={gdocUrl}
+                            onChange={e => setGdocUrl(e.target.value)}
+                            placeholder="Paste Google Doc URL here..."
+                            className="flex-1 px-3 py-2 rounded-xl text-xs bg-white/5 border border-white/10 text-white/70 placeholder-white/20 focus:outline-none focus:border-purple-500/50"
+                          />
+                          <button
+                            onClick={handleGdocSync}
+                            disabled={!gdocUrl.trim() || gdocSyncStatus === "syncing"}
+                            className={`px-3 py-2 rounded-xl text-[10px] font-bold transition-all border shrink-0 ${
+                              gdocSyncStatus === "done" ? "bg-green-500 text-white border-green-400" :
+                              gdocSyncStatus === "error" ? "bg-red-500/20 text-red-400 border-red-500/30" :
+                              "bg-purple-500 hover:bg-purple-600 text-white border-purple-400 disabled:opacity-40"
+                            }`}
+                          >
+                            {gdocSyncStatus === "syncing" ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> :
+                             gdocSyncStatus === "done" ? <CheckCircle2 className="w-3.5 h-3.5" /> :
+                             gdocSyncStatus === "error" ? "Error" : "Sync"}
+                          </button>
+                        </div>
+                        <p className="text-[9px] text-white/20">Make sure the Google Doc is shared as "Anyone with the link can view". Syncs live — edits to the doc will be reflected next time you sync.</p>
+                      </div>
+
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-px bg-white/5" />
+                        <span className="text-[9px] text-white/20 uppercase tracking-widest">or upload PDF</span>
+                        <div className="flex-1 h-px bg-white/5" />
+                      </div>
+
                       {/* PDF Drop Zone */}
-                      <label className="flex flex-col items-center justify-center gap-2 w-full py-6 rounded-xl border-2 border-dashed border-purple-500/30 hover:border-purple-500/50 bg-purple-500/5 hover:bg-purple-500/10 cursor-pointer transition-all text-center">
+                      <label className="flex flex-col items-center justify-center gap-2 w-full py-5 rounded-xl border-2 border-dashed border-purple-500/30 hover:border-purple-500/50 bg-purple-500/5 hover:bg-purple-500/10 cursor-pointer transition-all text-center">
                         {pdfUploadStatus ? (
                           <><RefreshCw className="w-6 h-6 text-purple-400 animate-spin" /><span className="text-xs text-purple-300">{pdfUploadStatus}</span></>
                         ) : (
