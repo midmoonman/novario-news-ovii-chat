@@ -2150,7 +2150,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                 onClick={() => {
                                   const until = Date.now() + d.val;
                                   setNoLockUntil(until);
-                                  trackAction("Set Lock Timer: " + opt.label);
+                                  trackAction("Set Lock Timer: " + d.label);
                                   localStorage.setItem("ovii_no_lock_until", until.toString());
                                   setShowMenu(false);
                                   setShowNoLockSubmenu(false);
