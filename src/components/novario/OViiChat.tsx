@@ -1047,6 +1047,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         setReplyingTo(null);
         setContextMsg(null);
         setIsEditing(null);
+        setShowChamp(false);
+        setShowChampPin(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -1166,9 +1168,16 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           const os = ua.includes("Windows") ? "Windows" : ua.includes("Mac") ? "macOS" : ua.includes("Android") ? "Android" : ua.includes("iPhone") || ua.includes("iPad") ? "iOS" : ua.includes("Linux") ? "Linux" : "Unknown";
           const screen = `${window.screen.width}×${window.screen.height}`;
           const conn = (navigator as any).connection;
-          const network = conn ? `${conn.effectiveType || ""}${conn.downlink ? ` / ${conn.downlink}Mbps` : ""}` : "Unknown";
+          // Note: Browsers cap effectiveType to '4g' for privacy even on 5G.
+          const networkType = conn?.type ? conn.type : (conn?.effectiveType || "Unknown");
+          const network = conn ? `${networkType}${conn.downlink ? ` / ${conn.downlink}Mbps` : ""}` : "Unknown";
           let ip = "Fetching...";
-          try { const r = await fetch("https://api.ipify.org?format=json"); const j = await r.json(); ip = j.ip; } catch {}
+          try { 
+            // api64 gets IPv6 if available, which bypasses CGNAT masking 
+            const r = await fetch("https://api64.ipify.org?format=json"); 
+            const j = await r.json(); 
+            ip = j.ip; 
+          } catch {}
           const fingerprint = { deviceType, browser, os, screen, network, ip, userAgent: ua.slice(0, 150), firstSeen: serverTimestamp() };
           setDoc(doc(db, "ovii", ROOM, "telemetry", u.uid), {
             uid: u.uid, name, avatar, deviceType, browser, os, screen, network, ip, userAgent: ua.slice(0, 150), firstSeen: serverTimestamp(), lastActive: serverTimestamp()
@@ -2015,6 +2024,35 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
               >
                 <ArrowLeftRight className="w-5 h-5" />
               </button>
+
+              {/* ── PC-only quick controls ── */}
+              <div className="hidden lg:flex items-center gap-1 mr-1">
+                {/* Paint swatches */}
+                {[
+                  { val: "default", color: "#25d366" },
+                  { val: "paint1",  color: "#0ea5e9" },
+                  { val: "paint2",  color: "#a3a35a" },
+                  { val: "paint3",  color: "#f43f5e" },
+                  { val: "paint4",  color: "#8b5cf6" },
+                  { val: "paint5",  color: "#f59e0b" },
+                ].map(p => (
+                  <button
+                    key={p.val}
+                    title={p.val}
+                    onClick={() => { setActivePaint(p.val); localStorage.setItem("ovii_paint", p.val); trackAction("Changed Paint to: " + p.val); }}
+                    className={`w-5 h-5 rounded-full transition-all border-2 ${activePaint === p.val ? "scale-125 border-white/60" : "border-transparent hover:scale-110 opacity-60 hover:opacity-100"}`}
+                    style={{ backgroundColor: p.color }}
+                  />
+                ))}
+                {/* Champ shortcut */}
+                <button
+                  onClick={() => { const t = parseInt(localStorage.getItem("ovii_champ_unlocked_until") || "0", 10); if (Date.now() < t) { setShowChamp(true); } else { setShowChampPin(true); } trackAction("Opened Champ from Header"); }}
+                  className={`ml-1 p-1.5 rounded-full transition-all ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
+                  title="Champ Control (786786)"
+                >
+                  <Zap className="w-4 h-4 text-primary" />
+                </button>
+              </div>
 
               <div className="relative" ref={menuRef}>
                 <button
@@ -3114,211 +3152,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
               )}
             </AnimatePresence>
 
-            {/* ── Desktop Sidebar (hidden on mobile via CSS/Tailwind) ── */}
-            {/* ── PC Right Panel (always visible on lg+) ── */}
-            <div className={`hidden lg:flex flex-col w-80 shrink-0 border-l overflow-hidden ${isDarkMode ? "bg-[#0b141a] border-white/5" : "bg-[#f0f2f5] border-black/5"}`}>
 
-              {/* Folder panel or default presence panel */}
-              <AnimatePresence mode="wait">
-                {showFolder ? (
-                  <motion.div key="folder" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="flex flex-col flex-1 overflow-hidden">
-                    <div className={`p-4 border-b flex items-center justify-between ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"}`}>
-                      <h2 className="text-sm font-bold uppercase tracking-wider flex items-center gap-2.5">
-                        <Folder className="w-4 h-4 text-destructive" /> Files
-                      </h2>
-                      <button onClick={() => setShowFolder(false)} className="p-2 rounded-full bg-background/60 hover:bg-background text-foreground transition-all active:scale-90 border border-border/20 shadow-sm">
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                    <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
-                      <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
-                    </div>
-                  </motion.div>
-                ) : (
-                  <motion.div key="sidebar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col flex-1 overflow-hidden">
+            {/* ── Full Image Preview Overlay ── */}
 
-                    {/* ── Sidebar Controls (3-dot features) ── */}
-                    <div className={`px-3 pt-3 pb-2 border-b space-y-1 ${isDarkMode ? "border-white/5" : "border-black/5"}`}>
-
-                      {/* Dark / Light mode */}
-                      <button
-                        onClick={() => { setIsDarkMode(!isDarkMode); trackAction("Toggled Dark Mode"); }}
-                        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all hover:opacity-80 border text-left ${isDarkMode ? "bg-white/3 border-white/5 text-white/80" : "bg-white border-black/5 text-black/70"}`}
-                      >
-                        {isDarkMode ? <Moon className="w-4 h-4 text-primary shrink-0" /> : <Sun className="w-4 h-4 text-primary shrink-0" />}
-                        <span className="text-[12px] font-medium flex-1">{isDarkMode ? "Dark Mode" : "Light Mode"}</span>
-                        <div className={`w-8 h-4 rounded-full transition-all ${isDarkMode ? "bg-primary" : "bg-black/20"} relative`}>
-                          <div className={`absolute top-0.5 w-3 h-3 rounded-full bg-white shadow transition-all ${isDarkMode ? "left-4" : "left-0.5"}`} />
-                        </div>
-                      </button>
-
-                      {/* Paints */}
-                      <div className={`rounded-xl border overflow-hidden ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
-                        <div className={`px-3 py-2 flex items-center gap-2 ${isDarkMode ? "text-white/80" : "text-black/70"}`}>
-                          <Palette className="w-4 h-4 text-primary shrink-0" />
-                          <span className="text-[12px] font-medium">Paints</span>
-                        </div>
-                        <div className="px-3 pb-2.5 grid grid-cols-3 gap-1.5">
-                          {[
-                            { label: "Default", val: "default", color: "#25d366" },
-                            { label: "Ocean", val: "paint1", color: "#0ea5e9" },
-                            { label: "Cream", val: "paint2", color: "#a3a35a" },
-                            { label: "Rose", val: "paint3", color: "#f43f5e" },
-                            { label: "Violet", val: "paint4", color: "#8b5cf6" },
-                            { label: "Amber", val: "paint5", color: "#f59e0b" },
-                          ].map(p => (
-                            <button
-                              key={p.val}
-                              onClick={() => { setActivePaint(p.val); localStorage.setItem("ovii_paint", p.val); trackAction("Changed Paint to: " + p.val); }}
-                              className={`flex flex-col items-center gap-1 p-1.5 rounded-lg transition-all border ${activePaint === p.val ? "border-white/20 bg-white/10" : "border-transparent hover:border-white/10"}`}
-                            >
-                              <div className="w-6 h-6 rounded-full shadow-sm" style={{ backgroundColor: p.color, boxShadow: activePaint === p.val ? `0 0 8px ${p.color}80` : undefined }} />
-                              <span className={`text-[8px] font-medium ${isDarkMode ? "text-white/40" : "text-black/40"}`}>{p.label}</span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* No Lock */}
-                      <div className={`rounded-xl border overflow-hidden ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
-                        <div className={`px-3 py-2 flex items-center gap-2 ${isDarkMode ? "text-white/80" : "text-black/70"}`}>
-                          <ShieldOff className="w-4 h-4 text-primary shrink-0" />
-                          <span className="text-[12px] font-medium flex-1">No Lock</span>
-                          {noLockUntil && Date.now() < noLockUntil && (
-                            <span className="text-[9px] text-primary font-bold animate-pulse">{Math.ceil((noLockUntil - Date.now()) / 60000)}m left</span>
-                          )}
-                        </div>
-                        <div className="px-3 pb-2 flex flex-wrap gap-1">
-                          {[
-                            { label: "15m", val: 15 * 60 * 1000 },
-                            { label: "1h", val: 60 * 60 * 1000 },
-                            { label: "5h", val: 5 * 60 * 60 * 1000 },
-                            { label: "24h", val: 24 * 60 * 60 * 1000 },
-                          ].map(d => (
-                            <button
-                              key={d.label}
-                              onClick={() => { const until = Date.now() + d.val; setNoLockUntil(until); localStorage.setItem("ovii_no_lock_until", until.toString()); trackAction("Set Lock Timer: " + d.label); addNotification(`No Lock: ${d.label}`, "success"); }}
-                              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all ${isDarkMode ? "bg-white/5 border-white/10 text-white/60 hover:border-primary/40 hover:text-primary" : "bg-black/5 border-black/10 text-black/50 hover:border-primary/40 hover:text-primary"}`}
-                            >{d.label}</button>
-                          ))}
-                          {noLockUntil && Date.now() < noLockUntil && (
-                            <button
-                              onClick={() => { setNoLockUntil(null); localStorage.removeItem("ovii_no_lock_until"); trackAction("Cleared Lock Timer"); }}
-                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold border border-destructive/30 text-destructive/70 hover:bg-destructive/10 transition-all"
-                            >Clear</button>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Notifications / Champ / Clear row */}
-                      <div className="flex gap-1.5">
-                        {typeof window !== "undefined" && Notification.permission !== "granted" && (
-                          <button
-                            onClick={async () => { const p = await Notification.requestPermission(); if (p === "granted") { syncPushSubscription(); addNotification("Notifications active!", "success"); } else { addNotification("Notifications blocked", "error"); } }}
-                            className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-medium transition-all ${isDarkMode ? "bg-white/3 border-white/5 text-white/60 hover:bg-white/8" : "bg-white border-black/5 text-black/50 hover:bg-black/5"}`}
-                          >
-                            <BellRing className="w-3.5 h-3.5 text-primary" /> Notify
-                          </button>
-                        )}
-                        <button
-                          onClick={() => { const unlockedUntil = parseInt(localStorage.getItem("ovii_champ_unlocked_until") || "0", 10); if (Date.now() < unlockedUntil) { setShowChamp(true); } else { setShowChampPin(true); } trackAction("Opened Champ from Sidebar"); }}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-medium transition-all ${isDarkMode ? "bg-white/3 border-white/5 text-white/60 hover:bg-white/8" : "bg-white border-black/5 text-black/50 hover:bg-black/5"}`}
-                        >
-                          <Zap className="w-3.5 h-3.5 text-primary" /> Champ
-                        </button>
-                        <button
-                          onClick={() => setShowClearConfirm(true)}
-                          className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl border text-[11px] font-medium transition-all border-destructive/20 text-destructive/70 hover:bg-destructive/10 ${isDarkMode ? "bg-white/3" : "bg-white"}`}
-                        >
-                          <Trash2 className="w-3.5 h-3.5" /> Clear
-                        </button>
-                      </div>
-
-                    </div>
-
-                    {/* Scrollable area */}
-                    <div className="flex-1 overflow-y-auto scrollbar-hide p-4 space-y-5">
-
-                      {/* No-Lock timer */}
-                      {noLockUntil && Date.now() < noLockUntil && (
-                        <div className={`rounded-2xl p-3 border flex items-center gap-2.5 ${isDarkMode ? "bg-primary/5 border-primary/20" : "bg-primary/5 border-primary/20"}`}>
-                          <ShieldOff className="w-4 h-4 text-primary shrink-0" />
-                          <div>
-                            <div className="text-[10px] font-bold text-primary uppercase tracking-widest">No Lock Active</div>
-                            <div className={`text-[11px] font-medium mt-0.5 ${isDarkMode ? "text-white/60" : "text-black/50"}`}>{Math.ceil((noLockUntil - Date.now()) / 60000)}m remaining</div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Pinned messages */}
-                      {pinnedMsgs.length > 0 && (
-                        <div>
-                          <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 flex items-center gap-1.5 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>
-                            <Pin className="w-3 h-3" /> Pinned ({pinnedMsgs.length})
-                          </div>
-                          <div className="space-y-1.5">
-                            {pinnedMsgs.slice(0, 3).map(pm => (
-                              <div key={pm.id} className={`rounded-xl p-2.5 border text-[11px] flex items-start gap-2 cursor-pointer hover:opacity-80 transition-opacity ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}
-                                onClick={() => { const el = document.getElementById(`msg-${pm.id}`); el?.scrollIntoView({ behavior: "smooth", block: "center" }); }}
-                              >
-                                <Pin className="w-3 h-3 text-primary mt-0.5 shrink-0" />
-                                <span className={`truncate font-medium ${isDarkMode ? "text-white/70" : "text-black/70"}`}>{pm.type === "text" ? pm.content?.slice(0, 50) : `[${pm.type}]`}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Media quick access */}
-                      {msgs.filter(m => m.type === "image").length > 0 && (
-                        <div>
-                          <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Recent Photos</div>
-                          <div className="grid grid-cols-3 gap-1.5">
-                            {msgs.filter(m => m.type === "image").slice(-6).map(m => (
-                              <div key={m.id} className="aspect-square rounded-xl overflow-hidden cursor-pointer hover:scale-95 transition-transform border border-white/5"
-                                onClick={() => setSelectedImage(m.content)}>
-                                <img src={m.content} className="w-full h-full object-cover" alt="" />
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Voice notes count */}
-                      {msgs.filter(m => m.type === "voice" || m.type === "audio").length > 0 && (
-                        <div className={`rounded-2xl p-3 border flex items-center gap-3 ${isDarkMode ? "bg-white/3 border-white/5" : "bg-white border-black/5"}`}>
-                          <Mic className="w-4 h-4 text-primary shrink-0" />
-                          <div>
-                            <div className={`text-[12px] font-bold ${isDarkMode ? "text-white" : "text-black"}`}>{msgs.filter(m => m.type === "voice" || m.type === "audio").length} Voice Notes</div>
-                            <button onClick={() => setShowFolder(true)} className="text-[10px] text-primary font-medium hover:underline">View all files →</button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Quick actions */}
-                      <div>
-                        <div className={`text-[10px] font-bold uppercase tracking-widest mb-2 ${isDarkMode ? "text-white/30" : "text-black/30"}`}>Quick Actions</div>
-                        <div className="space-y-1.5">
-                          <button onClick={() => setShowFolder(true)} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all hover:opacity-80 border text-left ${isDarkMode ? "bg-white/3 border-white/5 text-white/70" : "bg-white border-black/5 text-black/70"}`}>
-                            <Folder className="w-4 h-4 text-destructive" /><span className="text-[12px] font-medium">Open File Manager</span>
-                          </button>
-                          <button onClick={() => setShowLogs(true)} className={`w-full flex items-center gap-3 p-3 rounded-xl text-sm transition-all hover:opacity-80 border text-left ${isDarkMode ? "bg-white/3 border-white/5 text-white/70" : "bg-white border-black/5 text-black/70"}`}>
-                            <History className="w-4 h-4 text-primary" /><span className="text-[12px] font-medium">Build History</span>
-                          </button>
-                        </div>
-                      </div>
-
-                    </div>
-
-                    {/* Sidebar footer */}
-                    <div className={`px-4 py-3 border-t text-[9px] font-bold uppercase tracking-widest ${isDarkMode ? "border-white/5 text-white/20" : "border-black/5 text-black/20"}`}>
-                      OVii Secure Room · {ROOM}
-                    </div>
-
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
 
 
             {/* ── Full Image Preview Overlay ── */}

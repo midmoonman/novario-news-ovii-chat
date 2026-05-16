@@ -206,20 +206,25 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
   };
 
   const wipeMedia = async () => {
-    setActing("wipe-media");
     try {
-      const snap = await getDocs(collection(db, "ovii", room, "messages"));
-      const mediaDocs = snap.docs.filter(d => {
-        const t = d.data().type;
-        return ["image", "voice", "audio", "video", "file"].includes(t);
-      });
-      await Promise.all(mediaDocs.map(d => deleteDoc(d.ref)));
-      showToast(`${mediaDocs.length} media files wiped`, true);
-    } catch (e: any) {
-      showToast("Wipe failed: " + e.message, false);
-    } finally {
-      setActing(null);
-    }
+      setActing("wipe-media");
+      const snap = await getDocs(query(collection(db, "ovii", room, "messages"), where("type", "in", ["image", "voice", "audio"])));
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+      showToast(`Deleted ${snap.docs.length} media files.`);
+    } catch {
+      showToast("Error wiping media", false);
+    } finally { setActing(null); }
+  };
+
+  const clearTelemetry = async () => {
+    try {
+      setActing("clear-telemetry");
+      const snap = await getDocs(collection(db, "ovii", room, "telemetry"));
+      await Promise.all(snap.docs.map(d => deleteDoc(d.ref)));
+      showToast("Telemetry data cleared.");
+    } catch {
+      showToast("Error clearing telemetry", false);
+    } finally { setActing(null); }
   };
 
   if (!isOpen) return null;
@@ -375,9 +380,22 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
               )}
 
               {tab === "telemetry" && (
-                <motion.div key="telemetry" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-2">
+                <motion.div key="telemetry" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
+                  <div className="flex items-center justify-between px-1">
+                    <div className="text-[10px] text-white/40 uppercase tracking-widest font-bold">{telemetry.length} Records</div>
+                    {telemetry.length > 0 && (
+                      <button onClick={() => ask("Clear Telemetry?", "This will permanently delete all captured device and session data.", clearTelemetry)}
+                        disabled={acting === "clear-telemetry"}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-bold transition-all border border-red-500/20"
+                      >
+                        {acting === "clear-telemetry" ? <RefreshCw className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
+                        Clear Data
+                      </button>
+                    )}
+                  </div>
+                  
                   {telemetry.length === 0 && (
-                    <div className="text-center py-10 text-white/20 text-sm">No telemetry data yet</div>
+                    <div className="text-center py-10 text-white/20 text-sm border border-dashed border-white/10 rounded-2xl">No telemetry data yet</div>
                   )}
                   {telemetry.map(t => (
                     <div key={t.id} className={`${card} p-4`}>
@@ -399,7 +417,7 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
                       </div>
 
                       {/* Device grid */}
-                      <div className="grid grid-cols-2 gap-1.5 mb-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mb-3">
                         {[
                           { icon: t.deviceType === "Mobile" ? Smartphone : Monitor, label: "Device", val: t.deviceType },
                           { icon: Globe, label: "Browser", val: t.browser },
