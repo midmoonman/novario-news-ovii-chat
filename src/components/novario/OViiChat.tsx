@@ -1918,17 +1918,17 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
             </div>
           )}
 
-          {/* ── Mobile Folder Overlay ── */}
+          {/* ── Folder UI (Mobile Slide-in, PC Modal) ── */}
           <AnimatePresence>
             {showFolder && (
               <motion.div
-                initial={{ x: "100%" }}
-                animate={{ x: 0 }}
-                exit={{ x: "100%" }}
-                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                className={`fixed inset-0 z-[150] flex flex-col ${isDarkMode ? "bg-[#0b141a]" : "bg-[#f0f2f5]"}`}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className={`fixed inset-0 z-[400] flex flex-col lg:items-center lg:justify-center lg:p-10 ${isDarkMode ? "bg-[#0b141a] lg:bg-black/60 lg:backdrop-blur-sm" : "bg-[#f0f2f5] lg:bg-black/20 lg:backdrop-blur-sm"}`}
               >
-                <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
+                <div className={`flex flex-col w-full h-full lg:max-w-4xl lg:h-[80vh] lg:rounded-3xl lg:border lg:shadow-2xl overflow-hidden ${isDarkMode ? "bg-[#0b141a] lg:bg-[#111b21] lg:border-white/10" : "bg-[#f0f2f5] lg:bg-white lg:border-black/10"}`}>
+                  <div className={`p-4 border-b flex items-center justify-between backdrop-blur-md sticky top-0 z-10 ${isDarkMode ? "bg-[#202c33]/80 border-white/5 text-white" : "bg-white/80 border-black/5 text-black"
                   }`}>
                   <h2 className="text-base font-bold uppercase tracking-wider flex items-center gap-2.5">
                     <Folder className="w-5 h-5 text-destructive" /> FILES
@@ -1939,6 +1939,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
                   <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
+                </div>
                 </div>
               </motion.div>
             )}
@@ -2051,6 +2052,14 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                   title="Champ Control (786786)"
                 >
                   <Zap className="w-4 h-4 text-primary" />
+                </button>
+                {/* PC File Folder shortcut */}
+                <button
+                  onClick={() => { setShowFolder(true); trackAction("Opened Files from Header"); }}
+                  className={`ml-1 p-1.5 rounded-full transition-all ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
+                  title="Files"
+                >
+                  <Folder className="w-4 h-4 text-destructive" />
                 </button>
               </div>
 
@@ -2603,6 +2612,12 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                                   }
                                 }}
                                 onPointerUp={() => {
+                                  if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                                }}
+                                onPointerCancel={() => {
+                                  if (longPressTimer.current) clearTimeout(longPressTimer.current);
+                                }}
+                                onTouchMove={() => {
                                   if (longPressTimer.current) clearTimeout(longPressTimer.current);
                                 }}
                                 onContextMenu={(e) => {
@@ -3235,24 +3250,59 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         </div>
                       </div>
                       <div className="w-full sm:w-[1px] h-[1px] sm:h-auto bg-white/5" />
-                      <div className="w-full sm:w-72 p-8 flex flex-col justify-center">
-                        <p className="text-[11px] text-white/30 font-medium uppercase tracking-widest mb-6 text-center sm:text-left">Enter Access PIN</p>
+                      <div className="w-full sm:w-72 p-6 sm:p-8 flex flex-col justify-center">
+                        <p className="text-[11px] text-white/30 font-medium uppercase tracking-widest mb-4 sm:mb-6 text-center sm:text-left">Enter Access PIN</p>
+                        
+                        {/* PC Input */}
                         <input
                           type="password"
                           placeholder="••••••"
                           value={champPinInput}
                           onChange={(e) => {
-                            setChampPinInput(e.target.value);
-                            if (e.target.value === "786786") {
+                            const val = e.target.value;
+                            setChampPinInput(val);
+                            if (val === "786786") {
                               setShowChampPin(false); setChampPinInput(""); setShowChamp(true);
                               localStorage.setItem("ovii_champ_unlocked_until", String(Date.now() + 2 * 60 * 1000));
                             }
                           }}
                           autoFocus
-                          className="w-full rounded-2xl px-5 py-4 text-center tracking-[0.5em] text-xl font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all border border-white/10 text-white"
+                          className="hidden sm:block w-full rounded-2xl px-5 py-4 text-center tracking-[0.5em] text-xl font-mono focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all border border-white/10 text-white"
                           style={{ background: "rgba(255,255,255,0.04)" }}
                         />
-                        <p className="text-[10px] text-white/20 text-center mt-4">6-digit PIN required</p>
+
+                        {/* Mobile Numpad */}
+                        <div className="sm:hidden flex flex-col items-center">
+                          <div className="flex gap-2 mb-6">
+                            {[0,1,2,3,4,5].map(i => (
+                              <div key={i} className={`w-3 h-3 rounded-full ${i < champPinInput.length ? "bg-amber-500" : "bg-white/10"}`} />
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-3 gap-3 w-full max-w-[220px]">
+                            {[1, 2, 3, 4, 5, 6, 7, 8, 9, "clear", 0, "del"].map((num, i) => (
+                              <button
+                                key={i}
+                                onClick={() => {
+                                  if (num === "clear") setChampPinInput("");
+                                  else if (num === "del") setChampPinInput(prev => prev.slice(0, -1));
+                                  else {
+                                    const val = champPinInput + num;
+                                    setChampPinInput(val);
+                                    if (val === "786786") {
+                                      setShowChampPin(false); setChampPinInput(""); setShowChamp(true);
+                                      localStorage.setItem("ovii_champ_unlocked_until", String(Date.now() + 2 * 60 * 1000));
+                                    }
+                                  }
+                                }}
+                                className="w-[60px] h-[60px] flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 text-white font-mono text-xl transition-colors active:bg-white/20"
+                              >
+                                {num === "clear" ? <XCircle className="w-5 h-5 opacity-50" /> : num === "del" ? <X className="w-5 h-5" /> : num}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <p className="hidden sm:block text-[10px] text-white/20 text-center mt-4">6-digit PIN required</p>
                         <button
                           onClick={() => { setShowChampPin(false); setChampPinInput(""); }}
                           className="mt-6 w-full py-2.5 rounded-xl text-white/30 hover:text-white/60 text-xs transition-all border border-white/5 hover:border-white/10"
