@@ -1825,13 +1825,25 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     requestAnimationFrame(() => inputRef.current?.focus());
     const isImageUrl = /^https?:\/\/.+\.(gif|png|jpg|jpeg|webp)(\?.*)?$/i.test(v);
     if (isImageUrl) send("image", v);
-    else {
-      send("text", v.slice(0, 5000));
-      if (v.toLowerCase().includes("@elevone")) {
-        triggerElevone(v, false, false);
+    else send("text", v.slice(0, 5000));
+    setInputHeight(44); // Reset height after send
+
+    // -- ELEVONE Triggers --
+    const lowerV = v.toLowerCase();
+    if (lowerV.includes("@elevone") || lowerV.includes("elevone")) {
+      setTimeout(() => triggerElevone(v), 500);
+    } else {
+      const toxic = ["fuck", "shit", "bitch", "asshole", "toxic", "hate", "dumb", "stupid", "idiot", "shut up"];
+      if (toxic.some(w => lowerV.includes(w))) {
+        aggressiveMsgCount.current++;
+        if (aggressiveMsgCount.current >= 3) {
+          aggressiveMsgCount.current = 0;
+          setTimeout(() => triggerElevone(`[SYSTEM]: Tension detected. Address the tone.`, true), 1000);
+        }
+      } else {
+        aggressiveMsgCount.current = Math.max(0, aggressiveMsgCount.current - 0.5);
       }
     }
-    setInputHeight(44); // Reset height after send
   };
 
   const uploadToCloudinary = async (file: File | Blob) => {
