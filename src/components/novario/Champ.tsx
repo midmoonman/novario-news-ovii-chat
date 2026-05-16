@@ -301,19 +301,19 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
         </div>
 
         {/* Stats strip */}
-        <div className="flex overflow-x-auto custom-scrollbar gap-3 mb-6 shrink-0 snap-x">
+        <div className="grid grid-cols-4 gap-1.5 sm:gap-3 mb-6 shrink-0 w-full">
           {[
-            { label: "Online",  val: onlineCount,  sub: "Users online", icon: Users,          color: "text-emerald-400", bg: "bg-emerald-400/5", border: "border-emerald-400/10" },
-            { label: "Text",    val: textCount,    sub: "Messages",     icon: MessageSquare,  color: "text-blue-400", bg: "bg-blue-400/5", border: "border-blue-400/10" },
+            { label: "Online",  val: onlineCount,  sub: "Users", icon: Users,          color: "text-emerald-400", bg: "bg-emerald-400/5", border: "border-emerald-400/10" },
+            { label: "Text",    val: textCount,    sub: "Msgs",     icon: MessageSquare,  color: "text-blue-400", bg: "bg-blue-400/5", border: "border-blue-400/10" },
             { label: "Voice",   val: voiceCount,   sub: "Active",       icon: Mic,            color: "text-orange-400", bg: "bg-orange-400/5", border: "border-orange-400/10" },
             { label: "Images",  val: imgCount,     sub: "Shared",       icon: ImageIcon,      color: "text-purple-400", bg: "bg-purple-400/5", border: "border-purple-400/10" },
           ].map(s => (
-            <div key={s.label} className={`rounded-[20px] p-4 flex flex-col items-center justify-center text-center border ${s.bg} ${s.border} shrink-0 snap-start`} style={{ width: "calc(50vw - 22px)", maxWidth: "120px" }}>
-              <div className={`flex items-center gap-1.5 mb-2 ${s.color}`}>
-                <s.icon className="w-3.5 h-3.5" /> <span className="text-[10px] font-medium">{s.label}</span>
+            <div key={s.label} className={`rounded-xl sm:rounded-[20px] p-2 sm:p-4 flex flex-col items-center justify-center text-center border ${s.bg} ${s.border} min-w-0 w-full`}>
+              <div className={`flex items-center gap-1 mb-1 sm:mb-2 ${s.color}`}>
+                <s.icon className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" /> <span className="text-[9px] sm:text-[10px] font-medium truncate">{s.label}</span>
               </div>
-              <div className="text-[26px] font-bold text-white mb-0 leading-none tracking-tight">{s.val}</div>
-              <div className="text-[9px] text-white/40 mt-1">{s.sub}</div>
+              <div className="text-[20px] sm:text-[26px] font-bold text-white mb-0 leading-none tracking-tight">{s.val}</div>
+              <div className="text-[8px] sm:text-[9px] text-white/40 mt-1 truncate w-full">{s.sub}</div>
             </div>
           ))}
         </div>
@@ -322,22 +322,22 @@ export function Champ({ isOpen, onClose, isDarkMode, msgs, room = "ovii-room" }:
         <div className="flex-1 min-h-0 rounded-[28px] border border-white/[0.04] flex flex-col overflow-hidden relative" style={{ background: "#0e1116" }}>
           
           {/* Nav */}
-          <div className="flex items-center justify-between px-3 pt-4 pb-4 border-b border-white/[0.04] shrink-0 z-10 overflow-x-auto custom-scrollbar">
+          <div className="flex items-center justify-between px-1.5 pt-3 pb-3 border-b border-white/[0.04] shrink-0 z-10 w-full gap-1">
             {([
               { id: "users",     icon: Users,          label: "Users" },
-              { id: "preview",   icon: Eye,            label: "Realtime View" },
+              { id: "preview",   icon: Eye,            label: "Realtime" },
               { id: "telemetry", icon: Activity,       label: "Telemetry" },
               { id: "wipe",      icon: Trash2,         label: "Clean" },
             ] as const).map(({ id, icon: Icon, label }) => (
               <button key={id} onClick={() => setTab(id)}
-                className={`relative flex items-center gap-1.5 px-4 py-2.5 rounded-[14px] text-[12px] font-medium transition-all shrink-0 ${
-                  tab === id ? "text-emerald-400 border border-emerald-500/30 bg-emerald-500/5" : "text-white/40 hover:text-white/70"
+                className={`relative flex-1 flex flex-col items-center justify-center gap-1 py-2 rounded-xl text-[9px] font-medium transition-all ${
+                  tab === id ? "text-emerald-400 border border-emerald-500/30 bg-emerald-500/5" : "text-white/40 hover:text-white/70 border border-transparent"
                 }`}
               >
-                <Icon className="w-4 h-4 shrink-0" />
-                <span>{label}</span>
+                <Icon className="w-3.5 h-3.5 shrink-0" />
+                <span className="truncate w-full text-center px-0.5">{label}</span>
                 {tab === id && (
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-emerald-500 rounded-t-full" style={{ boxShadow: "0 -2px 10px rgba(16,185,129,0.5)" }} />
+                  <div className="absolute -bottom-3.5 left-1/2 -translate-x-1/2 w-8 h-[3px] bg-emerald-500 rounded-t-full" style={{ boxShadow: "0 -2px 10px rgba(16,185,129,0.5)" }} />
                 )}
               </button>
             ))}
