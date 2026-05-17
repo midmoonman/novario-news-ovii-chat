@@ -415,7 +415,7 @@ export default async function handler(req: any, res: any) {
       throw new Error(`All models failed. Details: ${modelErrors.join(" | ")}`);
     }
 
-    return res.status(200).json({ text: responseText });
+    return res.status(200).json({ text: responseText.trim() });
   } catch (error: any) {
     console.error("ELEVONE API Error:", error);
     return res.status(500).json({ error: error.message });
