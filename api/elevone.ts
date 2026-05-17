@@ -343,27 +343,33 @@ export default async function handler(req: any, res: any) {
     }
 
     // Build OpenAI-compatible message history
-    const chatMessages: any[] = [
-      { role: "system", content: systemInstruction }
-    ];
-    messages.slice(0, -1).forEach((msg: any) => {
-      chatMessages.push({
+    const rawMessages: any[] = [];
+    messages.forEach((msg: any) => {
+      rawMessages.push({
         role: msg.role === "elevone" ? "assistant" : "user",
         content: msg.role === "elevone" ? msg.text : `[${msg.name}]: ${msg.text}`
       });
     });
-    const lastMessage = messages[messages.length - 1];
-    chatMessages.push({
-      role: "user",
-      content: `[${lastMessage.name}]: ${lastMessage.text}`
-    });
+
+    // Merge consecutive messages with the same role to prevent OpenRouter 400 errors
+    const chatMessages = [{ role: "system", content: systemInstruction }];
+    for (const m of rawMessages) {
+      const lastRole = chatMessages[chatMessages.length - 1].role;
+      if (lastRole === m.role && lastRole !== "system") {
+        chatMessages[chatMessages.length - 1].content += `\n\n${m.content}`;
+      } else {
+        chatMessages.push(m);
+      }
+    }
 
     const modelsToTry = [
       "google/gemma-2-9b-it:free",
       "meta-llama/llama-3-8b-instruct:free",
       "mistralai/mistral-7b-instruct:free",
+      "qwen/qwen-2-7b-instruct:free",
       "openchat/openchat-7b:free",
       "gryphe/mythomax-l2-13b:free",
+      "minimax/minimax-m2.5:free",
       "huggingfaceh4/zephyr-7b-beta:free"
     ];
 
