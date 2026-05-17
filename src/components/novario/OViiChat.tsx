@@ -3512,7 +3512,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                       {!contextMsg.isDeleted && (
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(contextMsg.content);
+                            const cleanText = (contextMsg.content || "").replace(/\*\*(.*?)\*\*/g, "$1");
+                            navigator.clipboard.writeText(cleanText);
                             addNotification("Copied", "success");
                             setContextMsg(null);
                           }}

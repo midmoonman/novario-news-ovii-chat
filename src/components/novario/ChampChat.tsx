@@ -3270,7 +3270,8 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                       {!contextMsg.isDeleted && (
                         <button
                           onClick={() => {
-                            navigator.clipboard.writeText(contextMsg.content);
+                            const cleanText = (contextMsg.content || "").replace(/\*\*(.*?)\*\*/g, "$1");
+                            navigator.clipboard.writeText(cleanText);
                             addNotification("Copied", "success");
                             setContextMsg(null);
                           }}
