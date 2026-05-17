@@ -657,7 +657,7 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
     <div className="flex flex-col h-full">
       <div className="flex items-center gap-2 mb-4 shrink-0">
         <button onClick={() => setTab("files")} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all ${tab === "files" ? "bg-primary text-primary-foreground" : isDarkMode ? "bg-white/5 text-white/50 hover:bg-white/10" : "bg-black/5 text-black/50 hover:bg-black/10"}`}>Files</button>
-        <button onClick={() => setTab("elevone")} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === "elevone" ? "bg-purple-500 text-white" : isDarkMode ? "bg-white/5 text-white/50 hover:bg-white/10" : "bg-black/5 text-black/50 hover:bg-black/10"}`}><Zap className="w-3.5 h-3.5" /> ELEVONE</button>
+        <button onClick={() => setTab("elevone")} className={`flex-1 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${tab === "elevone" ? "bg-purple-500 text-white" : isDarkMode ? "bg-white/5 text-white/50 hover:bg-white/10" : "bg-black/5 text-black/50 hover:bg-black/10"}`}><ElevoneIcon className="w-3.5 h-3.5" /> ELEVONE</button>
       </div>
 
       {tab === "elevone" ? (
@@ -2444,7 +2444,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
                               <ElevoneIcon className="w-4 h-4 text-[#7c3aed]" />
-                              <div className="flex-1 text-left font-medium">Elevone Control</div>
+                              <div className="flex-1 text-left font-medium">Champ</div>
                             </button>
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
