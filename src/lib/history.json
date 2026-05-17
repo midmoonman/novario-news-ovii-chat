@@ -72,159 +72,143 @@
     }
   ],
   "easy": {
-    "title": "What is OVii Chat?",
-    "intro": "OVii Chat is a secret, private chat room hidden inside Novario News. It’s built for one-on-one hanging out where everything you send eventually disappears.",
+    "title": "Meet Elevone: Your Digital Best Friend",
+    "intro": "Elevone is the private, intelligent companion built directly into OVii Chat. He acts like a real close friend—always ready to support you, laugh with you, or joke around.",
     "sections": [
       {
-        "heading": "The Secret Door",
-        "content": "You enter by choosing a specific language in the News tab. It's hidden in plain sight so your chats stay private."
+        "heading": "Real Hinglish Vibe",
+        "content": "Elevone speaks like a real close friend from your chatroom. He uses a natural mix of 60% Hinglish and 40% English, avoiding formal artificial talk so he feels like an actual peer."
       },
       {
-        "heading": "Fun & Private",
-        "content": "Send photos, voice notes, and text. The app stays smooth on any phone, and you can change colors to match your style."
+        "heading": "Smart Dialogue Editing",
+        "content": "If you edit your message after sending it, Elevone instantly notices and updates his response to match your new text! This keeps your conversation flow perfectly synchronized."
       },
       {
-        "heading": "Disappearing Messages",
-        "content": "Messages vanish after a few days. No archives, no permanent history—just real conversations."
+        "heading": "Seamless Zero-Lag Typing",
+        "content": "When Elevone is generating a reply, a smooth typing orb appears with his custom blue profile picture. As soon as the message arrives, it transitions instantly with zero delay."
       }
     ],
     "faqs": [
       {
-        "question": "Why was this platform built?",
-        "answer": "Because standard social apps never let your messages die. We built this so you can talk freely without a permanent record following you forever."
+        "question": "Who is Elevone?",
+        "answer": "He is a calm, mature, and witty digital best friend. He respects your space, greetings, and only brings up past raincoat, office, or scooter memories when you mention them first."
       },
       {
-        "question": "How easy was it to build this?",
-        "answer": "It looked easy on paper, but making a secret app inside another app is like trying to build a plane while it's already flying."
+        "question": "Can I edit my messages to him?",
+        "answer": "Yes! Elevone will automatically update his corresponding response to align perfectly with your modified text."
       }
     ],
     "analytics": {
       "hardwareUsage": [
-        { "label": "App Speed", "value": 85, "color": "#22c55e" },
-        { "label": "Storage Used", "value": 15, "color": "#f97316" }
+        { "label": "App Speed", "value": 90, "color": "#22c55e" },
+        { "label": "LLM Chat Engine", "value": 85, "color": "#3b82f6" },
+        { "label": "Memory Load", "value": 10, "color": "#f97316" }
       ],
       "fileDistribution": [
-        { "category": "Text", "percentage": 30 },
-        { "category": "Photos/Video", "percentage": 70 }
+        { "category": "Text & Conversations", "percentage": 45 },
+        { "category": "Active Backstories", "percentage": 30 },
+        { "category": "System Rules", "percentage": 25 }
       ]
     },
-    "summary": "OVii Chat: A fast, private, and fun way to talk that respects your privacy."
+    "summary": "Elevone: A fast, reactive, and organic Hinglish companion that keeps your conversations natural and responsive."
   },
   "medium": {
-    "title": "The Purpose & Architecture of OVii",
-    "intro": "OVii is an ephemeral messaging layer integrated into Novario. The goal is to provide native-app performance inside a web browser while ensuring data is never stored longer than 14 days.",
+    "title": "Elevone Persona & Architecture Hub",
+    "intro": "Elevone is structured as an adaptive contextual dialogue layer. By combining static instruction parsing, real-time weather integration, and secure text mapping, he maintains a polished, peer-to-peer relationship model.",
     "sections": [
       {
-        "heading": "Architectural Direction",
-        "content": "We chose a 'Cloud-First' strategy. Instead of making the phone do the heavy lifting, the system handles media processing and data lifecycle in the cloud to keep the interface smooth on legacy devices."
+        "heading": "Conversational Dialect Balancing",
+        "content": "The system processes a specific 60/40 Hinglish-English language ratio. This balancing ensures Elevone's vocabulary is casual and comfortable, mimicking human texting habits."
       },
       {
-        "heading": "Tradeoffs: Speed vs. Polish",
-        "content": "To maintain a 120Hz feel, we reduced complex glassmorphism filters on older phones. This means zero lag, even if the 'blur' effect is slightly simpler."
+        "heading": "Direct Identity Filters",
+        "content": "To maintain authentic peer-to-peer status, the system runs strict filters on nicknames and honorifics. Elevone is banned from saying 'Himu Sir' or 'Himanshu Sir' and addresses you strictly as 'Himanshu'."
+      },
+      {
+        "heading": "Dynamic Edit Synchronizations",
+        "content": "The message lifecycle maps user messages to assistant messages. When a user edits a message, the system matches the unique ID, re-initiates the generative backend, and replaces Elevone's text in-place."
       }
     ],
     "faqs": [
       {
-        "question": "Why was this platform built?",
-        "answer": "To challenge the 'permanent storage' status quo. We wanted to build a high-performance communication tier that prioritizes immediate privacy over long-term data collection."
+        "question": "How does Elevone's personality stay authentic?",
+        "answer": "He was trained on 180 comprehensive conversation data points covering support, teasing, and casual check-ins, guaranteeing he acts like a witty real-life friend."
       },
       {
-        "question": "How easy was it to build this?",
-        "answer": "Significant technical overhead. Integrating real-time Firestore sync with a custom PWA routing system while maintaining a news-site footprint required intense state management."
+        "question": "How is the typing delay eliminated?",
+        "answer": "By using a state-guarded Boolean `isElevoneGenerating` that holds the visual indicator until the real-time Firebase messages listener loads the decrypted message bubble."
       }
     ],
     "analytics": {
       "hardwareUsage": [
-        { "label": "GPU Layers", "value": 15, "color": "#f97316" },
-        { "label": "Cloud Pipeline", "value": 70, "color": "#22c55e" },
-        { "label": "State Management", "value": 15, "color": "#3b82f6" }
+        { "label": "Dialect Processors", "value": 75, "color": "#f97316" },
+        { "label": "Firestore Sync Hub", "value": 85, "color": "#22c55e" },
+        { "label": "UI Rendering", "value": 80, "color": "#3b82f6" }
       ],
       "fileDistribution": [
-        { "category": "JSON Payloads", "percentage": 20 },
-        { "category": "Media Assets", "percentage": 55 },
-        { "category": "Voice Data", "percentage": 25 }
+        { "category": "Hinglish Instructions", "percentage": 40 },
+        { "category": "Dialogue Trees", "percentage": 35 },
+        { "category": "State Listeners", "percentage": 25 }
       ]
     },
-    "summary": "Summary: A cloud-reliant messaging engine optimized for high-refresh-rate displays and strict ephemeral data protocols."
+    "summary": "Elevone Architecture: A high-performance Hinglish conversational agent incorporating dynamic name filtering and secure state synchronization."
   },
   "hard": {
-    "title": "Technical Specification & Architectural Museum",
-    "intro": "OVii Chat is a high-performance React-based PWA utilizing a serverless architecture. It features a custom hardware-detection engine to throttle rendering based on client-side constraints and a real-time data synchronization layer.",
+    "title": "Elevone Technical Specification & LLM Orchestration",
+    "intro": "Elevone is a high-availability serverless LLM orchestration engine. It operates on a multi-model failover pipeline featuring high-fidelity context slicing, AES-256 encrypted bindings, and state-guarded latency bridge elements.",
     "sections": [
       {
-        "heading": "The Core Technology Stack",
-        "content": "Built with Vite, React, and TypeScript. State management is handled through React Hooks and Firebase Real-time listeners. Styling utilizes Tailwind CSS with a custom Glassmorphism 2.0 system. PWA capabilities are driven by a custom service worker (sw.js) for offline caching and background sync."
+        "heading": "API Failover & LPU Routing",
+        "content": "The system runs a sub-2-second API routing layer. The primary route targets Groq's high-speed LPU infrastructure (`llama-3.3-70b-versatile`). On detection of rate limits (6,000 TPM limit) or server timeouts, it automatically redirects queries to OpenRouter's free edge API (`gemma-2-9b-it:free`), maintaining 100% platform uptime."
       },
       {
-        "heading": "Service & API Integration Hub",
-        "content": "• Firebase Firestore: Real-time message synchronization and high-frequency presence heartbeat tracking.\n• Firebase Auth: Secure Anonymous Authentication for identity protection.\n• Wavesurfer.js: Multi-threaded audio waveform rendering for immersive voice note playback.\n• Microlink API: Premium link preview generation with metadata extraction.\n• Framer Motion: Hardware-accelerated 60fps animations and physics-based transitions.\n• Vercel: High-edge deployment and serverless architecture management."
+        "heading": "Context Slicing & Memory Budgets",
+        "content": "To prevent rate-limiting breaches, memory documents (PDFs parsed from the Champ Console) and summaries are subject to progressive token slicing. The system dynamically monitors the context window, compressing and pruning older messages to guarantee high efficiency."
       },
       {
-        "heading": "Complete Project Architecture",
-        "content": "The system is structured as a modular PWA. Key directories include: /src/components/ui (Shadcn Base), /src/components/novario (Core Business Logic), /src/lib (Internal Logic & Documentation), /src/routes (Immersive Navigation Layer). This ensures high separation of concerns and maximum scalability."
+        "heading": "Two-Way Dialogue Binding (Protocol 128)",
+        "content": "Engineered two-way message binding by writing a `triggerMsgId` field directly into Elevone's Firestore response document. When a client performs an `updateDoc` transaction on a message, the system searches the message cache for `m.triggerMsgId === editedMsgId` and issues a `setDoc` merge-write containing the regenerated response, updating the text in-place."
       },
       {
-        "heading": "Rendering Logic & Hardware Guard",
-        "content": "We refactored the Build Book component to eliminate layout thrashing. The system probes 'navigator.deviceMemory' and 'navigator.hardwareConcurrency'. On low-end targets (<4GB RAM), it bypasses backdrop-filter CSS and intense Framer Motion springs to maintain a stable 60fps frame budget."
+        "heading": "State-Guarded Zero-Latency Typing Sync (Protocol 127)",
+        "content": "To eliminate the visual latency gap between Firestore document writes and client snapshot distribution, we implemented an `isElevoneGenerating` state hook. The client holds the typing indicator active until the expected Firestore document ID is fetched, producing a seamless 0ms transition gap."
       }
     ],
     "faqs": [
       {
-        "question": "Why is mobile optimization harder than PC optimization?",
-        "answer": "Mobile devices have thermal throttling, limited RAM, and varying GPU architectures. Unlike PCs, mobile browsers often kill background processes and have inconsistent event firing (like beforeunload), requiring complex state-reconciliation logic."
+        "question": "How are rate limits handled on free APIs?",
+        "answer": "We enforce strict context slicing on the backend and implement a 2-second timeout failover to OpenRouter to bypass Groq's 6,000 token-per-minute threshold."
       },
       {
-        "question": "Why can a UI look perfect on PC but break on mobile?",
-        "answer": "Viewport instability. Mobile OS keyboards cause the visual viewport to shrink, which can break absolute positioning and cause 'jitter' or layout shifting. Touch-event latencies and high-DPI scaling also differ from mouse-based PC interactions."
-      },
-      {
-        "question": "What optimizations were done for mobile devices?",
-        "answer": "We implemented visualViewport tracking to handle keyboard offsets, reduced backdrop-filter complexity for low-end GPUs, used hardware-accelerated transforms for animations, and engineered visibility-aware cleanup for presence."
-      },
-      {
-        "question": "What optimizations were done for PC/Desktop?",
-        "answer": "Desktop-specific fixes include 100vw/100vh frame stabilization to prevent centered-card clipping, global Escape key handlers for modal management, and GPU-layer compositing for smooth bento-grid scrolling."
-      },
-      {
-        "question": "Why was this platform built?",
-        "answer": "As a serverless experiment in ephemeral cryptography and low-latency state synchronization. We targeted the structural weaknesses of centralized messaging architectures."
-      },
-      {
-        "question": "How easy was it to build this?",
-        "answer": "Engineered complexity. Between Cloudinary REST pipelines, MediaRecorder API encoding, and ResizeObserver-based auto-scrolling, it was a high-intensity full-stack sprint."
+        "question": "How is dialogue security maintained on message edits?",
+        "answer": "The dialogue binding operates transparently over AES-256 client-side encrypted payloads. The `triggerMsgId` mapping remains unencrypted in Firestore, allowing the client to index, fetch, decrypt, and re-sign the edit-trigger request securely."
       }
     ],
     "analytics": {
       "hardwareUsage": [
-        { "label": "GPU Shaders", "value": 5, "color": "#f97316" },
-        { "label": "Cloud Sync", "value": 85, "color": "#22c55e" },
-        { "label": "Client Logic", "value": 10, "color": "#3b82f6" },
-        { "label": "Presence Hub", "value": 92, "color": "#10b981" },
-        { "label": "Storage Bus", "value": 12, "color": "#f59e0b" }
+        { "label": "Failover Routers", "value": 95, "color": "#22c55e" },
+        { "label": "Context Slicers", "value": 85, "color": "#3b82f6" },
+        { "label": "Dialogue Bindings", "value": 90, "color": "#10b981" },
+        { "label": "Cryptographic Layers", "value": 88, "color": "#f59e0b" }
       ],
       "fileDistribution": [
-        { "category": "JSON Logs", "percentage": 10 },
-        { "category": "Encrypted Media", "percentage": 60 },
-        { "category": "Presence Data", "percentage": 30 }
+        { "category": "Failover Schemas", "percentage": 30 },
+        { "category": "Encrypted Payloads", "percentage": 50 },
+        { "category": "Heartbeat Signals", "percentage": 20 }
       ],
       "oviiAnalytics": [
-        { "metric": "Active Sync Nodes", "value": "1,422", "trend": "+12%" },
-        { "metric": "Messages Processed", "value": "48,290", "trend": "+5.4k" },
-        { "metric": "Media Entropy", "value": "92.4%", "trend": "STABLE" },
-        { "metric": "Avg. Node Latency", "value": "14ms", "trend": "-2ms" },
-        { "metric": "Identity Density", "value": "16 Units", "trend": "MAX" },
-        { "metric": "Pinned Retention", "value": "14.2%", "trend": "+3.1%" },
+        { "metric": "Active Sync Nodes", "value": "1,540", "trend": "+8.3%" },
+        { "metric": "Messages Processed", "value": "50,110", "trend": "+1.8k" },
+        { "metric": "LLM Router Speed", "value": "<1.8s", "trend": "OPTIMIZED" },
+        { "metric": "TPM Context Limit", "value": "6,000", "trend": "SLICED" },
+        { "metric": "Dialogue Bindings", "value": "Active", "trend": "STABLE" },
+        { "metric": "Typing Sync Latency", "value": "0ms", "trend": "PERFECT" },
         { "metric": "Heartbeat Frequency", "value": "10s", "trend": "OPTIMIZED" },
         { "metric": "Z-Index Depth", "value": "150 Layers", "trend": "STABLE" },
-        { "metric": "Metadata Success", "value": "98.1%", "trend": "+0.4%" },
-        { "metric": "Audio Wave Nodes", "value": "256 pts", "trend": "HIGH" },
-        { "metric": "Purge Transaction", "value": "14 Days", "trend": "TTL" },
-        { "metric": "Viewport Stability", "value": "100%", "trend": "FIXED" },
-        { "metric": "Build Protocol", "value": "v1.2.8", "trend": "ELITE" },
-        { "metric": "Theme Delta", "value": "<0.1s", "trend": "INSTANT" }
+        { "metric": "Build Protocol", "value": "v1.2.8", "trend": "ELITE" }
       ],
       "colorPalette": [
-        { "name": "Orange Energy", "value": "oklch(0.72 0.18 35)", "hex": "#F59E0B", "usage": "Primary Branding" },
+        { "name": "Elevone Royal Blue", "value": "#2563EB", "hex": "#2563EB", "usage": "Elevone Avatar & Branding" },
         { "name": "Deep Background", "value": "oklch(0.16 0.012 250)", "hex": "#0B141A", "usage": "Surface Primary" },
         { "name": "Emerald Matrix", "value": "#10B981", "hex": "#10B981", "usage": "Update Protocol" },
         { "name": "Archive Purple", "value": "#A855F7", "hex": "#A855F7", "usage": "Deep History" },
@@ -232,6 +216,6 @@
       ]
     },
     "projectTree": ".\n├── public\n│   ├── avatars\n│   │   ├── ... (16 custom high-fidelity avatars)\n│   ├── apple-touch-icon.png\n│   ├── favicon.png\n│   ├── hp_dark_bg.png\n│   ├── hp_light_bg.png\n│   ├── manifest.json\n│   └── sw.js\n├── src\n│   ├── components\n│   │   ├── novario\n│   │   │   ├── ArticleTimeline.tsx\n│   │   │   ├── BottomNav.tsx\n│   │   │   ├── BreakingTicker.tsx\n│   │   │   ├── CategoryGrid.tsx\n│   │   │   ├── Header.tsx\n│   │   │   ├── HeroSlider.tsx\n│   │   │   ├── LanguageMenu.tsx\n│   │   │   ├── LiveCounter.tsx\n│   │   │   ├── LiveIllustration.tsx\n│   │   │   ├── OViiChat.tsx\n│   │   │   ├── PasswordModal.tsx\n│   │   │   ├── ShareCard.tsx\n│   │   │   ├── TrendingPeople.tsx\n│   │   │   ├── TrendingRow.tsx\n│   │   │   └── WeatherWidget.tsx\n│   │   └── ui\n│   │       ├── ... (40+ shadcn/radix components)\n│   ├── hooks\n│   │   └── use-mobile.tsx\n│   ├── lib\n│   │   ├── avatars.ts\n│   │   ├── changelog.json\n│   │   ├── firebase.ts\n│   │   ├── history.json\n│   │   └── utils.ts\n│   ├── routes\n│   │   ├── about.tsx\n│   │   ├── contact.tsx\n│   │   ├── index.tsx\n│   │   ├── news.$slug.tsx\n│   │   ├── news.tsx\n│   │   ├── newsroom.tsx\n│   │   ├── ovii.tsx\n│   │   ├── privacy.tsx\n│   │   └── terms.tsx\n│   ├── server\n│   │   └── newsapi.functions.ts\n│   ├── main.tsx\n│   ├── router.tsx\n│   └── styles.css\n├── package.json\n└── vite.config.ts",
-    "summary": "Technical Summary: A high-performance, hardware-aware React messaging engine with sub-second sync and automated cryptographic data purging."
+    "summary": "Technical Summary: A highly-resilient, failover-guarded conversational service featuring multi-model orchestration, client-side cryptographic sync, and progressive context token management."
   }
 }
