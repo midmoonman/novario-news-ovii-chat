@@ -1107,6 +1107,15 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Preload all custom avatars + Elevone profile picture for instant rendering
+  useEffect(() => {
+    const allUrls = [...AVATARS.map(av => av.url), "/elevone-dp.jpg"];
+    allUrls.forEach(url => {
+      const img = new Image();
+      img.src = url;
+    });
+  }, []);
+
   // -- ESC key support for PC --
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -2367,10 +2376,15 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                 {/* PC File Folder shortcut */}
                 <button
                   onClick={() => { setShowFolder(true); trackAction("Opened Files from Header"); }}
-                  className={`ml-1 p-1.5 rounded-full transition-all ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
+                  className={`ml-1 p-1.5 rounded-full transition-all relative ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
                   title="Files"
                 >
                   <Folder className="w-4 h-4 text-destructive" />
+                  {unreadMedia > 0 && (
+                    <span className="absolute -top-1 -right-1 text-white text-[8px] font-bold w-3.5 h-3.5 flex items-center justify-center rounded-full shadow-sm" style={{ backgroundColor: activePaint !== "default" ? paintTheme.sent : "#25d366" }}>
+                      {unreadMedia}
+                    </span>
+                  )}
                 </button>
               </div>
 
@@ -2382,7 +2396,11 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                   title="Menu"
                 >
                   <MoreVertical className="w-5 h-5" />
-                  {unreadMedia > 0 && <span className="absolute top-1 right-1 text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full shadow-sm" style={{ backgroundColor: activePaint !== "default" ? paintTheme.sent : "#25d366" }}>{unreadMedia}</span>}
+                  {unreadMedia > 0 && (
+                    <span className="absolute top-1 right-1 text-white text-[8px] font-bold w-4 h-4 lg:hidden flex items-center justify-center rounded-full shadow-sm" style={{ backgroundColor: activePaint !== "default" ? paintTheme.sent : "#25d366" }}>
+                      {unreadMedia}
+                    </span>
+                  )}
                 </button>
 
                 <AnimatePresence>
@@ -2419,7 +2437,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
                             <button
                               onClick={() => { setShowFolder(true); setShowMenu(false); trackAction("Opened Folder/Files"); }}
-                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                              className={`w-full lg:hidden flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
                               <Folder className="w-4 h-4 text-destructive" />
                               <div className="flex-1 text-left font-medium">Files</div>
@@ -3185,7 +3203,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                   {(typingUsers.length > 0 || isElevoneGenerating) && (
                     <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
                       <img src={isElevoneGenerating ? "/elevone-dp.jpg" : typingUsers[0]} className="h-7 w-7 rounded-full bg-muted object-cover shrink-0 border border-border" alt="" />
-                      <div className="text-xs bg-card border border-border px-3 py-2.5 rounded-2xl rounded-bl-sm flex gap-1 items-center">
+                      <div className={`text-xs px-3 py-2.5 rounded-2xl rounded-bl-sm flex gap-1 items-center border ${
+                        isDarkMode ? "bg-card border-border text-muted-foreground" : "bg-white border-gray-200 text-gray-400"
+                      }`}>
                         <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                         <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
                         <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
@@ -3195,7 +3215,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                   {recordingUsers.length > 0 && (
                     <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
                       <img src={recordingUsers[0]} className="h-7 w-7 rounded-full bg-muted object-cover shrink-0 border border-border" alt="" />
-                      <div className="text-xs font-medium text-destructive bg-card border border-border px-3 py-1.5 rounded-2xl rounded-bl-sm flex gap-2 items-center animate-pulse">
+                      <div className={`text-xs font-medium text-destructive px-3 py-1.5 rounded-2xl rounded-bl-sm flex gap-2 items-center animate-pulse border ${
+                        isDarkMode ? "bg-card border-border" : "bg-white border-gray-200"
+                      }`}>
                         <Mic className="w-3.5 h-3.5" /> Recording...
                       </div>
                     </div>
@@ -3351,7 +3373,17 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                     <div className="flex-1 relative">
                       {showMentionSuggestion && (
                         <div
-                          onClick={(e) => {
+                          onMouseDown={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const newText = text.replace(/@[ ]*$/, "@elevone ");
+                            setText(newText);
+                            setShowMentionSuggestion(false);
+                            setTimeout(() => {
+                              inputRef.current?.focus();
+                            }, 50);
+                          }}
+                          onTouchStart={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             const newText = text.replace(/@[ ]*$/, "@elevone ");
