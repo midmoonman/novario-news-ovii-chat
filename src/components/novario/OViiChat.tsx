@@ -625,8 +625,15 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
 
   useEffect(() => {
     if (tab === "elevone" && room) {
+      setSummaries("");
       getDoc(doc(db, "ovii", room, "elevone-memory", "summaries")).then(d => {
-        if (d.exists()) setSummaries(d.data().text || "No summaries generated yet.");
+        if (d.exists()) {
+          setSummaries(d.data().text || "No summaries generated yet.");
+        } else {
+          setSummaries("No summaries generated yet. ELEVONE will summarize conversations automatically.");
+        }
+      }).catch(() => {
+        setSummaries("Could not load summaries.");
       });
     }
   }, [tab, room]);
