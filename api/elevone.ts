@@ -1,3 +1,5 @@
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
 // OpenRouter-powered ELEVONE — no extra SDK needed
 
 const ELEVONE_PROMPT = `Chapter 1 — Who They Are
@@ -496,8 +498,8 @@ export default async function handler(req: any, res: any) {
   try {
     const { messages, pdfContext, summaries, isAutoTrigger, recentActions, allowSharing, triggeringUserName } = req.body;
 
-    if (!process.env.OPENROUTER_API_KEY && !process.env.GROQ_API_KEY) {
-      return res.status(500).json({ error: "Neither OPENROUTER_API_KEY nor GROQ_API_KEY is set" });
+    if (!process.env.OPENROUTER_API_KEY && !process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
+      return res.status(500).json({ error: "None of GROQ_API_KEY, GEMINI_API_KEY, or OPENROUTER_API_KEY is set" });
     }
 
     // ── Live Weather Fetch ──
@@ -513,13 +515,16 @@ export default async function handler(req: any, res: any) {
 
     let systemInstruction = ELEVONE_PROMPT;
     if (summaries) {
-      systemInstruction += `\n\n### PREVIOUS CONVERSATION SUMMARIES ###\n${summaries}`;
+      let slicedSummaries = summaries;
+      if (slicedSummaries.length > 800) {
+        slicedSummaries = slicedSummaries.slice(0, 600) + "\n... [TRUNCATED] ...\n" + slicedSummaries.slice(-150);
+      }
+      systemInstruction += `\n\n### PREVIOUS CONVERSATION SUMMARIES ###\n${slicedSummaries}`;
     }
     if (pdfContext) {
-      // Truncate/slice GDoc context to prevent HTTP 413 Groq TPM rate limits on free keys
       let slicedPdfContext = pdfContext;
-      if (slicedPdfContext.length > 2500) {
-        slicedPdfContext = slicedPdfContext.slice(0, 2200) + "\n... [TRUNCATED TO PREVENT TOKEN LIMITS] ...\n" + slicedPdfContext.slice(-400);
+      if (slicedPdfContext.length > 1200) {
+        slicedPdfContext = slicedPdfContext.slice(0, 1000) + "\n... [TRUNCATED] ...\n" + slicedPdfContext.slice(-150);
       }
       systemInstruction += `\n\n### SHARED LIFE STORY & MEMORIES ###\n${slicedPdfContext}`;
     }
@@ -533,9 +538,10 @@ export default async function handler(req: any, res: any) {
       systemInstruction += `\n\n[URGENT CONTEXT: This is an auto-triggered response because the conversation is turning toxic or aggressive. Step in naturally to diffuse the situation, calm them down, or lightly roast them for fighting. Do NOT explicitly say 'I was auto-triggered', just act naturally.]`;
     }
 
-    // Build OpenAI-compatible message history
+    // Build OpenAI-compatible message history (optimizing context to last 6 messages to prevent rate limits)
     const rawMessages: any[] = [];
-    messages.forEach((msg: any) => {
+    const optimizedMessages = (messages || []).slice(-6);
+    optimizedMessages.forEach((msg: any) => {
       rawMessages.push({
         role: msg.role === "elevone" ? "assistant" : "user",
         content: msg.role === "elevone" ? msg.text : `[${msg.name}]: ${msg.text}`
@@ -564,8 +570,9 @@ export default async function handler(req: any, res: any) {
       if (process.env.GROQ_API_KEY) {
         const groqModels = [
           "llama-3.3-70b-versatile",
+          "mixtral-8x7b-32768",
           "llama-3.1-8b-instant",
-          "deepseek-r1-distill-llama-70b"
+          "gemma2-9b-it"
         ];
         for (const model of groqModels) {
           try {
@@ -594,7 +601,45 @@ export default async function handler(req: any, res: any) {
         }
       }
 
-      // ── OpenRouter (Fallback — if Groq fails) ──────────────────────────────
+      // ── Google Gemini (Fallback 1 — ultra-reliable, free, high-limit) ────────
+      if (!responseText && process.env.GEMINI_API_KEY) {
+        try {
+          const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+          const geminiModels = ["gemini-2.5-flash", "gemini-1.5-flash"];
+          for (const modelName of geminiModels) {
+            try {
+              const model = genAI.getGenerativeModel({ model: modelName });
+              const contents = chatMessages
+                .filter(m => m.role !== "system")
+                .map(m => ({
+                  role: m.role === "assistant" ? "model" : "user",
+                  parts: [{ text: m.content }]
+                }));
+              const systemInstructionText = chatMessages.find(m => m.role === "system")?.content || "";
+              
+              const result = await model.generateContent({
+                contents,
+                systemInstruction: systemInstructionText,
+                generationConfig: { maxOutputTokens: 300 }
+              });
+              
+              const text = result.response?.text();
+              if (text) {
+                responseText = text;
+                break;
+              } else {
+                modelErrors.push(`[gemini/${modelName}] Empty response`);
+              }
+            } catch (innerErr: any) {
+              modelErrors.push(`[gemini/${modelName}] Error: ${innerErr.message}`);
+            }
+          }
+        } catch (e: any) {
+          modelErrors.push(`[gemini] Init/Call Exception: ${e.message}`);
+        }
+      }
+
+      // ── OpenRouter (Fallback 2 — if Groq and Gemini fail) ──────────────────
       if (!responseText && process.env.OPENROUTER_API_KEY) {
         const orModels = [
           "openrouter/free",
