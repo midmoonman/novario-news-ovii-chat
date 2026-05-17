@@ -301,7 +301,7 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ error: "GEMINI_API_KEY is not set" });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     // Determine if this user is Himanshu (name starts with H) — never reveal story to them
     const isHimanshu = triggeringUserName && triggeringUserName.toLowerCase().startsWith('h');

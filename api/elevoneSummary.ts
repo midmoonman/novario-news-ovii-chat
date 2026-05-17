@@ -14,7 +14,7 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ error: "GEMINI_API_KEY is not set" });
     }
 
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const systemInstruction = "You are a quiet observer. Summarize the following chat history between Himanshu and Ayushi (and occasionally ELEVONE) into a concise, emotional, and narrative summary of what they talked about. This summary will be used as long-term memory. Keep it under 150 words.";
 
