@@ -498,8 +498,10 @@ export default async function handler(req: any, res: any) {
   try {
     const { messages, pdfContext, summaries, isAutoTrigger, recentActions, allowSharing, triggeringUserName } = req.body;
 
-    if (!process.env.OPENROUTER_API_KEY && !process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: "None of GROQ_API_KEY, GEMINI_API_KEY, or OPENROUTER_API_KEY is set" });
+    const DEEPSEEK_KEY = process.env.DEEPSEEK_API_KEY || "sk-c766ef483efc43038733e0a676821ccf";
+
+    if (!process.env.OPENROUTER_API_KEY && !process.env.GROQ_API_KEY && !process.env.GEMINI_API_KEY && !DEEPSEEK_KEY) {
+      return res.status(500).json({ error: "None of GROQ_API_KEY, GEMINI_API_KEY, OPENROUTER_API_KEY, or DEEPSEEK_KEY is set" });
     }
 
     // ── Live Weather Fetch ──
@@ -598,6 +600,32 @@ export default async function handler(req: any, res: any) {
           } catch (e: any) {
             modelErrors.push(`[groq/${model}] Exception: ${e.message}`);
           }
+        }
+      }
+
+      // ── Deepseek (Primary Fallback — incredibly smart, reliable) ───────────
+      if (!responseText && DEEPSEEK_KEY) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 6000);
+          const response = await fetch("https://api.deepseek.com/chat/completions", {
+            method: "POST",
+            signal: controller.signal,
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${DEEPSEEK_KEY}`
+            },
+            body: JSON.stringify({ model: "deepseek-chat", messages: chatMessages, max_tokens: 300 })
+          });
+          clearTimeout(timeoutId);
+          const data = await response.json();
+          if (response.ok && data.choices?.[0]?.message?.content) {
+            responseText = data.choices[0].message.content;
+          } else {
+            modelErrors.push(`[deepseek/chat] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+          }
+        } catch (e: any) {
+          modelErrors.push(`[deepseek/chat] Exception: ${e.message}`);
         }
       }
 
