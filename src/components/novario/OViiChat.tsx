@@ -3319,7 +3319,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
 
               {/* Input bar */}
-              <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 bg-transparent max-w-[800px] w-full mx-auto justify-center`}>
+              <div className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 bg-transparent`}>
                 <input
                   ref={fileRef}
                   type="file"
