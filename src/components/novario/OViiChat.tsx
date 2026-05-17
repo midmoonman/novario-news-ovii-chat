@@ -3378,20 +3378,16 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             e.stopPropagation();
                             const newText = text.replace(/@[ ]*$/, "@elevone ");
                             setText(newText);
+                            inputRef.current?.focus();
                             setShowMentionSuggestion(false);
-                            setTimeout(() => {
-                              inputRef.current?.focus();
-                            }, 50);
                           }}
                           onTouchStart={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             const newText = text.replace(/@[ ]*$/, "@elevone ");
                             setText(newText);
+                            inputRef.current?.focus();
                             setShowMentionSuggestion(false);
-                            setTimeout(() => {
-                              inputRef.current?.focus();
-                            }, 50);
                           }}
                           className={`absolute bottom-[calc(100%+8px)] left-2 px-4 py-2.5 rounded-2xl text-[14px] font-bold shadow-[0_8px_30px_rgba(0,0,0,0.2)] cursor-pointer flex items-center gap-2.5 hover:scale-[1.02] active:scale-95 transition-all z-50 border
                             ${isDarkMode ? 'bg-[#202c33] text-[#e9edef] border-white/10' : 'bg-white text-[#111b21] border-black/10'}`}
