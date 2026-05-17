@@ -193,6 +193,7 @@ type Msg = {
   isDeleted?: boolean;
   deletedFor?: string[];
   isPinned?: boolean;
+  action?: { type: string; value: string };
 };
 
 interface HistorySection {
@@ -889,46 +890,59 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
 
   const renderMessageContent = (content: string) => {
     if (!content) return null;
-    // Regex for URLs
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    // Regex for phone numbers (5+ digits, optionally starting with +)
-    const phoneRegex = /(\+?\d{5,15})/g;
 
-    const parts = content.split(/((?:https?:\/\/[^\s]+)|(?:\+?\d{5,15}))/g);
+    const boldParts = content.split(/(\*\*[^*]+\*\*)/g);
 
-    return parts.map((part, i) => {
-      if (!part) return null;
-      if (part.match(urlRegex)) {
+    const renderSubparts = (text: string) => {
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const phoneRegex = /(\+?\d{5,15})/g;
+      const parts = text.split(/((?:https?:\/\/[^\s]+)|(?:\+?\d{5,15}))/g);
+
+      return parts.map((part, i) => {
+        if (!part) return null;
+        if (part.match(urlRegex)) {
+          return (
+            <a
+              key={i}
+              href={part}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:brightness-110 break-all transition-colors duration-500"
+              style={{ color: activePaint !== "default" ? (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) : "#25d366" }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {part}
+            </a>
+          );
+        }
+        if (part.match(phoneRegex)) {
+          return (
+            <span
+              key={i}
+              className="underline font-bold cursor-pointer hover:brightness-110 transition-colors duration-500"
+              style={{ color: activePaint !== "default" ? (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) : "#25d366" }}
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedPhone(part);
+              }}
+            >
+              {part}
+            </span>
+          );
+        }
+        return part;
+      });
+    };
+
+    return boldParts.map((part, i) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
         return (
-          <a
-            key={i}
-            href={part}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:brightness-110 break-all transition-colors duration-500"
-            style={{ color: activePaint !== "default" ? (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) : "#25d366" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {part}
-          </a>
+          <strong key={i} className="font-extrabold">
+            {renderSubparts(part.slice(2, -2))}
+          </strong>
         );
       }
-      if (part.match(phoneRegex)) {
-        return (
-          <span
-            key={i}
-            className="underline font-bold cursor-pointer hover:brightness-110 transition-colors duration-500"
-            style={{ color: activePaint !== "default" ? (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) : "#25d366" }}
-            onClick={(e) => {
-              e.stopPropagation();
-              setSelectedPhone(part);
-            }}
-          >
-            {part}
-          </span>
-        );
-      }
-      return part;
+      return renderSubparts(part);
     });
   };
 
@@ -964,6 +978,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
   const [isEditing, setIsEditing] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const executedActions = useRef<Set<string>>(new Set());
 
   // -- Android Gesture / History Handling (Thumb Rule) --
   useEffect(() => {
@@ -1267,6 +1282,26 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                   if (msg.caption) msg.caption = await decrypt(msg.caption, encryptionKey);
                   if (msg.replyTo?.content) {
                     msg.replyTo.content = await decrypt(msg.replyTo.content, encryptionKey);
+                  }
+                }
+              }
+
+              // ── Parse Elevone Actions ──
+              if (msg.uid === "elevone" && msg.content && !msg.isDeleted) {
+                const actionRegex = /\[\[ACTION:\s*([A-Z_]+)\s*(?:=\s*([^\]]+))?\]\]/i;
+                const match = msg.content.match(actionRegex);
+                if (match) {
+                  const actionType = match[1].trim().toUpperCase();
+                  const actionVal = match[2] ? match[2].trim() : "";
+                  msg.action = { type: actionType, value: actionVal };
+                  msg.content = msg.content.replace(actionRegex, "").trim();
+
+                  if (!executedActions.current.has(msg.id)) {
+                    executedActions.current.add(msg.id);
+                    if (actionType === "SET_DARK_MODE") {
+                      const turnOn = actionVal === "true";
+                      setIsDarkMode(turnOn);
+                    }
                   }
                 }
               }
@@ -2760,6 +2795,41 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                                                 }
                                                 return null;
                                               })()}
+                                              {m.action?.type === "SHOW_LOCK_OPTIONS" && (
+                                                <div className="mt-3.5 pt-3 border-t border-[#25d366]/20 flex flex-col gap-2 relative z-10 w-full">
+                                                  <div className="text-[10px] uppercase font-black tracking-wider text-[#25d366] opacity-90">Taala Lock Options:</div>
+                                                  <div className="flex flex-wrap gap-2 mt-1">
+                                                    {[
+                                                      { label: "15 Min", val: 15 * 60 * 1000 },
+                                                      { label: "1 Hr", val: 60 * 60 * 1000 },
+                                                      { label: "24 Hr", val: 24 * 60 * 60 * 1000 },
+                                                    ].map((d) => (
+                                                      <button
+                                                        key={d.label}
+                                                        onClick={() => {
+                                                          const until = Date.now() + d.val;
+                                                          setNoLockUntil(until);
+                                                          localStorage.setItem("ovii_no_lock_until", until.toString());
+                                                          addNotification(`No Lock enabled for ${d.label}`, "success");
+                                                        }}
+                                                        className="px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm active:scale-95 border bg-[#00a884] text-white border-transparent hover:bg-[#00a884]/90"
+                                                      >
+                                                        {d.label}
+                                                      </button>
+                                                    ))}
+                                                    <button
+                                                      onClick={() => {
+                                                        setNoLockUntil(null);
+                                                        localStorage.removeItem("ovii_no_lock_until");
+                                                        addNotification("No Lock disabled (Locked)", "info");
+                                                      }}
+                                                      className="px-3 py-1.5 rounded-full text-xs font-bold transition-all shadow-sm active:scale-95 border bg-red-500 text-white border-transparent hover:bg-red-500/90"
+                                                    >
+                                                      Lock Now 🔒
+                                                    </button>
+                                                  </div>
+                                                </div>
+                                              )}
                                             </>
                                           )}
 
