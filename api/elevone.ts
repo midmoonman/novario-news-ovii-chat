@@ -377,8 +377,12 @@ export default async function handler(req: any, res: any) {
 
     for (const model of modelsToTry) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
+          signal: controller.signal,
           headers: {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
@@ -390,6 +394,8 @@ export default async function handler(req: any, res: any) {
             messages: chatMessages
           })
         });
+        
+        clearTimeout(timeoutId);
 
         const data = await response.json();
         if (response.ok && data.choices?.[0]?.message?.content) {
@@ -397,7 +403,7 @@ export default async function handler(req: any, res: any) {
           break; // Successfully got response, break the loop
         }
       } catch (e) {
-        console.warn(`Model ${model} failed, trying next...`);
+        console.warn(`Model ${model} failed or timed out, trying next...`);
       }
     }
 
