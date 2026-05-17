@@ -3,13 +3,16 @@ import { getFirestore, FieldValue } from "firebase-admin/firestore";
 
 // Initialize Firebase Admin only once
 if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
-    }),
-  });
+  try {
+    const raw = process.env.FIREBASE_SERVICE_ACCOUNT || '{}';
+    const sa = JSON.parse(raw);
+    if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
+    if (sa.project_id) {
+      initializeApp({ credential: cert(sa) });
+    }
+  } catch (e) {
+    console.error("Firebase init error:", e);
+  }
 }
 
 const db = getFirestore();
