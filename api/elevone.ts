@@ -377,37 +377,79 @@ export default async function handler(req: any, res: any) {
     let responseText = "";
     const modelErrors: string[] = [];
 
-    for (const model of modelsToTry) {
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 12000);
-
-        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-          method: "POST",
-          signal: controller.signal,
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-            "HTTP-Referer": "https://novario-news.vercel.app",
-            "X-Title": "ELEVONE"
-          },
-          body: JSON.stringify({
-            model: model,
-            messages: chatMessages
-          })
-        });
-        
-        clearTimeout(timeoutId);
-
-        const data = await response.json();
-        if (response.ok && data.choices?.[0]?.message?.content) {
-          responseText = data.choices[0].message.content;
-          break; // Successfully got response, break the loop
-        } else {
-          modelErrors.push(`[${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+    // ── GROQ (Primary — ultra-fast LPU inference, <1s response) ────────────
+    if (process.env.GROQ_API_KEY) {
+      const groqModels = [
+        "llama-3.1-8b-instant",
+        "llama3-8b-8192",
+        "gemma2-9b-it",
+        "mixtral-8x7b-32768"
+      ];
+      for (const model of groqModels) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+            method: "POST",
+            signal: controller.signal,
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+            },
+            body: JSON.stringify({ model, messages: chatMessages, max_tokens: 300 })
+          });
+          clearTimeout(timeoutId);
+          const data = await response.json();
+          if (response.ok && data.choices?.[0]?.message?.content) {
+            responseText = data.choices[0].message.content;
+            break;
+          } else {
+            modelErrors.push(`[groq/${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+          }
+        } catch (e: any) {
+          modelErrors.push(`[groq/${model}] Exception: ${e.message}`);
         }
-      } catch (e: any) {
-        modelErrors.push(`[${model}] Exception: ${e.message}`);
+      }
+    }
+
+    // ── OpenRouter (Fallback — if Groq fails) ──────────────────────────────
+    if (!responseText && process.env.OPENROUTER_API_KEY) {
+      const orModels = [
+        "google/gemma-2-9b-it:free",
+        "meta-llama/llama-3-8b-instruct:free",
+        "qwen/qwen-2-7b-instruct:free",
+        "mistralai/mistral-7b-instruct:free",
+        "minimax/minimax-m2.5:free",
+        "gryphe/mythomax-l2-13b:free",
+        "openchat/openchat-7b:free",
+        "huggingfaceh4/zephyr-7b-beta:free"
+      ];
+      for (const model of orModels) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 12000);
+          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+            method: "POST",
+            signal: controller.signal,
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+              "HTTP-Referer": "https://novario-news.vercel.app",
+              "X-Title": "ELEVONE"
+            },
+            body: JSON.stringify({ model, messages: chatMessages })
+          });
+          clearTimeout(timeoutId);
+          const data = await response.json();
+          if (response.ok && data.choices?.[0]?.message?.content) {
+            responseText = data.choices[0].message.content;
+            break;
+          } else {
+            modelErrors.push(`[openrouter/${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+          }
+        } catch (e: any) {
+          modelErrors.push(`[openrouter/${model}] Exception: ${e.message}`);
+        }
       }
     }
 
