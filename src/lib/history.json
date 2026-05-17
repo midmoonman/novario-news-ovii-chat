@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-127-typing-vibe-sync",
+      "title": "Protocol 127: Seamless Typing Sync & Conversational Relaxed Vibe",
+      "date": "2026-05-17",
+      "difficulty": {
+        "easy": "Fixed the welcome greetings to be super relaxed and natural, and removed the awkward typing delay when Elevone replies.",
+        "medium": "Re-engineered welcome triggers and system prompts to make Elevone act as a calm WhatsApp friend. Set up zero-latency state synchronization for typing states.",
+        "hard": "Implemented state-guarded typing synchronizer to bridge Firestore write-to-listener latency. Realigned system instruction with relaxed conversational guidelines."
+      }
+    },
+    {
       "id": "protocol-125-champ-elevone-sync",
       "title": "Protocol 125: Champ Sync Robustness & Google Doc Removal",
       "date": "2026-05-17",
@@ -200,7 +210,7 @@
         { "metric": "Audio Wave Nodes", "value": "256 pts", "trend": "HIGH" },
         { "metric": "Purge Transaction", "value": "14 Days", "trend": "TTL" },
         { "metric": "Viewport Stability", "value": "100%", "trend": "FIXED" },
-        { "metric": "Build Protocol", "value": "v1.2.6", "trend": "ELITE" },
+        { "metric": "Build Protocol", "value": "v1.2.7", "trend": "ELITE" },
         { "metric": "Theme Delta", "value": "<0.1s", "trend": "INSTANT" }
       ],
       "colorPalette": [

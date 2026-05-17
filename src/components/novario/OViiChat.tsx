@@ -1018,6 +1018,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const [error, setError] = useState("");
   const [count, setCount] = useState(0);
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
+  const [isElevoneGenerating, setIsElevoneGenerating] = useState(false);
+  const expectedElevoneMsgIdRef = useRef<string | null>(null);
   const [recordingUsers, setRecordingUsers] = useState<string[]>([]);
   const [isTyping, setIsTyping] = useState(false);
   const [replyingTo, setReplyingTo] = useState<Msg | null>(null);
@@ -1389,9 +1391,14 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         unsubMsgs = onSnapshot(q, { includeMetadataChanges: true }, (s) => {
           (async () => {
             const list: Msg[] = [];
+            let hasExpectedMsg = false;
             for (const d of s.docs) {
               const data = d.data() as any;
               const msg: Msg = { id: d.id, ...data };
+
+              if (expectedElevoneMsgIdRef.current && d.id === expectedElevoneMsgIdRef.current) {
+                hasExpectedMsg = true;
+              }
 
               // ── Decrypt if needed ──
               if (encryptionKey && msg.content && !msg.isDeleted && msg.type !== "text-system") {
@@ -1426,6 +1433,11 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
               if (d.metadata.hasPendingWrites && msg.uid === u.uid) msg.status = "sending";
               list.push(msg);
+            }
+
+            if (hasExpectedMsg) {
+              setIsElevoneGenerating(false);
+              expectedElevoneMsgIdRef.current = null;
             }
 
             const sortedList = list.reverse();
@@ -1592,15 +1604,15 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
       sessionStorage.setItem("elevone_welcomed", "true");
       
       const isHimanshu = name.toLowerCase().startsWith('h');
-      const isAyushi = name.toLowerCase().startsWith('a');
+      const isAyushi = name.toLowerCase().startsWith('a') || name.toLowerCase().includes('zazu') || name.toLowerCase().includes('qyutaa');
 
       let promptMsg = "";
       if (isHimanshu) {
-         promptMsg = `[SYSTEM EVENT]: Himanshu has just entered the chat. Give him a unique, personal, and context-aware welcome message as ELEVONE.`;
+         promptMsg = `[SYSTEM EVENT]: Himanshu has just entered the chat. Greet him in a very calm, chill, and natural way as ELEVONE. Keep it super simple, casual, and conversational, like a real close friend on WhatsApp. Do not force any teasing, roasting, or old memories randomly. Keep it under 2 lines.`;
       } else if (isAyushi) {
-         promptMsg = `[SYSTEM EVENT]: Ayushi has just entered the chat. Give her a unique, teasing, and context-aware welcome message as ELEVONE.`;
+         promptMsg = `[SYSTEM EVENT]: Ayushi has just entered the chat. Greet her in a very calm, chill, and natural way as ELEVONE. Keep it super simple, casual, and conversational, like a real close friend on WhatsApp. Do not force any teasing, roasting, or old memories randomly. Keep it under 2 lines.`;
       } else {
-         promptMsg = `[SYSTEM EVENT]: A new user named ${name} has entered the chat. Welcome them casually as ELEVONE.`;
+         promptMsg = `[SYSTEM EVENT]: A new user named ${name} has entered the chat. Greet them casually and naturally as ELEVONE. Keep it under 2 lines.`;
       }
       
       setTimeout(() => triggerElevone(promptMsg, false, true), 1500);
@@ -1608,8 +1620,16 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   }, [uid, name]);
 
   const triggerElevone = async (triggerText: string, isAutoTrigger: boolean = false, isSystemEvent: boolean = false) => {
+    let safetyTimeout: NodeJS.Timeout | null = null;
     try {
+      setIsElevoneGenerating(true);
       setTypingUsers(prev => Array.from(new Set([...prev, "/elevone-dp.jpg"])));
+
+      // 15 seconds safety timeout to prevent stuck typing indicator
+      safetyTimeout = setTimeout(() => {
+        setIsElevoneGenerating(false);
+        expectedElevoneMsgIdRef.current = null;
+      }, 15000);
 
       const memoryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "context"));
       const pdfContext = memoryDoc.exists() ? memoryDoc.data().text : "";
@@ -1655,7 +1675,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         replyContent = await encrypt(replyContent, encryptionKey);
       }
 
-      await addDoc(collection(db, "ovii", ROOM, "messages"), {
+      const docRef = await addDoc(collection(db, "ovii", ROOM, "messages"), {
         uid: "elevone",
         name: "ELEVONE",
         avatar: "/elevone-dp.jpg",
@@ -1666,8 +1686,14 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         createdAt: Timestamp.now()
       });
 
+      if (safetyTimeout) clearTimeout(safetyTimeout);
+      expectedElevoneMsgIdRef.current = docRef.id;
+
     } catch (err) {
       console.error("Elevone Error:", err);
+      setIsElevoneGenerating(false);
+      expectedElevoneMsgIdRef.current = null;
+      if (safetyTimeout) clearTimeout(safetyTimeout);
     } finally {
       setTypingUsers(prev => prev.filter(n => n !== "/elevone-dp.jpg"));
     }
@@ -3125,9 +3151,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                   </AnimatePresence>
 
 
-                  {typingUsers.length > 0 && (
+                  {(typingUsers.length > 0 || isElevoneGenerating) && (
                     <div className="flex justify-start gap-2 items-end text-muted-foreground pt-2">
-                      <img src={typingUsers[0]} className="h-7 w-7 rounded-full bg-muted object-cover shrink-0 border border-border" alt="" />
+                      <img src={isElevoneGenerating ? "/elevone-dp.jpg" : typingUsers[0]} className="h-7 w-7 rounded-full bg-muted object-cover shrink-0 border border-border" alt="" />
                       <div className="text-xs bg-card border border-border px-3 py-2.5 rounded-2xl rounded-bl-sm flex gap-1 items-center">
                         <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                         <span className="w-1.5 h-1.5 bg-current rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
