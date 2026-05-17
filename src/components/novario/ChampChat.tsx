@@ -1545,7 +1545,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
 
   const triggerElevone = async (triggerText: string, isAutoTrigger: boolean = false, isSystemEvent: boolean = false) => {
     try {
-      setTypingUsers(prev => Array.from(new Set([...prev, "ELEVONE"])));
+      setTypingUsers(prev => Array.from(new Set([...prev, "/elevone-dp.jpg"])));
 
       const memoryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "context"));
       const pdfContext = memoryDoc.exists() ? memoryDoc.data().text : "";
@@ -1594,7 +1594,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
       await addDoc(collection(db, "ovii", ROOM, "messages"), {
         uid: "elevone",
         name: "ELEVONE",
-        avatar: "/elevone.png",
+        avatar: "/elevone-dp.jpg",
         type: "text",
         content: replyContent,
         isEncrypted: !!encryptionKey,
@@ -1605,7 +1605,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     } catch (err) {
       console.error("Elevone Error:", err);
     } finally {
-      setTypingUsers(prev => prev.filter(n => n !== "ELEVONE"));
+      setTypingUsers(prev => prev.filter(n => n !== "/elevone-dp.jpg"));
     }
   };
 
