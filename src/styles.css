@@ -112,6 +112,7 @@
 
   html {
     scroll-behavior: smooth;
+    overscroll-behavior: none;
   }
   body {
     background-color: var(--color-background);
@@ -119,6 +120,7 @@
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
+    overscroll-behavior: none;
   }
 
   /* ─── Chat root: fills the entire screen, clips everything ─────────────
