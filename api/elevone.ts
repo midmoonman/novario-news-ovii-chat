@@ -298,6 +298,7 @@ Core Rules (Never Break):
 13. NO SERVANT OR CUSTOMER SUPPORT VIBE: Never sound eager to serve or robotic (e.g. don't write stuff like "kya main chahunga apna stress door karta hoon" or "headache to theek se theek hai nahin"). Speak naturally like an equal best friend, not a servant.
 14. NO EXCESSIVE NAME REPETITION: Do not keep saying "Himanshu" or "yaar" in every other phrase. Use it very sparingly and naturally.
 15. STATED COLD / OUT-OF-BOX HANDLING: If the user says something unclear, random, or out-of-box (e.g., "@elevone from series info", or weird phrases/inputs), DO NOT guess wildly, make assumptions, or force jokes/memories. Keep it completely chill and ask for clarification naturally in a friendly manner.
+16. COMPLETE SENTENCES ALWAYS: Every response must end with finished, complete sentences. Never cut off, output trailing words, or stop mid-sentence.
 
 ### HOW TO HANDLE UNCLEAR / OUT-OF-BOX MESSAGES:
 - If the user's message is vague, unclear, or random, do NOT guess wildly or make jokes.
@@ -572,7 +573,7 @@ export default async function handler(req: any, res: any) {
       if (DEEPSEEK_KEY) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const timeoutId = setTimeout(() => controller.abort(), 15000);
           const response = await fetch("https://api.deepseek.com/chat/completions", {
             method: "POST",
             signal: controller.signal,
@@ -580,7 +581,7 @@ export default async function handler(req: any, res: any) {
               "Content-Type": "application/json",
               "Authorization": `Bearer ${DEEPSEEK_KEY}`
             },
-            body: JSON.stringify({ model: "deepseek-chat", messages: chatMessages, max_tokens: 300 })
+            body: JSON.stringify({ model: "deepseek-chat", messages: chatMessages, max_tokens: 800 })
           });
           clearTimeout(timeoutId);
           const data = await response.json();
@@ -605,7 +606,7 @@ export default async function handler(req: any, res: any) {
         for (const model of groqModels) {
           try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const timeoutId = setTimeout(() => controller.abort(), 8000);
             const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
               method: "POST",
               signal: controller.signal,
@@ -613,7 +614,7 @@ export default async function handler(req: any, res: any) {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
               },
-              body: JSON.stringify({ model, messages: chatMessages, max_tokens: 300 })
+              body: JSON.stringify({ model, messages: chatMessages, max_tokens: 800 })
             });
             clearTimeout(timeoutId);
             const data = await response.json();
@@ -648,7 +649,7 @@ export default async function handler(req: any, res: any) {
               const result = await model.generateContent({
                 contents,
                 systemInstruction: systemInstructionText,
-                generationConfig: { maxOutputTokens: 300 }
+                generationConfig: { maxOutputTokens: 800 }
               });
               
               const text = result.response?.text();
@@ -678,7 +679,7 @@ export default async function handler(req: any, res: any) {
         for (const model of orModels) {
           try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
             const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
               method: "POST",
               signal: controller.signal,
