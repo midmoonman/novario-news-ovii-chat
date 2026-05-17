@@ -634,7 +634,7 @@ export default async function handler(req: any, res: any) {
       if (!responseText && process.env.GEMINI_API_KEY) {
         try {
           const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-          const geminiModels = ["gemini-2.5-flash", "gemini-1.5-flash"];
+          const geminiModels = ["gemini-2.5-flash", "gemini-1.5-flash-latest", "gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro"];
           for (const modelName of geminiModels) {
             try {
               const model = genAI.getGenerativeModel({ model: modelName });
@@ -706,7 +706,8 @@ export default async function handler(req: any, res: any) {
       }
 
       if (!responseText) {
-        throw new Error(`All models failed. Details: ${modelErrors.join(" | ")}`);
+        console.error("All models failed! Details:", modelErrors.join(" | "));
+        responseText = "Bhai, backend models exhaust ho gaye hain ya key balance/quota limit hit ho gaya hai! 😅 Ek baar Vercel keys verify kar le ya DeepSeek balance top-up kar de, fir main instantly active ho jaungi!";
       }
 
       // ── Parse Search Tag ──
