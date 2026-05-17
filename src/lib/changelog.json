@@ -1,5 +1,28 @@
 [
   {
+    "date": "2026-05-17",
+    "updates": [
+      {
+        "title": "Elevone Fine-Tuning & Direct Nickname Ban",
+        "status": "DEPLOYED",
+        "description": "Fully absorbed 180 parsed instruction-response conversation training items to dial in the perfect 'witty digital best friend' dynamic. Configured speaking style ratio to 60% Hinglish and 40% English in active system instruction. Programmed strict direct-name filters ensuring Elevone addresses Himanshu by his name without honors (e.g. banning 'Himu Sir' or 'Himanshu Sir').",
+        "rationale": "Builds deep emotional authenticity and ensures Elevone acts as a true peer and mature close confidant rather than a robotic assistant."
+      },
+      {
+        "title": "Memory Context Truncation & LPU Fallbacks",
+        "status": "DEPLOYED",
+        "description": "Programmed progressive slicing for Firestore-loaded memory contexts to strictly stay under Groq free tier TPM limits (6,000 tokens/min). Engineered robust sub-2-second API routing falling back from LPU models (llama-3.3-70b-versatile) to OpenRouter free models (gemma-2-9b-it:free) on query timeout.",
+        "rationale": "Protects chat responsiveness and ensures 100% service uptime during high-frequency live chats."
+      },
+      {
+        "title": "Champ Console Google Doc Sync Removal",
+        "status": "DEPLOYED",
+        "description": "Removed Google Doc URL inputs, Sync buttons, and associated API endpoint triggers (/api/injectGdoc) from the Champ Console. Cleaned state hooks (gdocUrl, gdocSyncStatus) and streamlined the ELEVONE Memory tab UI to focus solely on the high-fidelity, client-side PDF uploader powered by dynamic pdfjs-dist imports.",
+        "rationale": "Eliminates network-fetch and public-sharing errors, establishing a 100% robust, local client-side extraction pipeline."
+      }
+    ]
+  },
+  {
     "date": "2026-05-16",
     "updates": [
       {

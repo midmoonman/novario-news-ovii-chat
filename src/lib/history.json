@@ -1,6 +1,26 @@
 {
   "history": [
     {
+      "id": "protocol-125-champ-elevone-sync",
+      "title": "Protocol 125: Champ Sync Robustness & Google Doc Removal",
+      "date": "2026-05-17",
+      "difficulty": {
+        "easy": "Cleaned up the Champ console screen, removed the broken sync button, and made sure PDF uploader works flawlessly.",
+        "medium": "Removed the Google Doc sync option and API dependencies to completely eliminate network-fetch and permission errors, streamlining the uploader.",
+        "hard": "Refactored Champ.tsx state layers by removing `gdocUrl` and `gdocSyncStatus`, optimized client-side PDF parsing using `pdfjs-dist` dynamic imports, and verified zero-error TS compile outputs."
+      }
+    },
+    {
+      "id": "protocol-124-elevone-personality",
+      "title": "Protocol 124: Elevone Fine-Tuning & Direct Nickname Ban",
+      "date": "2026-05-17",
+      "difficulty": {
+        "easy": "Gave Elevone a mature witty personality, made sure he addresses Himanshu directly by his name, and added real-time weather lookups.",
+        "medium": "Parsed 180 comprehensive conversation training data points, aligned Elevone with a 60% Hinglish and 40% English language mix, and added automatic weather APIs.",
+        "hard": "Engineered high-fidelity contextual slicing of Firestore memories to stay under Groq TPM limits (6,000 tokens/min), transitioned fallback API pipelines from Groq LPU models (`llama-3.3-70b-versatile`) to OpenRouter (`gemma-2-9b-it:free`), and enforced strict regex-driven nickname filtering."
+      }
+    },
+    {
       "id": "protocol-123-responsive-presence",
       "title": "Protocol 123: Responsive Presence Engine",
       "date": "2026-05-12",
@@ -180,7 +200,7 @@
         { "metric": "Audio Wave Nodes", "value": "256 pts", "trend": "HIGH" },
         { "metric": "Purge Transaction", "value": "14 Days", "trend": "TTL" },
         { "metric": "Viewport Stability", "value": "100%", "trend": "FIXED" },
-        { "metric": "Build Protocol", "value": "v1.2.5", "trend": "ELITE" },
+        { "metric": "Build Protocol", "value": "v1.2.6", "trend": "ELITE" },
         { "metric": "Theme Delta", "value": "<0.1s", "trend": "INSTANT" }
       ],
       "colorPalette": [
