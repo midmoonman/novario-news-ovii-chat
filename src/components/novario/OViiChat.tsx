@@ -1197,14 +1197,14 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         }
         const fresh = await getDocs(presCol);
         const others = fresh.docs.filter((d) => d.id !== u.uid);
-        const isAuthUser = name && (name.toLowerCase().startsWith('h') || name.toLowerCase().startsWith('a'));
+        const isAuthUser = name && /^(h|a|zazu|qyutaa)/i.test(name);
 
         if (others.length >= 2 && !fresh.docs.find((d) => d.id === u.uid)) {
           if (isAuthUser) {
             // Chat Override: find a non-authorized user to kick
             const kickable = others.find(d => {
-              const dName = (d.data().name || "").toLowerCase();
-              return !dName.startsWith('h') && !dName.startsWith('a');
+              const dName = (d.data().name || "");
+              return !/^(h|a|zazu|qyutaa)/i.test(dName);
             });
 
             if (kickable) {
