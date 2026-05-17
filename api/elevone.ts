@@ -301,7 +301,7 @@ If Himanshu or Ayushi asks you to control or change the chatroom environment, yo
   * Present them with options politely.
   * Tag at the end: [[ACTION: SHOW_LOCK_OPTIONS]]
 
-7. CRITICAL ACTION TAG RULES: ONLY append ACTION tags when the user explicitly asks you to perform that action in their message (e.g., when they ask you to toggle dark mode or lock the chat). DO NOT EVER append any ACTION tags (such as [[ACTION: SET_DARK_MODE = false]]) in standard conversations, greetings, weather reports, or normal questions unless explicitly asked to trigger it in the user's message.
+7. CRITICAL ACTION TAG RULES: ONLY append ACTION tags when the user explicitly asks you to perform that action in their message (e.g., when they ask you to toggle dark mode or lock the chat). DO NOT EVER append any placeholder action tags like "[[ACTION: None]]" or "[[ACTION: null]]". If no action is explicitly requested, write your response normally and append absolutely nothing.
 
 Example responses:
 - "Le Himu Sir, kardiya dark mode off... apki aankhein humari aankhein! Light mode me mast dikh rahe ho. [[ACTION: SET_DARK_MODE = false]]"
@@ -322,18 +322,12 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ error: "Neither OPENROUTER_API_KEY nor GROQ_API_KEY is set" });
     }
 
-    // Determine if this user is Himanshu (name starts with H) — never reveal story to them
-    const isHimanshu = triggeringUserName && triggeringUserName.toLowerCase().startsWith('h');
-    const canShareStory = allowSharing && !isHimanshu;
-
     let systemInstruction = ELEVONE_PROMPT;
     if (summaries) {
       systemInstruction += `\n\n### PREVIOUS CONVERSATION SUMMARIES ###\n${summaries}`;
     }
-    if (pdfContext && canShareStory) {
-      systemInstruction += `\n\n### HIMANSHU'S LIFE STORY (Share carefully and naturally with Ayushi. NEVER reveal this to Himanshu himself) ###\n${pdfContext}`;
-    } else if (pdfContext && isHimanshu) {
-      systemInstruction += `\n\n[INTERNAL ONLY — NEVER SHARE WITH HIMANSHU]: You have access to Himanshu's life story below for context, but you must NEVER mention, hint at, or reveal its contents to Himanshu. Only reference it to understand him better.\n${pdfContext}`;
+    if (pdfContext) {
+      systemInstruction += `\n\n### SHARED LIFE STORY & MEMORIES ###\n${pdfContext}`;
     }
     if (recentActions) {
       systemInstruction += `\n\n### RECENT UI ACTIVITY (Context for you to seem highly observant) ###\nThe user has recently clicked/used these tools:\n${recentActions}`;
