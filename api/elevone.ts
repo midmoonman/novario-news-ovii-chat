@@ -568,8 +568,34 @@ export default async function handler(req: any, res: any) {
     while (loopCount < 2) {
       responseText = "";
 
-      // ── GROQ (Primary — ultra-fast LPU inference, <1s response) ────────────
-      if (process.env.GROQ_API_KEY) {
+      // ── Deepseek (Primary — incredibly smart, reliable flagship Deepseek V3) ──
+      if (DEEPSEEK_KEY) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const response = await fetch("https://api.deepseek.com/chat/completions", {
+            method: "POST",
+            signal: controller.signal,
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${DEEPSEEK_KEY}`
+            },
+            body: JSON.stringify({ model: "deepseek-chat", messages: chatMessages, max_tokens: 300 })
+          });
+          clearTimeout(timeoutId);
+          const data = await response.json();
+          if (response.ok && data.choices?.[0]?.message?.content) {
+            responseText = data.choices[0].message.content;
+          } else {
+            modelErrors.push(`[deepseek/chat] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+          }
+        } catch (e: any) {
+          modelErrors.push(`[deepseek/chat] Exception: ${e.message}`);
+        }
+      }
+
+      // ── GROQ (Fallback 1 — ultra-fast LPU inference, <1s response) ────────────
+      if (!responseText && process.env.GROQ_API_KEY) {
         const groqModels = [
           "llama-3.3-70b-versatile",
           "mixtral-8x7b-32768",
@@ -600,32 +626,6 @@ export default async function handler(req: any, res: any) {
           } catch (e: any) {
             modelErrors.push(`[groq/${model}] Exception: ${e.message}`);
           }
-        }
-      }
-
-      // ── Deepseek (Primary Fallback — incredibly smart, reliable) ───────────
-      if (!responseText && DEEPSEEK_KEY) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 6000);
-          const response = await fetch("https://api.deepseek.com/chat/completions", {
-            method: "POST",
-            signal: controller.signal,
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${DEEPSEEK_KEY}`
-            },
-            body: JSON.stringify({ model: "deepseek-chat", messages: chatMessages, max_tokens: 300 })
-          });
-          clearTimeout(timeoutId);
-          const data = await response.json();
-          if (response.ok && data.choices?.[0]?.message?.content) {
-            responseText = data.choices[0].message.content;
-          } else {
-            modelErrors.push(`[deepseek/chat] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
-          }
-        } catch (e: any) {
-          modelErrors.push(`[deepseek/chat] Exception: ${e.message}`);
         }
       }
 
