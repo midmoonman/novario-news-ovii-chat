@@ -301,6 +301,8 @@ If Himanshu or Ayushi asks you to control or change the chatroom environment, yo
   * Present them with options politely.
   * Tag at the end: [[ACTION: SHOW_LOCK_OPTIONS]]
 
+7. CRITICAL ACTION TAG RULES: ONLY append ACTION tags when the user explicitly asks you to perform that action in their message (e.g., when they ask you to toggle dark mode or lock the chat). DO NOT EVER append any ACTION tags (such as [[ACTION: SET_DARK_MODE = false]]) in standard conversations, greetings, weather reports, or normal questions unless explicitly asked to trigger it in the user's message.
+
 Example responses:
 - "Le Himu Sir, kardiya dark mode off... apki aankhein humari aankhein! Light mode me mast dikh rahe ho. [[ACTION: SET_DARK_MODE = false]]"
 - "Taala lagana hai Ma'am? Security tight rakhni padegi. Yeh lo options choose karlo: [[ACTION: SHOW_LOCK_OPTIONS]]"
@@ -365,7 +367,7 @@ export default async function handler(req: any, res: any) {
         "X-Title": "ELEVONE"
       },
       body: JSON.stringify({
-        model: "minimax/minimax-m2.5:free",
+        model: "meta-llama/llama-3-8b-instruct:free",
         messages: chatMessages
       })
     });
