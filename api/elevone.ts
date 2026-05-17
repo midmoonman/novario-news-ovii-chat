@@ -369,6 +369,7 @@ export default async function handler(req: any, res: any) {
     ];
 
     let responseText = "";
+    const modelErrors: string[] = [];
 
     for (const model of modelsToTry) {
       try {
@@ -396,14 +397,16 @@ export default async function handler(req: any, res: any) {
         if (response.ok && data.choices?.[0]?.message?.content) {
           responseText = data.choices[0].message.content;
           break; // Successfully got response, break the loop
+        } else {
+          modelErrors.push(`[${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
         }
-      } catch (e) {
-        console.warn(`Model ${model} failed or timed out, trying next...`);
+      } catch (e: any) {
+        modelErrors.push(`[${model}] Exception: ${e.message}`);
       }
     }
 
     if (!responseText) {
-      throw new Error("All free models failed to respond.");
+      throw new Error(`All models failed. Details: ${modelErrors.join(" | ")}`);
     }
 
     return res.status(200).json({ text: responseText });
