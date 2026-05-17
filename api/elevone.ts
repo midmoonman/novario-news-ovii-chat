@@ -310,6 +310,43 @@ Example responses:
 - If they are fighting, roast them or calm them down, but KEEP IT SHORT (max 2 lines).
 `;
 
+async function fetchCurrentWeather(city: string): Promise<string> {
+  let lat = 23.2599;
+  let lon = 77.4126;
+  let name = "Bhopal";
+  
+  const normalized = city.toLowerCase();
+  if (normalized.includes("indore")) {
+    lat = 22.7196;
+    lon = 75.8577;
+    name = "Indore";
+  } else if (normalized.includes("mhow")) {
+    lat = 22.5539;
+    lon = 75.7629;
+    name = "Mhow";
+  }
+  
+  try {
+    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);
+    if (res.ok) {
+      const data = await res.json();
+      const temp = Math.round(data.current_weather.temperature);
+      const code = data.current_weather.weathercode;
+      let condition = "Clear";
+      if (code >= 1 && code <= 3) condition = "Partly Cloudy";
+      else if (code >= 45 && code <= 48) condition = "Foggy";
+      else if (code >= 51 && code <= 67) condition = "Rainy";
+      else if (code >= 80 && code <= 82) condition = "Showers";
+      else if (code >= 95 && code <= 99) condition = "Thunderstorm";
+
+      return `[SYSTEM UPDATE: Real-time Live Weather in ${name} is ${temp}°C, ${condition}. Bold the temperature in your response.]`;
+    }
+  } catch (e) {
+    console.error("Weather fetch failed:", e);
+  }
+  return "";
+}
+
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -322,12 +359,31 @@ export default async function handler(req: any, res: any) {
       return res.status(500).json({ error: "Neither OPENROUTER_API_KEY nor GROQ_API_KEY is set" });
     }
 
+    // ── Live Weather Fetch ──
+    let weatherContext = "";
+    const lastUserMessage = messages[messages.length - 1]?.text || "";
+    const hasWeatherQuery = /(weather|temperature|temp|mausam|garmi|dhoop|rain|bhopal|indore|mhow)/i.test(lastUserMessage);
+    if (hasWeatherQuery) {
+      let targetCity = "Bhopal";
+      if (/indore/i.test(lastUserMessage)) targetCity = "Indore";
+      else if (/mhow/i.test(lastUserMessage)) targetCity = "Mhow";
+      weatherContext = await fetchCurrentWeather(targetCity);
+    }
+
     let systemInstruction = ELEVONE_PROMPT;
     if (summaries) {
       systemInstruction += `\n\n### PREVIOUS CONVERSATION SUMMARIES ###\n${summaries}`;
     }
     if (pdfContext) {
-      systemInstruction += `\n\n### SHARED LIFE STORY & MEMORIES ###\n${pdfContext}`;
+      // Truncate/slice GDoc context to prevent HTTP 413 Groq TPM rate limits on free keys
+      let slicedPdfContext = pdfContext;
+      if (slicedPdfContext.length > 2500) {
+        slicedPdfContext = slicedPdfContext.slice(0, 2200) + "\n... [TRUNCATED TO PREVENT TOKEN LIMITS] ...\n" + slicedPdfContext.slice(-400);
+      }
+      systemInstruction += `\n\n### SHARED LIFE STORY & MEMORIES ###\n${slicedPdfContext}`;
+    }
+    if (weatherContext) {
+      systemInstruction += `\n\n${weatherContext}`;
     }
     if (recentActions) {
       systemInstruction += `\n\n### RECENT UI ACTIVITY (Context for you to seem highly observant) ###\nThe user has recently clicked/used these tools:\n${recentActions}`;
@@ -374,10 +430,9 @@ export default async function handler(req: any, res: any) {
     // ── GROQ (Primary — ultra-fast LPU inference, <1s response) ────────────
     if (process.env.GROQ_API_KEY) {
       const groqModels = [
+        "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "llama3-8b-8192",
-        "gemma2-9b-it",
-        "mixtral-8x7b-32768"
+        "llama-3.2-3b-preview"
       ];
       for (const model of groqModels) {
         try {
