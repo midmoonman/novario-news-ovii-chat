@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-128-dynamic-edit-updates",
+      "title": "Protocol 128: Dynamic Elevone Message Edit Updates",
+      "date": "2026-05-17",
+      "difficulty": {
+        "easy": "Made Elevone dynamically update his responses whenever you edit a message that he replied to.",
+        "medium": "Implemented dynamic Elevone triggers on message edits, tracking relationship maps via triggerMsgId to edit/regenerate Elevone responses.",
+        "hard": "Engineered two-way dialogue sync pipeline linking user text messages to Elevone replies via unique triggerMsgId properties. Configured setDoc merge-writes on dynamic edit-triggers in both standard and admin view."
+      }
+    },
+    {
       "id": "protocol-127-typing-vibe-sync",
       "title": "Protocol 127: Seamless Typing Sync & Conversational Relaxed Vibe",
       "date": "2026-05-17",
@@ -210,7 +220,7 @@
         { "metric": "Audio Wave Nodes", "value": "256 pts", "trend": "HIGH" },
         { "metric": "Purge Transaction", "value": "14 Days", "trend": "TTL" },
         { "metric": "Viewport Stability", "value": "100%", "trend": "FIXED" },
-        { "metric": "Build Protocol", "value": "v1.2.7", "trend": "ELITE" },
+        { "metric": "Build Protocol", "value": "v1.2.8", "trend": "ELITE" },
         { "metric": "Theme Delta", "value": "<0.1s", "trend": "INSTANT" }
       ],
       "colorPalette": [

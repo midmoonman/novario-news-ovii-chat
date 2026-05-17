@@ -195,6 +195,7 @@ type Msg = {
   deletedFor?: string[];
   isPinned?: boolean;
   action?: { type: string; value: string };
+  triggerMsgId?: string;
 };
 
 interface HistorySection {
@@ -1515,7 +1516,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
       };
       setReplyingTo(null);
     }
-    await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
+    const docRef = await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
     triggerNotification();
 
     if (type === "text") {
@@ -1530,7 +1531,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
 
       if (isElevoneMentioned || isAutoTrigger) {
         if (isAutoTrigger) aggressiveMsgCount.current = 0;
-        triggerElevone(content, isAutoTrigger);
+        triggerElevone(content, isAutoTrigger, false, docRef.id);
       }
     }
   };
@@ -1577,6 +1578,18 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
         isEdited: true
       }, { merge: true });
       setIsEditing(null);
+
+      // Re-trigger Elevone if they are editing a message that Elevone replied to, or if they add Elevone tag now
+      const existingResponse = msgs.find(m => m.triggerMsgId === msgId && m.uid === "elevone");
+      if (existingResponse) {
+        triggerElevone(newContent, false, false, msgId, existingResponse.id);
+      } else {
+        const lowerContent = newContent.toLowerCase();
+        const isElevoneMentioned = lowerContent.includes("@elevone") || lowerContent.endsWith("@") || /\s@(\s|$)/.test(lowerContent);
+        if (isElevoneMentioned) {
+          triggerElevone(newContent, false, false, msgId);
+        }
+      }
     } catch (e) {
       addNotification("Edit failed", "error");
     }
@@ -1609,7 +1622,13 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     }
   };
 
-  const triggerElevone = async (triggerText: string, isAutoTrigger: boolean = false, isSystemEvent: boolean = false) => {
+  const triggerElevone = async (
+    triggerText: string,
+    isAutoTrigger: boolean = false,
+    isSystemEvent: boolean = false,
+    triggerMsgId?: string,
+    editResponseMsgId?: string
+  ) => {
     let safetyTimeout: NodeJS.Timeout | null = null;
     try {
       setIsElevoneGenerating(true);
@@ -1665,19 +1684,31 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
         replyContent = await encrypt(replyContent, encryptionKey);
       }
 
-      const docRef = await addDoc(collection(db, "ovii", ROOM, "messages"), {
-        uid: "elevone",
-        name: "ELEVONE",
-        avatar: "/elevone-dp.jpg",
-        type: "text",
-        content: replyContent,
-        isEncrypted: !!encryptionKey,
-        status: "sent",
-        createdAt: Timestamp.now()
-      });
+      let finalId: string | null = editResponseMsgId || null;
+      if (editResponseMsgId) {
+        await setDoc(doc(db, "ovii", ROOM, "messages", editResponseMsgId), {
+          content: replyContent,
+          isEncrypted: !!encryptionKey,
+          isEdited: true,
+          createdAt: Timestamp.now()
+        }, { merge: true });
+      } else {
+        const docRef = await addDoc(collection(db, "ovii", ROOM, "messages"), {
+          uid: "elevone",
+          name: "ELEVONE",
+          avatar: "/elevone-dp.jpg",
+          type: "text",
+          content: replyContent,
+          isEncrypted: !!encryptionKey,
+          status: "sent",
+          createdAt: Timestamp.now(),
+          triggerMsgId: triggerMsgId || null
+        });
+        finalId = docRef.id;
+      }
 
       if (safetyTimeout) clearTimeout(safetyTimeout);
-      expectedElevoneMsgIdRef.current = docRef.id;
+      expectedElevoneMsgIdRef.current = finalId;
 
     } catch (err) {
       console.error("Elevone Error:", err);
