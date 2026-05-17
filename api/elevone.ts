@@ -569,8 +569,39 @@ export default async function handler(req: any, res: any) {
     while (loopCount < 2) {
       responseText = "";
 
+      // ── Cerebras (Primary — WSE-3 accelerated, fastest inference on Earth) ───
+      const CEREBRAS_KEY = process.env.CEREBRAS_API_KEY || "csk-jeh8ey332c339yr2rk3td8hpmtde6hd9vtyj3mnwj5hmk3j6";
+      if (CEREBRAS_KEY) {
+        const cerebrasModels = ["gpt-oss-120b", "llama3.1-8b"];
+        for (const model of cerebrasModels) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 10000);
+            const response = await fetch("https://api.cerebras.ai/v1/chat/completions", {
+              method: "POST",
+              signal: controller.signal,
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${CEREBRAS_KEY}`
+              },
+              body: JSON.stringify({ model, messages: chatMessages, max_tokens: 800 })
+            });
+            clearTimeout(timeoutId);
+            const data = await response.json();
+            if (response.ok && data.choices?.[0]?.message?.content) {
+              responseText = data.choices[0].message.content;
+              break;
+            } else {
+              modelErrors.push(`[cerebras/${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+            }
+          } catch (e: any) {
+            modelErrors.push(`[cerebras/${model}] Exception: ${e.message}`);
+          }
+        }
+      }
+
       // ── Deepseek (Primary — incredibly smart, reliable flagship Deepseek V3) ──
-      if (DEEPSEEK_KEY) {
+      if (!responseText && DEEPSEEK_KEY) {
         try {
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 15000);
