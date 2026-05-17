@@ -10,6 +10,7 @@ import WaveSurfer from "wavesurfer.js";
 import changelogData from "../../lib/changelog.json";
 import historyDataRaw from "../../lib/history.json";
 import { Champ } from "./Champ";
+import { ElevoneIcon } from "./ElevoneIcon";
 const historyData = historyDataRaw as unknown as HistoryDataRoot;
 
 const toxicKeywords = /(shut up|stfu|idiot|hate you|fuck|stupid|bakwas|pagal|gussa|madarchod|behenchod|chutiya|bhadwe)/i;
@@ -2665,7 +2666,12 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                                 )}
 
                                 <div className={`flex-1 min-w-0 ${mine ? "items-end" : "items-start"} flex flex-col gap-[2px] md:gap-0.5`}>
-                                  {!mine && !isConsecutive && m.name && <span className="hidden md:inline-block text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">{m.name}</span>}
+                                  {!mine && !isConsecutive && m.name && (
+                                    <span className="hidden md:inline-flex items-center gap-1 text-[10px] font-bold text-muted-foreground ml-1.5 mb-0.5 uppercase tracking-tighter">
+                                      {m.name === "ELEVONE" && <ElevoneIcon className="w-3 h-3 text-[#7c3aed]" />}
+                                      {m.name}
+                                    </span>
+                                  )}
 
                                   {m.replyTo && (
                                     <div className={`px-2.5 py-1.5 rounded-t-xl rounded-b-sm text-xs opacity-90 flex items-center gap-2 border-l-3 border-primary/80 mb-0.5 mx-1 max-w-full overflow-hidden ${isDarkMode ? "bg-m3-surface-container-high/50 text-[#e9edef]/80" : "bg-black/5 text-[#111b21]/70"
@@ -2693,7 +2699,12 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                                    ${getBubbleColor(mine, isDarkMode, activePaint, isLastInGroup)} ${m.isDeleted ? "opacity-60 italic" : ""}`}
                                     >
                                       <div className="relative flex flex-col">
-                                        {!mine && !isConsecutive && m.name && <span className="md:hidden text-[12px] font-bold mb-0.5 leading-tight" style={{ color: isDarkMode ? (paintTheme.bubbleNameDark || paintTheme.nameDark || "#f28b82") : (paintTheme.bubbleNameLight || paintTheme.nameLight || "#eb5528") }}>{m.name}</span>}
+                                        {!mine && !isConsecutive && m.name && (
+                                          <span className="md:hidden flex items-center gap-1 text-[12px] font-bold mb-0.5 leading-tight" style={{ color: isDarkMode ? (paintTheme.bubbleNameDark || paintTheme.nameDark || "#f28b82") : (paintTheme.bubbleNameLight || paintTheme.nameLight || "#eb5528") }}>
+                                            {m.name === "ELEVONE" && <ElevoneIcon className="w-3.5 h-3.5" />}
+                                            {m.name}
+                                          </span>
+                                        )}
 
 
                                         {m.type === "image" && !m.isDeleted && (
@@ -3041,11 +3052,15 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                     <div className="flex-1 relative">
                       {showMentionSuggestion && (
                         <div
-                          onClick={() => {
-                            const newText = text.replace(/@$/, "@elevone ");
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            const newText = text.replace(/@[ ]*$/, "@elevone ");
                             setText(newText);
                             setShowMentionSuggestion(false);
-                            inputRef.current?.focus();
+                            setTimeout(() => {
+                              inputRef.current?.focus();
+                            }, 50);
                           }}
                           className={`absolute bottom-[calc(100%+8px)] left-2 px-4 py-2.5 rounded-2xl text-[14px] font-bold shadow-[0_8px_30px_rgba(0,0,0,0.2)] cursor-pointer flex items-center gap-2.5 hover:scale-[1.02] active:scale-95 transition-all z-50 border
                             ${isDarkMode ? 'bg-[#202c33] text-[#e9edef] border-white/10' : 'bg-white text-[#111b21] border-black/10'}`}
@@ -3084,7 +3099,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                           const val = e.target.value;
                           setText(val);
 
-                          if (val.endsWith('@')) {
+                          if (/@\s*$/.test(val)) {
                             setShowMentionSuggestion(true);
                           } else {
                             setShowMentionSuggestion(false);
