@@ -362,10 +362,16 @@ export default async function handler(req: any, res: any) {
       }
     }
 
+    // We include multiple models because OpenRouter free nodes frequently return 404 when endpoints go offline
     const modelsToTry = [
+      "google/gemma-2-9b-it:free",
       "meta-llama/llama-3-8b-instruct:free",
       "qwen/qwen-2-7b-instruct:free",
-      "mistralai/mistral-7b-instruct:free"
+      "mistralai/mistral-7b-instruct:free",
+      "minimax/minimax-m2.5:free",
+      "gryphe/mythomax-l2-13b:free",
+      "openchat/openchat-7b:free",
+      "huggingfaceh4/zephyr-7b-beta:free"
     ];
 
     let responseText = "";
