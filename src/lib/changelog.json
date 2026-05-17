@@ -3,6 +3,36 @@
     "date": "2026-05-17",
     "updates": [
       {
+        "title": "Protocol 133: Viewport Gesture Elastic Locking",
+        "status": "DEPLOYED",
+        "description": "Configured global overscroll-behavior: none on both html and body tags in styles.css. This completely eliminates layout-shifting trackpad elastic bounce gestures (2 and 3 finger swipes) and mouse dragging on PC browsers, providing a highly stable, desktop-native chat experience.",
+        "rationale": "Eliminates viewport instability and ensures the chat layout is locked solid in its canvas coordinate space during intense user interactions."
+      },
+      {
+        "title": "Protocol 132: Solid Bottom Cover for Keyboard Gaps",
+        "status": "DEPLOYED",
+        "description": "Redesigned the bottom input bar container to have a solid background color that dynamically matches the active Paint customizer theme (or falls back to deep dark mode #0b141a / cream light mode #efeae2). Transferred the mobile visual viewport keyboard padding from the root layout directly into the bottom bar's padding-bottom, stretching the solid background all the way down to cover any empty gap beneath the write a message pill.",
+        "rationale": "Ensures that when the phone keyboard opens, the space underneath the input pill is perfectly covered by a matching solid theme color with no background doodles bleeding through."
+      },
+      {
+        "title": "Protocol 131: Cerebras WSE-3 Acceleration & Failover Pipeline",
+        "status": "DEPLOYED",
+        "description": "Integrated cloud.cerebras.ai high-speed inference engines as the primary Tier-1 processor ('gpt-oss-120b' / 'llama3.1-8b') for Elevone, achieving ultra-low latency response times. Developed a resilient failover routing pipeline: Cerebras -> Groq LPU -> OpenRouter free models, gracefully displaying a Hinglish key status message if all limits or balances are exhausted.",
+        "rationale": "Resolves deepseek/groq quota and rate limit exhaustion completely, offering lightning-fast responses with continuous uptime."
+      },
+      {
+        "title": "Protocol 130: Profile Avatar Memory Preloader",
+        "status": "DEPLOYED",
+        "description": "Engineered a mounting React Hook that asynchronously preloads all 16 customizable animal avatars and Elevone's profile assets directly into browser cache memory using queues.",
+        "rationale": "Completely eradicates the minor lag when rendering user profile pictures for the first time, ensuring a buttery-smooth chat experience."
+      },
+      {
+        "title": "Protocol 129: Android Keyboard Autotarget Lock",
+        "status": "DEPLOYED",
+        "description": "Refactored autocomplete selection handlers to use synchronous focus triggers instead of asynchronous timeouts when tap-selecting suggestion tags like @elevone.",
+        "rationale": "Blocks OS-level virtual keyboard collapse on mobile devices, keeping the user typing fluidly."
+      },
+      {
         "title": "Protocol 128: Dynamic Elevone Message Edit Updates",
         "status": "DEPLOYED",
         "description": "Designed and engineered an automated, two-way edit-trigger pipeline for Elevone. When a user edits a previously sent text message in the chatroom, the system queries local message mappings to locate Elevone's associated response via a custom triggerMsgId schema, automatically re-initiating the API generator and dynamically updating Elevone's response document in Firestore to maintain absolute dialogue synchronization.",
@@ -21,7 +51,7 @@
         "rationale": "Builds deep emotional authenticity and ensures Elevone acts as a true peer and mature close confidant rather than a robotic assistant."
       },
       {
-        "title": "Memory Context Truncation & LPU Fallbacks",
+        "title": "Memory Context Slicing & LPU Fallbacks",
         "status": "DEPLOYED",
         "description": "Programmed progressive slicing for Firestore-loaded memory contexts to strictly stay under Groq free tier TPM limits (6,000 tokens/min). Engineered robust sub-2-second API routing falling back from LPU models (llama-3.3-70b-versatile) to OpenRouter free models (gemma-2-9b-it:free) on query timeout.",
         "rationale": "Protects chat responsiveness and ensures 100% service uptime during high-frequency live chats."
