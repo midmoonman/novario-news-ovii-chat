@@ -688,6 +688,7 @@ export default async function handler(req: any, res: any) {
         const searchResults = await performSearch(searchQuery);
         
         systemInstruction += `\n\n### WEB SEARCH RESULTS FOR "${searchQuery}" ###\n${searchResults}`;
+        systemInstruction += `\n\n[SYSTEM OVERRIDE: Web search results have been successfully injected above. You must NOT output another [[SEARCH]] tag under any circumstances. Read the results and reply to the user's query directly in your signature Hinglish voice as a best friend. Keep it short (max 2 lines).]`;
         chatMessages[0].content = systemInstruction;
       } else {
         break; // Finish the loop if no search was requested or we already did it
