@@ -498,18 +498,6 @@ export default async function handler(req: any, res: any) {
       }
     }
 
-    // We include multiple models because OpenRouter free nodes frequently return 404 when endpoints go offline
-    const modelsToTry = [
-      "google/gemma-2-9b-it:free",
-      "meta-llama/llama-3-8b-instruct:free",
-      "qwen/qwen-2-7b-instruct:free",
-      "mistralai/mistral-7b-instruct:free",
-      "minimax/minimax-m2.5:free",
-      "gryphe/mythomax-l2-13b:free",
-      "openchat/openchat-7b:free",
-      "huggingfaceh4/zephyr-7b-beta:free"
-    ];
-
     let responseText = "";
     const modelErrors: string[] = [];
 
@@ -518,12 +506,12 @@ export default async function handler(req: any, res: any) {
       const groqModels = [
         "llama-3.3-70b-versatile",
         "llama-3.1-8b-instant",
-        "llama-3.2-3b-preview"
+        "deepseek-r1-distill-llama-70b"
       ];
       for (const model of groqModels) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 8000);
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
           const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
             method: "POST",
             signal: controller.signal,
@@ -550,19 +538,15 @@ export default async function handler(req: any, res: any) {
     // ── OpenRouter (Fallback — if Groq fails) ──────────────────────────────
     if (!responseText && process.env.OPENROUTER_API_KEY) {
       const orModels = [
+        "openrouter/free",
+        "meta-llama/llama-3.3-70b-instruct:free",
         "google/gemma-2-9b-it:free",
-        "meta-llama/llama-3-8b-instruct:free",
-        "qwen/qwen-2-7b-instruct:free",
-        "mistralai/mistral-7b-instruct:free",
-        "minimax/minimax-m2.5:free",
-        "gryphe/mythomax-l2-13b:free",
-        "openchat/openchat-7b:free",
-        "huggingfaceh4/zephyr-7b-beta:free"
+        "qwen/qwen-2.5-72b-instruct:free"
       ];
       for (const model of orModels) {
         try {
           const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 12000);
+          const timeoutId = setTimeout(() => controller.abort(), 5000);
           const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
             method: "POST",
             signal: controller.signal,
