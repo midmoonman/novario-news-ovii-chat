@@ -1640,23 +1640,6 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     if (isImageUrl) send("image", v);
     else send("text", v.slice(0, 5000));
     setInputHeight(44); // Reset height after send
-
-    // -- ELEVONE Triggers --
-    const lowerV = v.toLowerCase();
-    if (lowerV.includes("@elevone") || lowerV.includes("elevone")) {
-      setTimeout(() => triggerElevone(v), 500);
-    } else {
-      const toxic = ["fuck", "shit", "bitch", "asshole", "toxic", "hate", "dumb", "stupid", "idiot", "shut up"];
-      if (toxic.some(w => lowerV.includes(w))) {
-        aggressiveMsgCount.current++;
-        if (aggressiveMsgCount.current >= 3) {
-          aggressiveMsgCount.current = 0;
-          setTimeout(() => triggerElevone(`[SYSTEM]: Tension detected. Address the tone.`, true), 1000);
-        }
-      } else {
-        aggressiveMsgCount.current = Math.max(0, aggressiveMsgCount.current - 0.5);
-      }
-    }
   };
 
   const uploadToCloudinary = async (file: File | Blob) => {
