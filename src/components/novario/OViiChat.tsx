@@ -3305,6 +3305,13 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         value={text}
                         placeholder={isEditing ? "Edit message" : "Write a message"}
                         onKeyDown={(e) => {
+                          if (e.key === "Tab" && showMentionSuggestion) {
+                            e.preventDefault();
+                            setText(prev => prev.replace(/@$/, '@elevone '));
+                            setShowMentionSuggestion(false);
+                            inputRef.current?.focus();
+                            return;
+                          }
                           if (e.key === "Enter" && !e.shiftKey && !isMobileDevice()) {
                             e.preventDefault();
                             onText();

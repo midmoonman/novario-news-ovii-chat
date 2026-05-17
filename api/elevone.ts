@@ -358,23 +358,46 @@ export default async function handler(req: any, res: any) {
       content: `[${lastMessage.name}]: ${lastMessage.text}`
     });
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "HTTP-Referer": "https://novario-news.vercel.app",
-        "X-Title": "ELEVONE"
-      },
-      body: JSON.stringify({
-        model: "google/gemma-2-9b-it:free",
-        messages: chatMessages
-      })
-    });
+    const modelsToTry = [
+      "google/gemma-2-9b-it:free",
+      "meta-llama/llama-3-8b-instruct:free",
+      "mistralai/mistral-7b-instruct:free",
+      "openchat/openchat-7b:free",
+      "gryphe/mythomax-l2-13b:free",
+      "huggingfaceh4/zephyr-7b-beta:free"
+    ];
 
-    const data = await response.json();
-    if (!response.ok) throw new Error(data?.error?.message || "OpenRouter error");
-    const responseText = data.choices?.[0]?.message?.content || "";
+    let responseText = "";
+
+    for (const model of modelsToTry) {
+      try {
+        const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+            "HTTP-Referer": "https://novario-news.vercel.app",
+            "X-Title": "ELEVONE"
+          },
+          body: JSON.stringify({
+            model: model,
+            messages: chatMessages
+          })
+        });
+
+        const data = await response.json();
+        if (response.ok && data.choices?.[0]?.message?.content) {
+          responseText = data.choices[0].message.content;
+          break; // Successfully got response, break the loop
+        }
+      } catch (e) {
+        console.warn(`Model ${model} failed, trying next...`);
+      }
+    }
+
+    if (!responseText) {
+      throw new Error("All free models failed to respond.");
+    }
 
     return res.status(200).json({ text: responseText });
   } catch (error: any) {
