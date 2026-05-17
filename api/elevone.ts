@@ -363,14 +363,9 @@ export default async function handler(req: any, res: any) {
     }
 
     const modelsToTry = [
-      "google/gemma-2-9b-it:free",
       "meta-llama/llama-3-8b-instruct:free",
-      "mistralai/mistral-7b-instruct:free",
       "qwen/qwen-2-7b-instruct:free",
-      "openchat/openchat-7b:free",
-      "gryphe/mythomax-l2-13b:free",
-      "minimax/minimax-m2.5:free",
-      "huggingfaceh4/zephyr-7b-beta:free"
+      "mistralai/mistral-7b-instruct:free"
     ];
 
     let responseText = "";
@@ -378,7 +373,7 @@ export default async function handler(req: any, res: any) {
     for (const model of modelsToTry) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 4000);
+        const timeoutId = setTimeout(() => controller.abort(), 3500);
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
