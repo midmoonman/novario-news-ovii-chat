@@ -12,6 +12,7 @@ import historyDataRaw from "../../lib/history.json";
 import { Champ } from "./Champ";
 const historyData = historyDataRaw as unknown as HistoryDataRoot;
 
+const toxicKeywords = /(shut up|stfu|idiot|hate you|fuck|stupid|bakwas|pagal|gussa|madarchod|behenchod|chutiya|bhadwe)/i;
 
 const MaterialPin = ({ className }: { className?: string }) => (
   <svg viewBox="0 0 24 24" className={className} fill="currentColor">
@@ -935,6 +936,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
 
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
+  const [showMentionSuggestion, setShowMentionSuggestion] = useState(false);
   const [recording, setRecording] = useState(false);
   const [error, setError] = useState("");
   const [count, setCount] = useState(0);
@@ -1467,6 +1469,22 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     }
     await addDoc(collection(db, "ovii", ROOM, "messages"), msgData);
     triggerNotification();
+
+    if (type === "text") {
+      const lowerContent = content.toLowerCase();
+      const isElevoneMentioned = lowerContent.includes("@elevone") || lowerContent.endsWith("@") || /\s@(\s|$)/.test(lowerContent);
+      const isToxic = toxicKeywords.test(content);
+      
+      if (isToxic) aggressiveMsgCount.current += 1;
+      else aggressiveMsgCount.current = 0;
+
+      const isAutoTrigger = aggressiveMsgCount.current >= 3;
+
+      if (isElevoneMentioned || isAutoTrigger) {
+        if (isAutoTrigger) aggressiveMsgCount.current = 0;
+        triggerElevone(content, isAutoTrigger);
+      }
+    }
   };
 
   const deleteMessage = async (msgId: string, mode: "me" | "everyone") => {
@@ -2952,6 +2970,21 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
 
                     <div className={`flex-1 flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
                       }`}>
+                      {showMentionSuggestion && (
+                        <div
+                          onClick={() => {
+                            const newText = text.replace(/@$/, "@elevone ");
+                            setText(newText);
+                            setShowMentionSuggestion(false);
+                            inputRef.current?.focus();
+                          }}
+                          className={`absolute bottom-full mb-2 left-4 px-4 py-2 rounded-xl text-sm font-bold shadow-lg cursor-pointer flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all
+                            ${isDarkMode ? 'bg-[#202c33] text-white border border-white/10' : 'bg-white text-black border border-black/10'}`}
+                        >
+                          <img src="/elevone-dp.jpg" alt="ELEVONE" className="w-6 h-6 rounded-full object-cover" />
+                          @elevone
+                        </div>
+                      )}
                       <textarea
                         ref={inputRef}
                         rows={1}
@@ -2972,6 +3005,13 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                         onChange={(e) => {
                           const val = e.target.value;
                           setText(val);
+
+                          if (val.endsWith('@')) {
+                            setShowMentionSuggestion(true);
+                          } else {
+                            setShowMentionSuggestion(false);
+                          }
+
                           const prevH = e.target.style.height;
                           e.target.style.height = '1px';
                           const nextH = Math.max(44, Math.min(e.target.scrollHeight, 138));

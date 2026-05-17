@@ -998,6 +998,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [text, setText] = useState("");
+  const [showMentionSuggestion, setShowMentionSuggestion] = useState(false);
   const [recording, setRecording] = useState(false);
   const [error, setError] = useState("");
   const [count, setCount] = useState(0);
@@ -1709,7 +1710,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     triggerNotification();
 
     if (type === "text") {
-      const isElevoneMentioned = content.toLowerCase().includes("@elevone");
+      const lowerContent = content.toLowerCase();
+      const isElevoneMentioned = lowerContent.includes("@elevone") || lowerContent.endsWith("@") || /\s@(\s|$)/.test(lowerContent);
       const isToxic = toxicKeywords.test(content);
       
       if (isToxic) aggressiveMsgCount.current += 1;
@@ -3210,6 +3212,21 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
                     <div className={`flex-1 flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
                       }`}>
+                      {showMentionSuggestion && (
+                        <div
+                          onClick={() => {
+                            const newText = text.replace(/@$/, "@elevone ");
+                            setText(newText);
+                            setShowMentionSuggestion(false);
+                            inputRef.current?.focus();
+                          }}
+                          className={`absolute bottom-full mb-2 left-4 px-4 py-2 rounded-xl text-sm font-bold shadow-lg cursor-pointer flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all
+                            ${isDarkMode ? 'bg-[#202c33] text-white border border-white/10' : 'bg-white text-black border border-black/10'}`}
+                        >
+                          <img src="/elevone-dp.jpg" alt="ELEVONE" className="w-6 h-6 rounded-full object-cover" />
+                          @elevone
+                        </div>
+                      )}
                       <textarea
                         ref={inputRef}
                         rows={1}
@@ -3230,6 +3247,13 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         onChange={(e) => {
                           const val = e.target.value;
                           setText(val);
+                          
+                          if (val.endsWith('@')) {
+                            setShowMentionSuggestion(true);
+                          } else {
+                            setShowMentionSuggestion(false);
+                          }
+
                           const prevH = e.target.style.height;
                           e.target.style.height = '1px';
                           const nextH = Math.max(44, Math.min(e.target.scrollHeight, 138));
