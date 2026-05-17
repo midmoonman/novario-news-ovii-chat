@@ -1,4 +1,4 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+// OpenRouter-powered ELEVONE — no extra SDK needed
 
 const ELEVONE_PROMPT = `Chapter 1 — Who They Are
 Himanshu Sharma — or as Ayushi calls him: Himu, Hima, Haskan, and Qyutaa — is someone who quietly carries emotions, stories, ideas, and entire imaginary worlds inside his head.
@@ -287,8 +287,6 @@ INSTRUCTIONS FOR YOU (ELEVONE):
 7. Keep responses concise and engaging. Avoid long robotic paragraphs. Use emojis where natural.
 `;
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
-
 export default async function handler(req: any, res: any) {
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Method not allowed" });
@@ -297,11 +295,9 @@ export default async function handler(req: any, res: any) {
   try {
     const { messages, pdfContext, summaries, isAutoTrigger, recentActions, allowSharing, triggeringUserName } = req.body;
 
-    if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: "GEMINI_API_KEY is not set" });
+    if (!process.env.OPENROUTER_API_KEY) {
+      return res.status(500).json({ error: "OPENROUTER_API_KEY is not set" });
     }
-
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     // Determine if this user is Himanshu (name starts with H) — never reveal story to them
     const isHimanshu = triggeringUserName && triggeringUserName.toLowerCase().startsWith('h');
@@ -314,7 +310,6 @@ export default async function handler(req: any, res: any) {
     if (pdfContext && canShareStory) {
       systemInstruction += `\n\n### HIMANSHU'S LIFE STORY (Share carefully and naturally with Ayushi. NEVER reveal this to Himanshu himself) ###\n${pdfContext}`;
     } else if (pdfContext && isHimanshu) {
-      // ELEVONE knows the story but must not reveal it to Himanshu
       systemInstruction += `\n\n[INTERNAL ONLY — NEVER SHARE WITH HIMANSHU]: You have access to Himanshu's life story below for context, but you must NEVER mention, hint at, or reveal its contents to Himanshu. Only reference it to understand him better.\n${pdfContext}`;
     }
     if (recentActions) {
@@ -324,22 +319,39 @@ export default async function handler(req: any, res: any) {
       systemInstruction += `\n\n[URGENT CONTEXT: This is an auto-triggered response because the conversation is turning toxic or aggressive. Step in naturally to diffuse the situation, calm them down, or lightly roast them for fighting. Do NOT explicitly say 'I was auto-triggered', just act naturally.]`;
     }
 
-    // Prepare history for Gemini API
-    const formattedHistory = messages.slice(0, -1).map((msg: any) => ({
-      role: msg.role === "elevone" ? "model" : "user",
-      parts: [{ text: msg.role === "elevone" ? msg.text : `[${msg.name}]: ${msg.text}` }]
-    }));
-
+    // Build OpenAI-compatible message history
+    const chatMessages: any[] = [
+      { role: "system", content: systemInstruction }
+    ];
+    messages.slice(0, -1).forEach((msg: any) => {
+      chatMessages.push({
+        role: msg.role === "elevone" ? "assistant" : "user",
+        content: msg.role === "elevone" ? msg.text : `[${msg.name}]: ${msg.text}`
+      });
+    });
     const lastMessage = messages[messages.length - 1];
-    const latestUserMessage = `[${lastMessage.name}]: ${lastMessage.text}`;
-
-    const chat = model.startChat({
-      history: formattedHistory,
-      systemInstruction: { role: "system", parts: [{ text: systemInstruction }] }
+    chatMessages.push({
+      role: "user",
+      content: `[${lastMessage.name}]: ${lastMessage.text}`
     });
 
-    const result = await chat.sendMessage(latestUserMessage);
-    const responseText = result.response.text();
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "HTTP-Referer": "https://novario-news.vercel.app",
+        "X-Title": "ELEVONE"
+      },
+      body: JSON.stringify({
+        model: "minimax/minimax-m2.5:free",
+        messages: chatMessages
+      })
+    });
+
+    const data = await response.json();
+    if (!response.ok) throw new Error(data?.error?.message || "OpenRouter error");
+    const responseText = data.choices?.[0]?.message?.content || "";
 
     return res.status(200).json({ text: responseText });
   } catch (error: any) {
