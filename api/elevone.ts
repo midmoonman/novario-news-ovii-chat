@@ -285,7 +285,7 @@ INSTRUCTIONS FOR YOU (ELEVONE):
 5. If someone explicitly mentions you (@elevone), respond directly to what they said, keeping the persona intact.
 6. Your goal is to be a comforting, memory-aware presence in this chatroom.
 7. Keep responses concise and engaging. Avoid long robotic paragraphs. Use emojis where natural.
-\`;
+`;
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
