@@ -367,7 +367,7 @@ export default async function handler(req: any, res: any) {
         "X-Title": "ELEVONE"
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3-8b-instruct:free",
+        model: "google/gemma-2-9b-it:free",
         messages: chatMessages
       })
     });
