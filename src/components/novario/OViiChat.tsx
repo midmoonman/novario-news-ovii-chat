@@ -2443,7 +2443,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                               }}
                               className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-all active:scale-[0.98] ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
                             >
-                              <ElevoneIcon className="w-4 h-4 text-[#7c3aed]" />
+                              <Zap className="w-4 h-4 text-primary" />
                               <div className="flex-1 text-left font-medium">Champ</div>
                             </button>
 
