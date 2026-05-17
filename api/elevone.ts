@@ -318,8 +318,8 @@ export default async function handler(req: any, res: any) {
   try {
     const { messages, pdfContext, summaries, isAutoTrigger, recentActions, allowSharing, triggeringUserName } = req.body;
 
-    if (!process.env.OPENROUTER_API_KEY) {
-      return res.status(500).json({ error: "OPENROUTER_API_KEY is not set" });
+    if (!process.env.OPENROUTER_API_KEY && !process.env.GROQ_API_KEY) {
+      return res.status(500).json({ error: "Neither OPENROUTER_API_KEY nor GROQ_API_KEY is set" });
     }
 
     // Determine if this user is Himanshu (name starts with H) — never reveal story to them
