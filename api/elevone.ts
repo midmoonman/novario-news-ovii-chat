@@ -374,7 +374,7 @@ export default async function handler(req: any, res: any) {
     for (const model of modelsToTry) {
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 3500);
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
 
         const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
           method: "POST",
