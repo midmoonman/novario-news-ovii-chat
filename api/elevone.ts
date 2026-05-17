@@ -375,12 +375,20 @@ Here are examples of how you should reply naturally:
   Response: "Theek hai, baat karte rehna."
 - Instruction: User asks about the series "From" (e.g., "@elevone from series total episode ?").
   Response: "Arre MGM+ ki horror-thriller series *From* ki baat kar raha hai? Uske abhi tak completed **3 seasons** ke total **30 episodes** hain (10 episodes each). Aur Season **4** abhi chal raha hai, to total abhi tak **34 episodes** aa chuke hain. Kaafi insane series hai!"
+- Instruction: User asks something you don't know (e.g., "@elevone who won the football match today?").
+  Response: "[[SEARCH: who won the football match today]]"
 
 When answering general knowledge, calculations, or addresses:
 - Make all numbers, mathematical results, and Google addresses **bold** (e.g., **15 km**, **250**, **Bhopal Airport**).
 - Any links must be underlined in the text or clearly formatted on a new line.
 - **IMPORTANT**: If the user asks about the TV series "From" (e.g., "@elevone from series total episode ?", "@elevone from tv series", "@elevone from series info", or simply mentioning "from series"), do NOT mistake the word "from" for a preposition! It is the popular MGM+ horror/sci-fi show. Explain that "From" has **30 episodes** across its first **3** completed seasons (each season has **10** episodes), and Season **4** is currently airing in **2026** (reaching **34** aired episodes as of May 2026). Respond casually and wittily in natural Hinglish!
 
+WEB SEARCH TOOL (CRITICAL):
+If the user asks you a factual question, general knowledge, or real-time query that you do NOT know the answer to, or if you need to look up real-time details (e.g. TV show release dates, sports scores, celebrity news, or movie info), you MUST output exactly:
+[[SEARCH: <search query here>]]
+Do not write any other text or explanation, just write this search tag. The system will search the web, inject the results, and let you respond with the actual info.
+Example: If user asks "@elevone who won the match yesterday?", respond with:
+[[SEARCH: who won the match yesterday]]
 
 CHATROOM ACTION CONTROLS (CRITICAL):
 If Himanshu or Ayushi asks you to control or change the chatroom environment, you must append a special hidden ACTION tag at the very end of your response. Here are the commands:
@@ -399,6 +407,49 @@ Example responses:
 - If someone types "@" but didn't tag you properly, lightly tease them to tag @elevone properly.
 - If they are fighting, roast them or calm them down, but KEEP IT SHORT (max 2 lines).
 `;
+
+async function performSearch(query: string): Promise<string> {
+  const cleanQuery = query.trim();
+  let results = "";
+
+  // 1. Wikipedia Factual Summary API
+  try {
+    const wikiUrl = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(cleanQuery)}`;
+    const res = await fetch(wikiUrl, { headers: { "User-Agent": "ELEVONE-WebSearch/1.0" } });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.extract) {
+        results += `Wikipedia Factual Info:\n${data.extract}\n\n`;
+      }
+    }
+  } catch (e) {
+    console.error("Wiki search failed:", e);
+  }
+
+  // 2. Google News RSS
+  try {
+    const rssUrl = `https://news.google.com/rss/search?q=${encodeURIComponent(cleanQuery)}&hl=en-US&gl=US&ceid=US:en`;
+    const res = await fetch(rssUrl, { headers: { "User-Agent": "Mozilla/5.0" } });
+    if (res.ok) {
+      const xml = await res.text();
+      const items = xml.match(/<item>([\s\S]*?)<\/item>/g) || [];
+      if (items.length > 0) {
+        results += "Recent Google News & Search Results:\n";
+        items.slice(0, 4).forEach((item) => {
+          const title = (item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/)?.[1] || item.match(/<title>(.*?)<\/title>/)?.[1] || "").replace(/<[^>]+>/g, "").trim();
+          const desc = (item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/)?.[1] || item.match(/<description>(.*?)<\/description>/)?.[1] || "").replace(/<[^>]+>/g, "").trim();
+          if (title) {
+            results += `- ${title} ${desc ? `(${desc.substring(0, 150)}...)` : ""}\n`;
+          }
+        });
+      }
+    }
+  } catch (e) {
+    console.error("Google News search failed:", e);
+  }
+
+  return results || "No real-time web results found for this query.";
+}
 
 async function fetchCurrentWeather(city: string): Promise<string> {
   let lat = 23.2599;
@@ -505,79 +556,97 @@ export default async function handler(req: any, res: any) {
     let responseText = "";
     const modelErrors: string[] = [];
 
-    // ── GROQ (Primary — ultra-fast LPU inference, <1s response) ────────────
-    if (process.env.GROQ_API_KEY) {
-      const groqModels = [
-        "llama-3.3-70b-versatile",
-        "llama-3.1-8b-instant",
-        "deepseek-r1-distill-llama-70b"
-      ];
-      for (const model of groqModels) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 4000);
-          const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-            method: "POST",
-            signal: controller.signal,
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
-            },
-            body: JSON.stringify({ model, messages: chatMessages, max_tokens: 300 })
-          });
-          clearTimeout(timeoutId);
-          const data = await response.json();
-          if (response.ok && data.choices?.[0]?.message?.content) {
-            responseText = data.choices[0].message.content;
-            break;
-          } else {
-            modelErrors.push(`[groq/${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+    let loopCount = 0;
+    while (loopCount < 2) {
+      responseText = "";
+
+      // ── GROQ (Primary — ultra-fast LPU inference, <1s response) ────────────
+      if (process.env.GROQ_API_KEY) {
+        const groqModels = [
+          "llama-3.3-70b-versatile",
+          "llama-3.1-8b-instant",
+          "deepseek-r1-distill-llama-70b"
+        ];
+        for (const model of groqModels) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 4000);
+            const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+              method: "POST",
+              signal: controller.signal,
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${process.env.GROQ_API_KEY}`
+              },
+              body: JSON.stringify({ model, messages: chatMessages, max_tokens: 300 })
+            });
+            clearTimeout(timeoutId);
+            const data = await response.json();
+            if (response.ok && data.choices?.[0]?.message?.content) {
+              responseText = data.choices[0].message.content;
+              break;
+            } else {
+              modelErrors.push(`[groq/${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+            }
+          } catch (e: any) {
+            modelErrors.push(`[groq/${model}] Exception: ${e.message}`);
           }
-        } catch (e: any) {
-          modelErrors.push(`[groq/${model}] Exception: ${e.message}`);
         }
       }
-    }
 
-    // ── OpenRouter (Fallback — if Groq fails) ──────────────────────────────
-    if (!responseText && process.env.OPENROUTER_API_KEY) {
-      const orModels = [
-        "openrouter/free",
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "google/gemma-2-9b-it:free",
-        "qwen/qwen-2.5-72b-instruct:free"
-      ];
-      for (const model of orModels) {
-        try {
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 5000);
-          const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-            method: "POST",
-            signal: controller.signal,
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
-              "HTTP-Referer": "https://novario-news.vercel.app",
-              "X-Title": "ELEVONE"
-            },
-            body: JSON.stringify({ model, messages: chatMessages })
-          });
-          clearTimeout(timeoutId);
-          const data = await response.json();
-          if (response.ok && data.choices?.[0]?.message?.content) {
-            responseText = data.choices[0].message.content;
-            break;
-          } else {
-            modelErrors.push(`[openrouter/${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+      // ── OpenRouter (Fallback — if Groq fails) ──────────────────────────────
+      if (!responseText && process.env.OPENROUTER_API_KEY) {
+        const orModels = [
+          "openrouter/free",
+          "meta-llama/llama-3.3-70b-instruct:free",
+          "google/gemma-2-9b-it:free",
+          "qwen/qwen-2.5-72b-instruct:free"
+        ];
+        for (const model of orModels) {
+          try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+              method: "POST",
+              signal: controller.signal,
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+                "HTTP-Referer": "https://novario-news.vercel.app",
+                "X-Title": "ELEVONE"
+              },
+              body: JSON.stringify({ model, messages: chatMessages })
+            });
+            clearTimeout(timeoutId);
+            const data = await response.json();
+            if (response.ok && data.choices?.[0]?.message?.content) {
+              responseText = data.choices[0].message.content;
+              break;
+            } else {
+              modelErrors.push(`[openrouter/${model}] HTTP ${response.status}: ${JSON.stringify(data.error || data)}`);
+            }
+          } catch (e: any) {
+            modelErrors.push(`[openrouter/${model}] Exception: ${e.message}`);
           }
-        } catch (e: any) {
-          modelErrors.push(`[openrouter/${model}] Exception: ${e.message}`);
         }
       }
-    }
 
-    if (!responseText) {
-      throw new Error(`All models failed. Details: ${modelErrors.join(" | ")}`);
+      if (!responseText) {
+        throw new Error(`All models failed. Details: ${modelErrors.join(" | ")}`);
+      }
+
+      // ── Parse Search Tag ──
+      const searchMatch = responseText.match(/\[\[SEARCH:\s*(.*?)\s*\]\]/i);
+      if (searchMatch && loopCount === 0) {
+        loopCount++;
+        const searchQuery = searchMatch[1];
+        const searchResults = await performSearch(searchQuery);
+        
+        systemInstruction += `\n\n### WEB SEARCH RESULTS FOR "${searchQuery}" ###\n${searchResults}`;
+        chatMessages[0].content = systemInstruction;
+      } else {
+        break; // Finish the loop if no search was requested or we already did it
+      }
     }
 
     return res.status(200).json({ text: responseText.trim() });
