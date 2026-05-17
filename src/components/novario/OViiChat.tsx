@@ -3210,8 +3210,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                       <Paperclip className="w-6 h-6 md:w-7 md:h-7" />
                     </button>
 
-                    <div className={`flex-1 flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
-                      }`}>
+                    <div className="flex-1 relative">
                       {showMentionSuggestion && (
                         <div
                           onClick={() => {
@@ -3220,14 +3219,16 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                             setShowMentionSuggestion(false);
                             inputRef.current?.focus();
                           }}
-                          className={`absolute bottom-full mb-2 left-4 px-4 py-2 rounded-xl text-sm font-bold shadow-lg cursor-pointer flex items-center gap-2 hover:brightness-110 active:scale-95 transition-all
-                            ${isDarkMode ? 'bg-[#202c33] text-white border border-white/10' : 'bg-white text-black border border-black/10'}`}
+                          className={`absolute bottom-[calc(100%+8px)] left-2 px-4 py-2.5 rounded-2xl text-[14px] font-bold shadow-[0_8px_30px_rgba(0,0,0,0.2)] cursor-pointer flex items-center gap-2.5 hover:scale-[1.02] active:scale-95 transition-all z-50 border
+                            ${isDarkMode ? 'bg-[#202c33] text-[#e9edef] border-white/10' : 'bg-white text-[#111b21] border-black/10'}`}
                         >
-                          <img src="/elevone-dp.jpg" alt="ELEVONE" className="w-6 h-6 rounded-full object-cover" />
-                          @elevone
+                          <img src="/elevone-dp.jpg" alt="ELEVONE" className="w-6 h-6 rounded-full object-cover shadow-md" />
+                          <span>@elevone</span>
                         </div>
                       )}
-                      <textarea
+                      <div className={`w-full flex items-end rounded-[24px] shadow-sm md:shadow-md border border-border/10 overflow-hidden relative ${isDarkMode ? "bg-[#2a3942]" : "bg-white"
+                        }`}>
+                        <textarea
                         ref={inputRef}
                         rows={1}
                         autoComplete="off"
@@ -3270,6 +3271,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                           }`}
                         style={{ height: `${inputHeight}px` }}
                       />
+                      </div>
                     </div>
 
                     <div className="shrink-0 w-10 h-10 md:w-12 md:h-12 flex items-center justify-center relative">
