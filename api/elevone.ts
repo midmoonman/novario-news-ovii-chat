@@ -411,7 +411,7 @@ Example responses:
 `;
 
 async function performSearch(query: string): Promise<string> {
-  const cleanQuery = query.trim();
+  const cleanQuery = query.replace(/['"“”‘’]/g, "").trim();
   let results = "";
 
   // 1. Wikipedia Factual Summary API
