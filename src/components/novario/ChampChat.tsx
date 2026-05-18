@@ -1809,10 +1809,33 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     setSelectedMsgIds(new Set(elevoneMsgs.map(m => m.id)));
   };
 
+  const backupMessage = async (msgId: string, data: any) => {
+    try {
+      const backupRef = doc(db, "ovii", ROOM, "backups", msgId);
+      const now = new Date();
+      const expireAt = new Date(now.getTime() + 35 * 24 * 60 * 60 * 1000);
+      await setDoc(backupRef, {
+        id: msgId,
+        originalMessage: data,
+        deletedAt: Timestamp.fromDate(now),
+        expireAt: Timestamp.fromDate(expireAt)
+      });
+    } catch (e) {
+      console.error("Backup failed", e);
+    }
+  };
+
   const bulkDeleteElevoneMessages = async () => {
     try {
       const ids = Array.from(selectedMsgIds);
       if (ids.length === 0) return;
+
+      // Backup before delete
+      await Promise.all(ids.map(id => {
+        const msg = msgs.find(m => m.id === id);
+        return msg ? backupMessage(id, msg) : Promise.resolve();
+      }));
+
       await Promise.all(ids.map(id => deleteDoc(doc(db, "ovii", ROOM, "messages", id))));
       addNotification(`${ids.length} responses cleared`, "success");
     } catch (e) {
@@ -2120,6 +2143,10 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
       const q = query(collection(db, "ovii", ROOM, "messages"));
       const snapshot = await getDocs(q);
       const toDelete = snapshot.docs.filter(d => !d.data().isPinned);
+
+      // Backup before delete
+      await Promise.all(toDelete.map(d => backupMessage(d.id, d.data())));
+
       const batch = toDelete.map(d => deleteDoc(doc(db, "ovii", ROOM, "messages", d.id)));
       await Promise.all(batch);
       addNotification("Chat cleared", "success");
