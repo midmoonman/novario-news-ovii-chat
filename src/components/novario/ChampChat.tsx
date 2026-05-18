@@ -152,7 +152,7 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
   }, [url]);
 
   if (loading) return (
-    <div className={`mt-2 rounded-xl p-2 border animate-pulse flex gap-3 mb-2 ${isDarkMode ? "bg-black/20 border-white/5" : "bg-black/5 border-black/5"}`}>
+    <div className={`mt-2 rounded-xl p-2 border animate-pulse flex gap-3 mb-2 ${isDarkMode ? "bg-black/20 border-white/5" : "bg-black/5 border-black/5"} w-full max-w-full`}>
       <div className="w-12 h-12 rounded-lg bg-muted/40 shrink-0" />
       <div className="flex-1 space-y-2">
         <div className="h-3 w-3/4 bg-muted/40 rounded" />
@@ -170,7 +170,7 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
       target="_blank"
       rel="noopener noreferrer"
       className={`block mt-2 mb-1 rounded-xl overflow-hidden border transition-all hover:brightness-110 active:scale-[0.98] group/link ${isDarkMode ? "bg-[#0b141a]/60 border-white/5" : "bg-black/5 border-black/10"
-        } no-underline max-w-[280px] sm:max-w-[320px]`}
+        } no-underline w-full max-w-full`}
     >
       {preview.image && (
         <div className="relative aspect-[1.91/1] overflow-hidden">
@@ -639,7 +639,7 @@ const LiveAudioVisualizer = ({ stream }: { stream: MediaStream | null }) => {
 };
 
 // ─── MediaList (formerly FilesList) ───────────────────────────────────────────
-function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, activePaint = "default" }: { msgs: Msg[], uid: string | null, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void, activePaint?: string }) {
+function MediaList({ msgs, uid, name, downloadFile, isDarkMode, setSelectedImage, activePaint = "default" }: { msgs: Msg[], uid: string | null, name: string, downloadFile: (u: string, i: string, t: string) => void, isDarkMode: boolean, setSelectedImage: (url: string) => void, activePaint?: string }) {
   const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
   if (mediaMsgs.length === 0) return <p className="text-muted-foreground text-center mt-10 text-xs font-medium opacity-50">No files saved yet.</p>;
 
@@ -663,7 +663,7 @@ function MediaList({ msgs, uid, downloadFile, isDarkMode, setSelectedImage, acti
               <div className="flex-1 min-w-0">
                 {m.type === "voice" || m.type === "audio" ? (
                   <div className="flex-1">
-                    <AudioPlayer src={m.content} id={m.id} mine={m.uid === uid} createdAt={m.createdAt} isDarkMode={isDarkMode} activePaint={activePaint} />
+                    <AudioPlayer src={m.content} id={m.id} mine={!!(m.uid === uid || (m.name && name && m.name.toLowerCase() === name.toLowerCase()))} createdAt={m.createdAt} isDarkMode={isDarkMode} activePaint={activePaint} />
                     {m.fileName && <div className={`text-[10px] mt-1 truncate px-2 opacity-50 ${isDarkMode ? "text-white" : "text-black"}`}>{m.fileName}</div>}
                   </div>
                 ) : m.type === "image" ? (
@@ -2209,7 +2209,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-6">
-                  <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
+                  <MediaList msgs={msgs} uid={uid} name={name} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
                 </div>
               </motion.div>
             )}
@@ -2779,7 +2779,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                           ]
                         }}
                         transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                        className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${isDarkMode ? "bg-black/10" : "bg-white/80"}`}
+                        className={`w-20 h-20 sm:w-28 sm:h-28 rounded-full flex items-center justify-center z-10 backdrop-blur-xl border-2 ${isDarkMode ? "bg-black/10" : "white/80"}`}
                         style={{ borderColor: `${activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent}4D` }}
                       >
                         <Send className="w-8 h-8 sm:w-12 sm:h-12 rotate-[-20deg]" style={{ color: activePaint === "default" ? "#10b981" : (isDarkMode ? paintTheme.nameDark : paintTheme.nameLight) || paintTheme.sent }} />
@@ -2830,11 +2830,14 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                       });
 
                       return grouped.map((m, i) => {
-                        const mine = m.uid === uid;
+                        const mine = m.uid === uid || (m.name && name && m.name.toLowerCase() === name.toLowerCase());
                         const prevMsg = grouped[i - 1];
-                        const isConsecutive = prevMsg && prevMsg.uid === m.uid;
+                        const isConsecutive = prevMsg && (prevMsg.uid === m.uid || (prevMsg.name && m.name && prevMsg.name.toLowerCase() === m.name.toLowerCase()));
                         const nextMsg = grouped[i + 1];
-                        const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
+                        const isLastInGroup = !nextMsg || (nextMsg.uid !== m.uid && (!nextMsg.name || !m.name || nextMsg.name.toLowerCase() !== m.name.toLowerCase()));
+
+                        const urlRegex = /(https?:\/\/[^\s]+)/g;
+                        const hasLink = !m.isDeleted && m.type === "text" && urlRegex.test(m.content);
 
                         // Date grouping logic
                         const showDateHeader = !prevMsg ||
@@ -2930,7 +2933,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                                     }
                                   }
                                 }}
-                                className={`relative flex gap-2 group w-fit max-w-[85%] md:max-w-[550px] lg:max-w-[600px] ${mine ? "ml-auto" : "mr-auto"}`}
+                                className={`relative flex gap-2 group w-fit ${hasLink ? "max-w-[85%] md:max-w-[380px] lg:max-w-[400px]" : "max-w-[85%] md:max-w-[550px] lg:max-w-[600px]"} ${mine ? "ml-auto" : "mr-auto"}`}
                               >
                                 <div className={`absolute inset-y-0 flex items-center transition-opacity pointer-events-none opacity-0 group-drag:opacity-100 ${mine ? "-right-12 pl-4" : "-left-12 pr-4"
                                   }`}>
@@ -3062,7 +3065,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                                         <div className="relative min-w-[60px]">
                                           {m.type === "text" && (
                                             <>
-                                              <span className={`block break-words whitespace-pre-wrap leading-relaxed text-[14px] ${m.isDeleted ? "text-[12px]" : ""}`}>
+                                              <span className={`block ${hasLink ? "break-all" : "break-words"} whitespace-pre-wrap leading-relaxed text-[14px] ${m.isDeleted ? "text-[12px]" : ""}`}>
                                                 {m.isDeleted ? (
                                                   <span className="flex items-center gap-1.5">
                                                     <ShieldOff className="w-3.5 h-3.5" /> This message was deleted
@@ -3588,7 +3591,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                     </button>
                   </div>
                   <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
-                    <MediaList msgs={msgs} uid={uid} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
+                    <MediaList msgs={msgs} uid={uid} name={name} downloadFile={downloadFile} isDarkMode={isDarkMode} setSelectedImage={setSelectedImage} activePaint={activePaint} />
                   </div>
                 </motion.div>
               )}
