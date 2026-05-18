@@ -1923,6 +1923,27 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
   const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
   const unreadMedia = mediaMsgs.length;
 
+  const copyBulkChat = () => {
+    const textMsgs = chatMsgs.filter(m => !m.isDeleted && m.type === "text");
+    if (textMsgs.length === 0) {
+      addNotification("No text messages in chat to copy", "info");
+      return;
+    }
+    const formatted = textMsgs.map(m => {
+      const time = m.createdAt?.toDate?.()?.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) || "";
+      const date = m.createdAt?.toDate?.()?.toLocaleDateString() || "";
+      const sender = m.name || (m.uid === uid ? "Me" : "Champ User");
+      const cleanContent = (m.content || "").replace(/\*\*(.*?)\*\*/g, "$1");
+      return `[${date} ${time}] ${sender}: ${cleanContent}`;
+    }).join("\n");
+
+    navigator.clipboard.writeText(formatted)
+      .then(() => addNotification("Bulk chat copied to clipboard!", "success"))
+      .catch(() => addNotification("Failed to copy chat", "error"));
+
+    setShowMenu(false);
+  };
+
   // ── Root style: fixed + inset:0 on desktop, keyboard-adjusted on mobile ──
   const paintTheme = PAINTS_MAP[activePaint] || PAINTS_MAP.default;
   const rootStyle: React.CSSProperties = {
@@ -2269,6 +2290,16 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                               <Zap className="w-4 h-4 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                               <div className="flex-1 text-left font-black uppercase tracking-widest italic">CHAMP</div>
                               <span className="text-[8px] font-bold opacity-40 border border-primary/20 px-1 rounded">PRO</span>
+                            </button>
+
+                            <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
+
+                            <button
+                              onClick={copyBulkChat}
+                              className={`w-full flex items-center gap-3 px-4 py-3 text-sm transition-colors ${isDarkMode ? "hover:bg-white/5 text-white/90" : "hover:bg-black/5 text-black/80"}`}
+                            >
+                              <Copy className="w-4 h-4 text-primary" />
+                              <div className="flex-1 text-left font-medium">Copy Bulk Chat</div>
                             </button>
 
                             <div className={`h-px mx-2 ${isDarkMode ? "bg-white/5" : "bg-black/5"}`} />
@@ -2672,7 +2703,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.2 }}
-                                drag="x"
+                                drag={isMobileDevice() ? "x" : false}
                                 dragConstraints={{ left: 0, right: 0 }}
                                 dragElastic={0.2}
                                 onDragStart={() => {
