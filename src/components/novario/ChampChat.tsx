@@ -1421,12 +1421,11 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
       setTimeout(() => scrollToBottom(false), 1500)
     ];
 
-    // ResizeObserver: Triggered when images or previews load and expand the container
+    // ResizeObserver: Triggered when viewport changes
     const observer = new ResizeObserver(() => {
-      // Only auto-scroll if the user is already near the bottom or if it's the initial load
       const t = scrollRef.current;
       if (!t) return;
-      const isNearBottom = t.scrollHeight - t.scrollTop < t.clientHeight + 200;
+      const isNearBottom = t.scrollHeight - t.scrollTop < t.clientHeight + 250;
       if (isNearBottom || isLoading) {
         scrollToBottom(false);
       }
@@ -1438,7 +1437,30 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
       timers.forEach(clearTimeout);
       observer.disconnect();
     };
-  }, [msgs.length, isLoading]);
+  }, [isLoading]);
+
+  // Handle incoming or sent new messages
+  useEffect(() => {
+    if (isLoading || msgs.length === 0) return;
+    const t = scrollRef.current;
+    if (!t) return;
+
+    const lastMsg = msgs[msgs.length - 1];
+    const isMyMessage = lastMsg && lastMsg.uid === uid;
+    // Check if the user was near the bottom before this message rendered
+    const isNearBottom = t.scrollHeight - t.scrollTop < t.clientHeight + 250;
+
+    if (isNearBottom || isMyMessage) {
+      // Execute scroll sequence to perfectly handle list expansion in React
+      scrollToBottom(false);
+      const timers = [
+        setTimeout(() => scrollToBottom(false), 50),
+        setTimeout(() => scrollToBottom(false), 150),
+        setTimeout(() => scrollToBottom(false), 300)
+      ];
+      return () => timers.forEach(clearTimeout);
+    }
+  }, [msgs.length]);
 
   const [isPulsingPin, setIsPulsingPin] = useState(false);
 
@@ -3176,14 +3198,18 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                     <div className="flex-1 relative">
                       {showMentionSuggestion && (
                         <div
-                          onClick={(e) => {
+                          onPointerDown={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
                             const newText = text.replace(/@[ ]*$/, "@elevone ");
                             setText(newText);
                             setShowMentionSuggestion(false);
                             setTimeout(() => {
-                              inputRef.current?.focus();
+                              if (inputRef.current) {
+                                inputRef.current.focus();
+                                const len = newText.length;
+                                inputRef.current.setSelectionRange(len, len);
+                              }
                             }, 50);
                           }}
                           className={`absolute bottom-[calc(100%+8px)] left-2 px-4 py-2.5 rounded-2xl text-[14px] font-bold shadow-[0_8px_30px_rgba(0,0,0,0.2)] cursor-pointer flex items-center gap-2.5 hover:scale-[1.02] active:scale-95 transition-all z-50 border
