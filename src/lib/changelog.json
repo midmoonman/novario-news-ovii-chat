@@ -1,5 +1,34 @@
 [
   {
+    "date": "2026-05-18",
+    "updates": [
+      {
+        "title": "Protocol 136: Multi-Format Attachment & Media Previews",
+        "status": "DEPLOYED",
+        "description": "Engineered support for pinning and visualizing all message and attachment types (images, voice recordings, PDFs, zip archives, music, videos, and standard documents). Programmed a dynamic preview system inside the selection drawer rendering raw visual image thumbnails, file-specific extension icons (FileText for PDFs, FileArchive for Zips), and dedicated audio indicators.",
+        "rationale": "Ensures full visual parity in the selection panel, allowing users to instantly identify and selectively pin media files alongside raw text logs."
+      },
+      {
+        "title": "Protocol 135: WhatsApp-Style Date-Grouped Bulk Pinning Modal",
+        "status": "DEPLOYED",
+        "description": "Designed and implemented a premium, compact multi-selection modal to bulk pin chat bubbles. Messages are automatically categorized chronologically under custom date-grouped headers ('Today', 'Yesterday', or calendar dates) and feature smooth framer-motion transitions, circular checkboxes, Select All / Deselect All toggles, and safe Firestore transaction commits.",
+        "rationale": "Allows users to quickly manage and secure large volumes of messages with an extremely intuitive, familiar mobile-native layout."
+      },
+      {
+        "title": "Protocol 134: Smart Pinning NLP & Organic Typing Interceptor",
+        "status": "DEPLOYED",
+        "description": "Engineered a client-side natural language command interceptor that instantly parses mentions (e.g. '@elevone pin this', '@elevone pin that message at 5:30', '@elevone pin Aasu ka message', '@elevone pin last message'). Simulates Elevone's organic low-energy typing presence for 800ms before adding encrypted confirmation logs to Firestore.",
+        "rationale": "Provides a witty, conversational Hinglish friend interaction layer that handles complex pinning queries without network-roundtrip delay or robotic latency."
+      },
+      {
+        "title": "Link Spacing, Bubble Wrapping & Layout Precision",
+        "status": "DEPLOYED",
+        "description": "Optimized LinkPreview sizing to use full-width structures, capped bubble widths for link-containing messages, and applied dynamic word-breaking rules to prevent URL overflow or text container stretching.",
+        "rationale": "Maintains pixel-perfect layout boundaries and pristine mobile readability in high-frequency links sharing contexts."
+      }
+    ]
+  },
+  {
     "date": "2026-05-17",
     "updates": [
       {
