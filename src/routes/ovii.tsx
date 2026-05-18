@@ -31,6 +31,7 @@ function OViiPage() {
     document.body.style.width = "100%";
     document.body.style.height = "100%";
     document.documentElement.style.overflow = "hidden";
+    document.documentElement.style.height = "100%";
 
     return () => {
       document.body.style.overflow = "";
@@ -38,6 +39,7 @@ function OViiPage() {
       document.body.style.width = "";
       document.body.style.height = "";
       document.documentElement.style.overflow = "";
+      document.documentElement.style.height = "";
     };
   }, []);
 

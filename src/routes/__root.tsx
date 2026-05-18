@@ -74,12 +74,18 @@ function RootComponent() {
       html.style.width = "100%";
       html.style.height = "100%";
       body.style.overflow = "hidden";
+      body.style.position = "fixed";
+      body.style.width = "100%";
+      body.style.height = "100%";
     } else {
       html.style.overflow = "";
       html.style.position = "";
       html.style.width = "";
       html.style.height = "";
       body.style.overflow = "";
+      body.style.position = "";
+      body.style.width = "";
+      body.style.height = "";
     }
     return () => {
       html.style.overflow = "";
@@ -87,6 +93,9 @@ function RootComponent() {
       html.style.width = "";
       html.style.height = "";
       body.style.overflow = "";
+      body.style.position = "";
+      body.style.width = "";
+      body.style.height = "";
     };
   }, [chatOpen]);
 
