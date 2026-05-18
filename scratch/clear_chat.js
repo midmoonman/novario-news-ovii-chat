@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc, setDoc, Timestamp } from "firebase/firestore";
+import { getFirestore, collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDITTDkAnnltIZA1EZAKxY4A7KBUbAqqpM",
@@ -17,33 +17,15 @@ const db = getFirestore(app);
 const ROOM = "ovii-room";
 
 async function purgeChat() {
-  console.log("Starting full chat purge with 35-day dynamic auto-expiring backup...");
+  console.log("Starting full chat purge (including pinned messages)...");
 
   // 1. Fetch all messages in the room
   const msgsRef = collection(db, "ovii", ROOM, "messages");
   const snapshot = await getDocs(msgsRef);
   
-  console.log(`Found ${snapshot.docs.length} messages.`);
+  console.log(`Found ${snapshot.docs.length} messages to delete.`);
 
-  // 2. Perform backup for each message
-  const now = new Date();
-  const expireAt = new Date(now.getTime() + 35 * 24 * 60 * 60 * 1000); // 35 days from now
-
-  const backupPromises = snapshot.docs.map((docSnap) => {
-    const backupRef = doc(db, "ovii", ROOM, "backups", docSnap.id);
-    console.log(`Backing up message: ${docSnap.id}`);
-    return setDoc(backupRef, {
-      id: docSnap.id,
-      originalMessage: docSnap.data(),
-      deletedAt: Timestamp.fromDate(now),
-      expireAt: Timestamp.fromDate(expireAt)
-    });
-  });
-
-  await Promise.all(backupPromises);
-  console.log("All backups created successfully.");
-
-  // 3. Delete all messages
+  // Delete all messages in parallel
   const deletePromises = snapshot.docs.map((docSnap) => {
     console.log(`Deleting message: ${docSnap.id}`);
     return deleteDoc(doc(db, "ovii", ROOM, "messages", docSnap.id));
@@ -52,7 +34,7 @@ async function purgeChat() {
   await Promise.all(deletePromises);
   console.log("All messages deleted successfully.");
 
-  // 4. Clear global pins
+  // 2. Clear global pins
   const pinsRef = doc(db, "ovii", ROOM, "pins", "global");
   try {
     await updateDoc(pinsRef, { ids: [] });
@@ -67,7 +49,7 @@ async function purgeChat() {
     }
   }
 
-  console.log("Full chat purge and 35-day backup completed successfully!");
+  console.log("Full chat purge completed successfully!");
   process.exit(0);
 }
 
