@@ -779,8 +779,36 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
   const [clearElevoneMsgId, setClearElevoneMsgId] = useState<string | null>(null);
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set());
+  const [showBulkPinModal, setShowBulkPinModal] = useState(false);
+  const [selectedPinIds, setSelectedPinIds] = useState<Set<string>>(new Set());
   const [showBulkClearConfirm, setShowBulkClearConfirm] = useState(false);
   const [showChamp, setShowChamp] = useState(false);
+
+  const groupMessagesByDate = (messages: Msg[]) => {
+    const groups: { [dateStr: string]: Msg[] } = {};
+    messages.forEach(m => {
+      if (m.isDeleted || m.type === "text-system") return;
+      const date = m.createdAt ? new Date(m.createdAt.toMillis?.() ?? m.createdAt) : new Date();
+      const today = new Date();
+      const yesterday = new Date();
+      yesterday.setDate(today.getDate() - 1);
+      
+      let dateStr = "";
+      if (date.toDateString() === today.toDateString()) {
+        dateStr = "Today";
+      } else if (date.toDateString() === yesterday.toDateString()) {
+        dateStr = "Yesterday";
+      } else {
+        dateStr = date.toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
+      }
+      
+      if (!groups[dateStr]) {
+        groups[dateStr] = [];
+      }
+      groups[dateStr].push(m);
+    });
+    return groups;
+  };
 
   useEffect(() => {
     localStorage.setItem("ovii_dark_mode", String(isDarkMode));
@@ -1588,6 +1616,136 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
 
       if (isElevoneMentioned || isAutoTrigger) {
         if (isAutoTrigger) aggressiveMsgCount.current = 0;
+        
+        const isPinCommand = isElevoneMentioned && (lowerContent.includes("pin") || lowerContent.includes("unpin"));
+        if (isPinCommand) {
+          const replyToMsg = msgData.replyTo;
+          const validMsgs = msgs.filter(m => !m.isDeleted && m.type !== "text-system" && m.id !== docRef.id);
+          
+          let targetId = "";
+          let responseMsg = "";
+          let isBulk = false;
+
+          // 1. Bulk Pin command
+          if (lowerContent.includes("pin all messages") || lowerContent.includes("pin sab messages") || lowerContent.includes("pin multiple") || lowerContent.includes("bulk pin")) {
+            isBulk = true;
+            responseMsg = "Chalo, bulk pinning screen open kar diya hai. Select kar lo jo pin karna hai.";
+          }
+          // 2. Reply Pin command
+          else if (replyToMsg && (lowerContent.includes("pin this") || lowerContent.includes("pin that") || lowerContent.includes("pin it") || lowerContent.includes("pin kar"))) {
+            targetId = replyToMsg.id;
+            responseMsg = "Done, pin kar diya.";
+          }
+          // 3. Time-based Pin command
+          else if (lowerContent.match(/(\d{1,2}):(\d{2})\s*(pm|am)?/i)) {
+            const timeRegex = /(\d{1,2}):(\d{2})\s*(pm|am)?/i;
+            const timeMatch = lowerContent.match(timeRegex);
+            if (timeMatch) {
+              const hours = parseInt(timeMatch[1]);
+              const minutes = parseInt(timeMatch[2]);
+              const ampm = timeMatch[3];
+              
+              let targetHour = hours;
+              if (ampm) {
+                if (ampm.toLowerCase() === "pm" && hours < 12) targetHour += 12;
+                if (ampm.toLowerCase() === "am" && hours === 12) targetHour = 0;
+              }
+              
+              const now = new Date();
+              const targetTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), targetHour, minutes);
+              
+              let closestMsg = null;
+              let minDiff = Infinity;
+              
+              for (const m of validMsgs) {
+                const msgDate = m.createdAt ? new Date(m.createdAt.toMillis?.() ?? m.createdAt) : null;
+                if (msgDate) {
+                  const diff = Math.abs(msgDate.getTime() - targetTime.getTime());
+                  if (diff < minDiff && diff < 12 * 60 * 60 * 1000) {
+                    minDiff = diff;
+                    closestMsg = m;
+                  }
+                }
+              }
+              
+              if (closestMsg) {
+                targetId = closestMsg.id;
+                const timeStr = `${hours}:${minutes.toString().padStart(2, '0')}${ampm ? ` ${ampm.toUpperCase()}` : ""}`;
+                responseMsg = `${timeStr} waala message pin kar diya.`;
+              } else {
+                responseMsg = "Mujhe us time ka koi message nahi mila yaar.";
+              }
+            }
+          }
+          // 4. User-based Pin command (Aasu / Ayushi / Himanshu / Himu)
+          else if (lowerContent.includes("aasu") || lowerContent.includes("ayushi") || lowerContent.includes("zazu") || lowerContent.includes("himanshu") || lowerContent.includes("himu") || lowerContent.includes("haskan")) {
+            const isAasu = lowerContent.includes("aasu") || lowerContent.includes("ayushi") || lowerContent.includes("zazu");
+            const isHimu = lowerContent.includes("himanshu") || lowerContent.includes("himu") || lowerContent.includes("haskan");
+            
+            const targetMsg = [...validMsgs].reverse().find(m => {
+              if (!m.name) return false;
+              const nameLower = m.name.toLowerCase();
+              if (isAasu && (nameLower.includes("aasu") || nameLower.includes("ayushi") || nameLower.includes("zazu"))) return true;
+              if (isHimu && (nameLower.includes("himanshu") || nameLower.includes("himu") || nameLower.includes("haskan"))) return true;
+              return false;
+            });
+            
+            if (targetMsg) {
+              targetId = targetMsg.id;
+              const targetName = isAasu ? "Aasu" : "Himanshu";
+              responseMsg = `${targetName} ka last message pin kar diya.`;
+            } else {
+              responseMsg = "Mujhe unka koi message nahi mila yaar.";
+            }
+          }
+          // 5. Last message command
+          else if (lowerContent.includes("pin last message") || lowerContent.includes("pin last") || lowerContent.includes("pin previous message") || lowerContent.includes("pin pehle wala")) {
+            const lastMsg = validMsgs[validMsgs.length - 1];
+            if (lastMsg) {
+              targetId = lastMsg.id;
+              responseMsg = "Last message pin kar diya.";
+            } else {
+              responseMsg = "Pin karne ke liye koi message nahi mila.";
+            }
+          }
+
+          if (isBulk || responseMsg) {
+            if (isBulk) {
+              setShowBulkPinModal(true);
+            } else if (targetId) {
+              await setDoc(doc(db, "ovii", ROOM, "messages", targetId), {
+                isPinned: true
+              }, { merge: true });
+            }
+
+            setIsElevoneGenerating(true);
+            setTypingUsers(prev => Array.from(new Set([...prev, "/elevone-dp.jpg"])));
+            
+            setTimeout(async () => {
+              setIsElevoneGenerating(false);
+              setTypingUsers(prev => prev.filter(u => u !== "/elevone-dp.jpg"));
+              
+              let replyContent = responseMsg;
+              if (encryptionKey) {
+                replyContent = await encrypt(replyContent, encryptionKey);
+              }
+              
+              await addDoc(collection(db, "ovii", ROOM, "messages"), {
+                uid: "elevone",
+                name: "ELEVONE",
+                avatar: "/elevone-dp.jpg",
+                type: "text",
+                content: replyContent,
+                isEncrypted: !!encryptionKey,
+                status: "sent",
+                createdAt: Timestamp.now()
+              });
+            }, 800);
+            
+            return;
+          }
+        }
+
         triggerElevone(content, isAutoTrigger, false, docRef.id);
       }
     }
@@ -4271,6 +4429,198 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                     </div>
                   </div>
                 </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Bulk Pin Modal ── */}
+            <AnimatePresence>
+              {showBulkPinModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+                    onClick={() => {
+                      setShowBulkPinModal(false);
+                      setSelectedPinIds(new Set());
+                    }}
+                  />
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                    className={`relative w-full max-w-[420px] h-[80vh] max-h-[600px] rounded-[24px] overflow-hidden shadow-2xl border flex flex-col ${
+                      isDarkMode ? "bg-[#1f2c34] border-white/10 text-white" : "bg-white border-black/10 text-black"
+                    }`}
+                  >
+                    {/* Header */}
+                    <div className={`px-5 py-4 border-b flex items-center justify-between shrink-0 ${
+                      isDarkMode ? "border-white/5 bg-[#233138]" : "border-black/5 bg-black/5"
+                    }`}>
+                      <div className="flex flex-col">
+                        <span className="text-base font-black tracking-tight">Pin Messages</span>
+                        <span className="text-[11px] opacity-60 font-bold uppercase tracking-wider">
+                          {selectedPinIds.size} selected
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const allIds = msgs.filter(m => !m.isDeleted && m.type === "text").map(m => m.id);
+                          if (selectedPinIds.size === allIds.length) {
+                            setSelectedPinIds(new Set());
+                          } else {
+                            setSelectedPinIds(new Set(allIds));
+                          }
+                        }}
+                        className={`text-xs font-black uppercase tracking-wider py-1.5 px-3 rounded-xl transition-all active:scale-95 border ${
+                          isDarkMode 
+                            ? "bg-white/5 border-white/10 hover:bg-white/10" 
+                            : "bg-black/5 border-black/10 hover:bg-black/10"
+                        }`}
+                      >
+                        {selectedPinIds.size === msgs.filter(m => !m.isDeleted && m.type === "text").length ? "Deselect All" : "Select All"}
+                      </button>
+                    </div>
+
+                    {/* Scrollable Message List */}
+                    <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                      {(() => {
+                        const grouped = groupMessagesByDate(msgs);
+                        const groupKeys = Object.keys(grouped);
+                        
+                        if (groupKeys.length === 0) {
+                          return (
+                            <div className="h-full flex items-center justify-center text-xs opacity-50 font-bold uppercase tracking-wider">
+                              No messages to pin
+                            </div>
+                          );
+                        }
+
+                        return groupKeys.map(dateStr => (
+                          <div key={dateStr} className="space-y-2">
+                            {/* Date Header */}
+                            <div className="text-center my-3">
+                              <span className={`text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${
+                                isDarkMode ? "bg-black/20 text-white/50" : "bg-black/5 text-black/50"
+                              }`}>
+                                {dateStr}
+                              </span>
+                            </div>
+
+                            {/* Messages in this Date */}
+                            <div className="space-y-1.5">
+                              {grouped[dateStr].map(m => {
+                                const isSelected = selectedPinIds.has(m.id);
+                                return (
+                                  <div
+                                    key={m.id}
+                                    onClick={() => {
+                                      const next = new Set(selectedPinIds);
+                                      if (next.has(m.id)) {
+                                        next.delete(m.id);
+                                      } else {
+                                        next.add(m.id);
+                                      }
+                                      setSelectedPinIds(next);
+                                    }}
+                                    className={`flex items-center gap-3 p-2.5 rounded-2xl cursor-pointer transition-all active:scale-[0.99] border ${
+                                      isSelected
+                                        ? isDarkMode
+                                          ? "bg-primary/10 border-primary/30"
+                                          : "bg-primary/5 border-primary/20"
+                                        : "bg-transparent border-transparent hover:bg-black/5 dark:hover:bg-white/5"
+                                    }`}
+                                  >
+                                    {/* Checkbox */}
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
+                                      isSelected
+                                        ? "bg-primary border-primary text-white scale-105"
+                                        : isDarkMode ? "border-white/20" : "border-black/20"
+                                    }`}>
+                                      {isSelected && <CheckCircle2 className="w-3.5 h-3.5 fill-white text-primary stroke-[3]" />}
+                                    </div>
+
+                                    {/* Avatar & Message content */}
+                                    <img src={m.avatar} className="w-8 h-8 rounded-full bg-muted object-cover border border-border/20 shrink-0" alt="" />
+                                    
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black uppercase tracking-tighter opacity-60">
+                                          {m.name || "Unknown"}
+                                        </span>
+                                        {m.isPinned && (
+                                          <span className="text-[8px] font-black uppercase text-primary tracking-widest flex items-center gap-0.5">
+                                            <MaterialPin className="w-2 h-2 -rotate-45 fill-primary text-primary" /> Pinned
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-xs truncate leading-normal mt-0.5 opacity-90">
+                                        {m.content}
+                                      </p>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+
+                    {/* Footer Actions */}
+                    <div className={`p-4 border-t flex gap-3 shrink-0 ${
+                      isDarkMode ? "border-white/5 bg-[#233138]" : "border-black/5 bg-black/5"
+                    }`}>
+                      <button
+                        onClick={() => {
+                          setShowBulkPinModal(false);
+                          setSelectedPinIds(new Set());
+                        }}
+                        className={`flex-1 py-3 rounded-2xl font-black uppercase tracking-wider text-xs transition-all active:scale-95 border ${
+                          isDarkMode ? "bg-white/5 border-white/10 text-white" : "bg-black/5 border-black/10 text-black"
+                        }`}
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        disabled={selectedPinIds.size === 0}
+                        onClick={async () => {
+                          // Pin all selected messages
+                          const promises = Array.from(selectedPinIds).map(id => 
+                            setDoc(doc(db, "ovii", ROOM, "messages", id), {
+                              isPinned: true
+                            }, { merge: true })
+                          );
+                          await Promise.all(promises);
+                          addNotification(`Pinned ${selectedPinIds.size} messages!`, "success");
+                          
+                          // Add Elevone lazy confirmation message
+                          let replyContent = `Pinned ${selectedPinIds.size} messages! Sab set hai.`;
+                          if (encryptionKey) {
+                            replyContent = await encrypt(replyContent, encryptionKey);
+                          }
+                          await addDoc(collection(db, "ovii", ROOM, "messages"), {
+                            uid: "elevone",
+                            name: "ELEVONE",
+                            avatar: "/elevone-dp.jpg",
+                            type: "text",
+                            content: replyContent,
+                            isEncrypted: !!encryptionKey,
+                            status: "sent",
+                            createdAt: Timestamp.now()
+                          });
+
+                          setShowBulkPinModal(false);
+                          setSelectedPinIds(new Set());
+                        }}
+                        className={`flex-1 py-3 rounded-2xl bg-primary text-primary-foreground font-black uppercase tracking-wider text-xs transition-all active:scale-95 shadow-lg shadow-primary/20 disabled:opacity-50 disabled:pointer-events-none`}
+                      >
+                        Pin Selected
+                      </button>
+                    </div>
+                  </motion.div>
+                </div>
               )}
             </AnimatePresence>
 
