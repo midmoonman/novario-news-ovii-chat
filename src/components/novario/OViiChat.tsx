@@ -886,6 +886,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   // ── Viewport height: ONLY used on mobile to compensate for software keyboard ──
   // On desktop we let position:fixed + inset:0 do the work (no zoom whitespace).
   const [mobileKeyboardOffset, setMobileKeyboardOffset] = useState(0);
+  const [viewportHeight, setViewportHeight] = useState<string | number>("100%");
 
   const [deviceId] = useState(() => {
     let id = localStorage.getItem("ovii_device_id");
@@ -1591,6 +1592,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     const vv = window.visualViewport;
     const syncKeyboard = () => {
       if (!vv) return;
+      setViewportHeight(vv.height);
       const keyboardHeight = window.innerHeight - vv.height;
       setMobileKeyboardOffset(Math.max(0, keyboardHeight));
       requestAnimationFrame(() => scrollToBottom(true));
@@ -2467,7 +2469,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const rootStyle: React.CSSProperties = {
     backgroundColor: paintTheme.bgDark ? (isDarkMode ? paintTheme.bgDark : paintTheme.bgLight) : undefined,
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='440' height='440' viewBox='0 0 440 440'%3E%3Cg fill='none' stroke='${isDarkMode ? "%23ffffff" : "%23000000"}' stroke-opacity='${isDarkMode ? "0.04" : "0.03"}' stroke-width='1'%3E%3Cpath d='M200 200c0-10 10-10 10-20s-10-10-10-20 10-10 10-20-10-10-10-20 10-10 10-20-10-10-10-20 10-10 10-20'/%3E%3Cpath d='M300 100c10 10 20 10 20 20s-10 10-20 10-10-10-20-10 10-10 20-10'/%3E%3Ccircle cx='350' cy='350' r='15'/%3E%3Ccircle cx='50' cy='150' r='10'/%3E%3Cpath d='M100 300l15 15m0-15l-15 15'/%3E%3Cpath d='M50 350q10-10 20 0t20 0 20 0 20 0'/%3E%3Cpath d='M380 50l10 10m0-10l-10 10'/%3E%3Ccircle cx='180' cy='80' r='5'/%3E%3Cpath d='M20 200h20m-10-10v20'/%3E%3Cpath d='M400 250c-10 0-10 10-20 10s-10-10-20-10'/%3E%3C/g%3E%3C/svg%3E")`,
-    backgroundSize: "440px 440px"
+    backgroundSize: "440px 440px",
+    height: isMobileDevice() ? (typeof viewportHeight === "number" ? `${viewportHeight}px` : viewportHeight) : "100vh"
   };
 
   const pinnedMsgs = enrichedMsgs.filter(m => m.isPinned);
@@ -3748,10 +3751,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
               <div 
                 className={`px-2 pt-2 pb-[max(14px,env(safe-area-inset-bottom))] sm:px-4 sm:pt-3 sm:pb-[max(16px,env(safe-area-inset-bottom))] flex items-end gap-2 sm:gap-3 z-20 shrink-0 border-t border-border/10`}
                 style={{
-                  backgroundColor: paintTheme.bgDark ? (isDarkMode ? paintTheme.bgDark : paintTheme.bgLight) : (isDarkMode ? "#0b141a" : "#efeae2"),
-                  paddingBottom: isMobileDevice() && mobileKeyboardOffset > 0 
-                    ? `calc(${mobileKeyboardOffset}px + max(14px, env(safe-area-inset-bottom)))` 
-                    : undefined
+                  backgroundColor: paintTheme.bgDark ? (isDarkMode ? paintTheme.bgDark : paintTheme.bgLight) : (isDarkMode ? "#0b141a" : "#efeae2")
                 }}
               >
                 <input
