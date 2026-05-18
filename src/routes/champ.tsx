@@ -58,7 +58,7 @@ function OViiPage() {
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-background" style={{ position: 'fixed', inset: 0 }}>
+    <div className="h-[100dvh] w-screen overflow-hidden bg-background" style={{ position: 'fixed', inset: 0, height: '100dvh' }}>
       {!unlocked && <PasswordModal onUnlock={(mode, r) => handleUnlock(mode, r)} />}
       {unlocked && (
         <Suspense fallback={
