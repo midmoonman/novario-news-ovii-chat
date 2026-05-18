@@ -84,10 +84,21 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
 
   useEffect(() => {
     let alive = true;
+    const controller = new AbortController();
+    
+    // 8-second global timeout for the fetch operations
+    const timeoutId = setTimeout(() => {
+      if (alive) {
+        controller.abort();
+        setLoading(false);
+        setPreview(null);
+      }
+    }, 8000);
+
     const fetchMetadata = async () => {
       try {
         // Try Microlink first - excellent for social media (Instagram, Reels, etc.)
-        const microRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+        const microRes = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`, { signal: controller.signal });
         if (microRes.ok) {
           const data = await microRes.json();
           if (alive && data.status === "success") {
@@ -97,13 +108,14 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
               image: data.data.image?.url || data.data.logo?.url || data.data.screenshot?.url
             });
             setLoading(false);
+            clearTimeout(timeoutId);
             return;
           }
         }
 
         // Fallback to manual parsing via allorigins
         const proxy = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-        const res = await fetch(proxy);
+        const res = await fetch(proxy, { signal: controller.signal });
         if (!res.ok) throw new Error("Fetch failed");
         const html = await res.text();
 
@@ -125,11 +137,18 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
       } catch (e) {
         // Silently fail for previews
       } finally {
-        if (alive) setLoading(false);
+        if (alive) {
+          setLoading(false);
+          clearTimeout(timeoutId);
+        }
       }
     };
     fetchMetadata();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+      controller.abort();
+      clearTimeout(timeoutId);
+    };
   }, [url]);
 
   if (loading) return (
@@ -141,7 +160,7 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
       </div>
     </div>
   );
-  if (!preview) return null;
+  if (!preview || (!preview.title && !preview.image)) return null;
 
   return (
     <motion.a
@@ -155,7 +174,14 @@ const LinkPreview = ({ url, isDarkMode }: { url: string, isDarkMode: boolean }) 
     >
       {preview.image && (
         <div className="relative aspect-[1.91/1] overflow-hidden">
-          <img src={preview.image} alt="" className="w-full h-full object-cover transition-transform group-hover/link:scale-105" />
+          <img
+            src={preview.image}
+            alt=""
+            className="w-full h-full object-cover transition-transform group-hover/link:scale-105"
+            onError={() => {
+              setPreview(prev => prev ? { ...prev, image: undefined } : null);
+            }}
+          />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover/link:opacity-100 transition-opacity" />
         </div>
       )}
