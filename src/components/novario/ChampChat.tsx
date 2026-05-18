@@ -4466,7 +4466,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                       </div>
                       <button
                         onClick={() => {
-                          const allIds = msgs.filter(m => !m.isDeleted && m.type === "text").map(m => m.id);
+                          const allIds = msgs.filter(m => !m.isDeleted && m.type !== "text-system").map(m => m.id);
                           if (selectedPinIds.size === allIds.length) {
                             setSelectedPinIds(new Set());
                           } else {
@@ -4479,7 +4479,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                             : "bg-black/5 border-black/10 hover:bg-black/10"
                         }`}
                       >
-                        {selectedPinIds.size === msgs.filter(m => !m.isDeleted && m.type === "text").length ? "Deselect All" : "Select All"}
+                        {selectedPinIds.size === msgs.filter(m => !m.isDeleted && m.type !== "text-system").length ? "Deselect All" : "Select All"}
                       </button>
                     </div>
 
@@ -4555,9 +4555,116 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                                           </span>
                                         )}
                                       </div>
-                                      <p className="text-xs truncate leading-normal mt-0.5 opacity-90">
-                                        {m.content}
-                                      </p>
+                                      
+                                      {/* Rich Content Renderer based on type */}
+                                      <div className="mt-1 flex items-center justify-between gap-3">
+                                        <div className="flex-1 min-w-0">
+                                          {m.type === "text" && (
+                                            <p className="text-xs truncate leading-normal opacity-90">
+                                              {m.content}
+                                            </p>
+                                          )}
+                                          
+                                          {m.type === "image" && (
+                                            <div className="flex items-center gap-2">
+                                              <ImageIcon className="w-3.5 h-3.5 text-primary shrink-0" />
+                                              <span className="text-xs font-bold text-primary truncate">
+                                                {m.caption || m.fileName || "Photo Attachment"}
+                                              </span>
+                                            </div>
+                                          )}
+                                          
+                                          {m.type === "voice" && (
+                                            <div className="flex items-center gap-2">
+                                              <Mic className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                              <span className="text-xs font-bold text-emerald-500 truncate">
+                                                Voice Message
+                                              </span>
+                                            </div>
+                                          )}
+                                          
+                                          {m.type === "audio" && (
+                                            <div className="flex items-center gap-2">
+                                              <Music className="w-3.5 h-3.5 text-[#a855f7] shrink-0" />
+                                              <span className="text-xs font-bold text-[#a855f7] truncate">
+                                                {m.fileName || "Audio Track"}
+                                              </span>
+                                            </div>
+                                          )}
+                                          
+                                          {m.type === "video" && (
+                                            <div className="flex items-center gap-2">
+                                              <Video className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                              <span className="text-xs font-bold text-red-500 truncate">
+                                                {m.fileName || "Video Attachment"}
+                                              </span>
+                                            </div>
+                                          )}
+                                          
+                                          {m.type === "file" && (
+                                            <div className="flex items-center gap-2">
+                                              {m.mimeType?.includes("pdf") ? (
+                                                <FileText className="w-3.5 h-3.5 text-red-500 shrink-0" />
+                                              ) : m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? (
+                                                <FileArchive className="w-3.5 h-3.5 text-orange-500 shrink-0" />
+                                              ) : (
+                                                <File className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                                              )}
+                                              <span className="text-xs font-bold truncate">
+                                                {m.fileName || "Document"}
+                                              </span>
+                                            </div>
+                                          )}
+                                        </div>
+                                        
+                                        {/* Visual Thumbnail for Image attachments */}
+                                        {m.type === "image" && m.content && (
+                                          <img 
+                                            src={m.content} 
+                                            alt="" 
+                                            className="w-10 h-10 rounded-lg object-cover border border-border/20 shrink-0 shadow-sm"
+                                          />
+                                        )}
+                                        
+                                        {/* Visual Icon for File, Audio, Video attachments */}
+                                        {m.type === "file" && (
+                                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-border/10 ${
+                                            isDarkMode ? "bg-white/5" : "bg-black/5"
+                                          }`}>
+                                            {m.mimeType?.includes("pdf") ? (
+                                              <FileText className="w-5 h-5 text-red-500" />
+                                            ) : m.mimeType?.includes("zip") || m.mimeType?.includes("rar") ? (
+                                              <FileArchive className="w-5 h-5 text-orange-500" />
+                                            ) : (
+                                              <File className="w-5 h-5 text-blue-500" />
+                                            )}
+                                          </div>
+                                        )}
+                                        
+                                        {m.type === "audio" && (
+                                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-border/10 ${
+                                            isDarkMode ? "bg-white/5" : "bg-black/5"
+                                          }`}>
+                                            <Music className="w-5 h-5 text-[#a855f7]" />
+                                          </div>
+                                        )}
+                                        
+                                        {m.type === "voice" && (
+                                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-border/10 ${
+                                            isDarkMode ? "bg-white/5" : "bg-black/5"
+                                          }`}>
+                                            <Mic className="w-5 h-5 text-emerald-500" />
+                                          </div>
+                                        )}
+                                        
+                                        {m.type === "video" && (
+                                          <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 border border-border/10 ${
+                                            isDarkMode ? "bg-white/5" : "bg-black/5"
+                                          }`}>
+                                            <Video className="w-5 h-5 text-red-500" />
+                                          </div>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                 );
