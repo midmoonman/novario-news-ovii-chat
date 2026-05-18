@@ -1568,25 +1568,27 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   // Handle incoming or sent new messages
   useEffect(() => {
     if (isLoading || msgs.length === 0) return;
-    const t = scrollRef.current;
-    if (!t) return;
+    
+    const scroll = () => {
+      const chatContainer = document.getElementById('chat-container') || scrollRef.current;
+      if (chatContainer) {
+        chatContainer.scrollTo({
+          top: chatContainer.scrollHeight,
+          behavior: 'smooth'
+        });
+      }
+    };
 
-    const lastMsg = msgs[msgs.length - 1];
-    const isMyMessage = lastMsg && lastMsg.uid === uid;
-    // Check if the user was near the bottom before this message rendered
-    const isNearBottom = t.scrollHeight - t.scrollTop < t.clientHeight + 250;
-
-    if (isNearBottom || isMyMessage) {
-      // Execute scroll sequence to perfectly handle list expansion in React
-      scrollToBottom(false);
-      const timers = [
-        setTimeout(() => scrollToBottom(false), 50),
-        setTimeout(() => scrollToBottom(false), 150),
-        setTimeout(() => scrollToBottom(false), 300)
-      ];
-      return () => timers.forEach(clearTimeout);
-    }
-  }, [msgs.length]);
+    // Execute immediately on message array updates
+    scroll();
+    // Also perform delayed execution to ensure rendering finish
+    const timers = [
+      setTimeout(scroll, 50),
+      setTimeout(scroll, 150),
+      setTimeout(scroll, 300)
+    ];
+    return () => timers.forEach(clearTimeout);
+  }, [msgs]);
 
   const [isPulsingPin, setIsPulsingPin] = useState(false);
 
@@ -2884,6 +2886,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
               {/* Scroll area — overflow-x:hidden prevents horizontal bleed from drag */}
               <div
+                id="chat-container"
                 ref={scrollRef}
                 className="flex-1 min-h-0 overflow-y-auto overscroll-contain px-4 py-2 flex flex-col items-stretch touch-pan-y relative"
                 style={{
