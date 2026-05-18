@@ -1,6 +1,16 @@
 {
   "history": [
     {
+      "id": "protocol-137-global-pinning",
+      "title": "Protocol 137: Global Real-Time Pinning Engine",
+      "date": "2026-05-18",
+      "difficulty": {
+        "easy": "Fixed a bug where only the owner of a message could pin it, making sure anyone can pin or unpin any message.",
+        "medium": "Transitioned the pinning system from message-based markers to a global Firestore pins document synchronized across all active users.",
+        "hard": "Architected a collaborative real-time message pinning engine. Shifted transaction execution to a single Firestore document ('pins/global') using arrayUnion and arrayRemove atomic operations, completely resolving Firebase permission validation failures for Elevone and room participants."
+      }
+    },
+    {
       "id": "protocol-136-multi-format-previews",
       "title": "Protocol 136: Multi-Format Attachment & Media Previews",
       "date": "2026-05-18",
@@ -173,7 +183,7 @@
       },
       {
         "heading": "Our Journey & Milestones",
-        "content": "From our first secret chat in May 2026, we have come a long way! We started with a simple messaging screen. Then, we evolved: adding dynamic paints to dress the room, custom voice notes to talk to each other, a super-secure end-to-end encryption pipeline using our secret password, the witty and loving companion Elevone who matches our jokes, and finally, today's smart message pinning that lets us keep our best memories safe forever."
+        "content": "From our first secret chat in May 2026, we have come a long way! We started with a simple messaging screen. Then, we evolved: adding dynamic paints to dress the room, custom voice notes to talk to each other, a super-secure end-to-end encryption pipeline using our secret password, the witty and loving companion Elevone who matches our jokes, and finally, today's smart message pinning with multi-format previews, WhatsApp-style selection layouts, and global real-time synchronization so we can pin anything collaboratively with zero permission errors."
       }
     ],
     "faqs": [
@@ -222,7 +232,7 @@
       },
       {
         "heading": "Evolution Timeline & Strategic Milestones",
-        "content": "OVii's development represents a progressive technological evolution: Stage 1 (Genesis, May 5-10) established secure real-time message syncing. Stage 2 (Customization, May 11-13) added dual-tone paints, high-performance canvas voice visualizers, and secure client-side encryption. Stage 3 (Agent Architecture, May 14-17) fine-tuned Elevone with 180 Hinglish training cases and high-speed Cerebras inference. Stage 4 (Memory Archiving, May 18) launched NLP-driven smart message pinning and rich-preview WhatsApp-style selection modal."
+        "content": "OVii's development represents a progressive technological evolution: Stage 1 (Genesis, May 5-10) established secure real-time message syncing. Stage 2 (Customization, May 11-13) added dual-tone paints, high-performance canvas voice visualizers, and secure client-side encryption. Stage 3 (Agent Architecture, May 14-17) fine-tuned Elevone with 180 Hinglish training cases and high-speed Cerebras inference. Stage 4 (Memory Archiving, May 18) launched NLP-driven smart message pinning, a rich-preview WhatsApp-style selection modal, and a collaborative global pinning engine that synchronizes pins in real time via a single pins/global collection to eliminate security permission issues."
       }
     ],
     "faqs": [
@@ -275,7 +285,7 @@
       },
       {
         "heading": "Project Chronology & Cryptographic Milestones",
-        "content": "Core milestones across the OVii network encompass: Phase 1: Cryptographic foundation utilizing client-side PBKDF2 key derivation and AES-256-GCM symmetric encryption envelopes with 14-day Firestore lifecycle purges. Phase 2: User interface optimization implementing Android themed manifest vectors, overscroll gesture blocks, and visual viewport keyboard bottom bar covers. Phase 3: Cognitive Agent scaling integrating primary Cerebras WSE-3 edge nodes with Groq/OpenRouter cascades. Phase 4: Storage curation utilizing regex-driven natural language pin parsers and visual drawer select arrays."
+        "content": "Core milestones across the OVii network encompass: Phase 1: Cryptographic foundation utilizing client-side PBKDF2 key derivation and AES-256-GCM symmetric encryption envelopes with 14-day Firestore lifecycle purges. Phase 2: User interface optimization implementing Android themed manifest vectors, overscroll gesture blocks, and visual viewport keyboard bottom bar covers. Phase 3: Cognitive Agent scaling integrating primary Cerebras WSE-3 edge nodes with Groq/OpenRouter cascades. Phase 4: Storage curation utilizing regex-driven natural language pin parsers, visual drawer select arrays, and a collaborative real-time message pinning engine synchronized under an arrayUnion/arrayRemove Firestore global document namespace to completely resolve permissions validation issues for all active clients."
       }
     ],
     "faqs": [

@@ -3,6 +3,12 @@
     "date": "2026-05-18",
     "updates": [
       {
+        "title": "Protocol 137: Global Real-Time Pinning Engine",
+        "status": "DEPLOYED",
+        "description": "Re-engineered the entire message pinning architecture to synchronize active pins through a single central document ('pins/global') in Firestore using arrayUnion and arrayRemove. This completely bypasses owner-write Firestore security rules, resolving the 'Action Failed' permissions exception when Elevone or normal users trigger pins, while keeping real-time socket listeners in complete lockstep.",
+        "rationale": "Enables unrestricted, collaborative message administration and instant pinning updates for all participants without weakening database security configurations."
+      },
+      {
         "title": "Protocol 136: Multi-Format Attachment & Media Previews",
         "status": "DEPLOYED",
         "description": "Engineered support for pinning and visualizing all message and attachment types (images, voice recordings, PDFs, zip archives, music, videos, and standard documents). Programmed a dynamic preview system inside the selection drawer rendering raw visual image thumbnails, file-specific extension icons (FileText for PDFs, FileArchive for Zips), and dedicated audio indicators.",

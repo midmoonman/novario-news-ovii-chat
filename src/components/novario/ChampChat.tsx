@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, Fragment, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp,
-  deleteDoc, doc, Timestamp, setDoc, getDocs, getDoc, writeBatch, limit
+  deleteDoc, doc, Timestamp, setDoc, getDocs, getDoc, writeBatch, limit, arrayUnion, arrayRemove
 } from "firebase/firestore";
 import { app, auth, db, ensureAnonAuth } from "@/lib/firebase";
 import { AVATARS } from "@/lib/avatars";
@@ -1009,6 +1009,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [msgs, setMsgs] = useState<Msg[]>([]);
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [text, setText] = useState("");
   const [showMentionSuggestion, setShowMentionSuggestion] = useState(false);
   const [recording, setRecording] = useState(false);
@@ -1177,6 +1178,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     let unsubMsgs = () => { };
     let unsubPresence = () => { };
     let unsubKick = () => { };
+    let unsubPins = () => { };
     let alive = true;
     let heartbeatId: NodeJS.Timeout | null = null;
     let currentUid: string | null = null;
@@ -1267,6 +1269,15 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
           if (snap.exists()) {
             deleteDoc(kickRef).catch(() => { });
             onLock();
+          }
+        });
+
+        unsubPins = onSnapshot(doc(db, "ovii", ROOM, "pins", "global"), (snap) => {
+          if (snap.exists()) {
+            const data = snap.data();
+            setPinnedIds(new Set(data.ids || []));
+          } else {
+            setPinnedIds(new Set());
           }
         });
 
@@ -1421,6 +1432,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
       unsubMsgs();
       unsubPresence();
       unsubKick();
+      unsubPins();
       if (heartbeatId) clearInterval(heartbeatId);
       window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("pagehide", handlePageHide);
@@ -1713,9 +1725,17 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
             if (isBulk) {
               setShowBulkPinModal(true);
             } else if (targetId) {
-              await setDoc(doc(db, "ovii", ROOM, "messages", targetId), {
-                isPinned: true
+              const pinsRef = doc(db, "ovii", ROOM, "pins", "global");
+              await setDoc(pinsRef, {
+                ids: arrayUnion(targetId)
               }, { merge: true });
+              
+              const targetMsg = msgs.find(m => m.id === targetId);
+              if (targetMsg && targetMsg.uid === uid) {
+                await setDoc(doc(db, "ovii", ROOM, "messages", targetId), {
+                  isPinned: true
+                }, { merge: true }).catch(() => {});
+              }
             }
 
             setIsElevoneGenerating(true);
@@ -1804,11 +1824,34 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
 
   const pinMessage = async (msgId: string, isPinned: boolean) => {
     try {
-      await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
-        isPinned: !isPinned
-      }, { merge: true });
-      addNotification(!isPinned ? "Message pinned" : "Message unpinned", "success");
+      const pinsRef = doc(db, "ovii", ROOM, "pins", "global");
+      if (!isPinned) {
+        await setDoc(pinsRef, {
+          ids: arrayUnion(msgId)
+        }, { merge: true });
+        
+        const targetMsg = msgs.find(m => m.id === msgId);
+        if (targetMsg && targetMsg.uid === uid) {
+          await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
+            isPinned: true
+          }, { merge: true }).catch(() => {});
+        }
+        addNotification("Message pinned", "success");
+      } else {
+        await setDoc(pinsRef, {
+          ids: arrayRemove(msgId)
+        }, { merge: true });
+        
+        const targetMsg = msgs.find(m => m.id === msgId);
+        if (targetMsg && targetMsg.uid === uid) {
+          await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
+            isPinned: false
+          }, { merge: true }).catch(() => {});
+        }
+        addNotification("Message unpinned", "success");
+      }
     } catch (e) {
+      console.error("Pin message failed:", e);
       addNotification("Action failed", "error");
     }
   };
@@ -2195,15 +2238,21 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
   const now = Date.now();
   const FOURTEEN_DAYS = 14 * 24 * 60 * 60 * 1000;
 
+  // ── Derived messages with correct pin status ────────────────────────────────
+  const enrichedMsgs = msgs.map(m => ({
+    ...m,
+    isPinned: pinnedIds.has(m.id) || !!m.isPinned
+  }));
+
   // chatMsgs: Everything for 14 days
-  const chatMsgs = msgs.filter(m => {
+  const chatMsgs = enrichedMsgs.filter(m => {
     const ts = m.createdAt?.toMillis?.() ?? 0;
     if (!ts) return true; // Keep pending messages
     const age = now - ts;
     return age < FOURTEEN_DAYS;
   }).sort((a, b) => (a.createdAt?.toMillis?.() ?? 0) - (b.createdAt?.toMillis?.() ?? 0));
 
-  const mediaMsgs = msgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
+  const mediaMsgs = enrichedMsgs.filter(m => ["image", "voice", "video", "audio", "file"].includes(m.type));
   const unreadMedia = mediaMsgs.length;
 
   const copyBulkChat = () => {
@@ -2236,7 +2285,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
     backgroundSize: "440px 440px"
   };
 
-  const pinnedMsgs = msgs.filter(m => m.isPinned);
+  const pinnedMsgs = enrichedMsgs.filter(m => m.isPinned);
   const [currentPinnedIdx, setCurrentPinnedIdx] = useState(0);
   const currentPinned = pinnedMsgs[currentPinnedIdx % pinnedMsgs.length];
 
@@ -4399,7 +4448,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                                       
                                       <div className="relative overflow-x-auto scrollbar-hide pb-4">
                                         <pre className={`text-[10px] sm:text-[11px] font-mono leading-relaxed whitespace-pre pl-2 ${isDarkMode ? "text-emerald-500/90" : "text-emerald-700"}`}>
-                                          {historyData.hard.projectTree}
+                                          {historyData.hard.projectTree?.replace(/\\n/g, "\n")}
                                         </pre>
                                         
                                         {/* Overlay gradient for code feel */}
@@ -4466,7 +4515,7 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                       </div>
                       <button
                         onClick={() => {
-                          const allIds = msgs.filter(m => !m.isDeleted && m.type !== "text-system").map(m => m.id);
+                          const allIds = enrichedMsgs.filter(m => !m.isDeleted && m.type !== "text-system").map(m => m.id);
                           if (selectedPinIds.size === allIds.length) {
                             setSelectedPinIds(new Set());
                           } else {
@@ -4479,14 +4528,14 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                             : "bg-black/5 border-black/10 hover:bg-black/10"
                         }`}
                       >
-                        {selectedPinIds.size === msgs.filter(m => !m.isDeleted && m.type !== "text-system").length ? "Deselect All" : "Select All"}
+                        {selectedPinIds.size === enrichedMsgs.filter(m => !m.isDeleted && m.type !== "text-system").length ? "Deselect All" : "Select All"}
                       </button>
                     </div>
 
                     {/* Scrollable Message List */}
                     <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
                       {(() => {
-                        const grouped = groupMessagesByDate(msgs);
+                        const grouped = groupMessagesByDate(enrichedMsgs);
                         const groupKeys = Object.keys(grouped);
                         
                         if (groupKeys.length === 0) {
@@ -4694,11 +4743,21 @@ export function OViiChat({ onLock, password, room = "ovii-room" }: { onLock: () 
                         disabled={selectedPinIds.size === 0}
                         onClick={async () => {
                           // Pin all selected messages
-                          const promises = Array.from(selectedPinIds).map(id => 
-                            setDoc(doc(db, "ovii", ROOM, "messages", id), {
-                              isPinned: true
-                            }, { merge: true })
-                          );
+                          const pinsRef = doc(db, "ovii", ROOM, "pins", "global");
+                          await setDoc(pinsRef, {
+                            ids: arrayUnion(...Array.from(selectedPinIds))
+                          }, { merge: true });
+                          
+                          // Backup owner updates
+                          const promises = Array.from(selectedPinIds).map(id => {
+                            const targetMsg = msgs.find(m => m.id === id);
+                            if (targetMsg && targetMsg.uid === uid) {
+                              return setDoc(doc(db, "ovii", ROOM, "messages", id), {
+                                isPinned: true
+                              }, { merge: true }).catch(() => {});
+                            }
+                            return Promise.resolve();
+                          });
                           await Promise.all(promises);
                           addNotification(`Pinned ${selectedPinIds.size} messages!`, "success");
                           
