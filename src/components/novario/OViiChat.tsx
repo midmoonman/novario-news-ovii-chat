@@ -810,6 +810,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const [recDuration, setRecDuration] = useState(0);
   const recTimerRef = useRef<any>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [clearElevoneMsgId, setClearElevoneMsgId] = useState<string | null>(null);
   const [showChamp, setShowChamp] = useState(false);
   const [showChampPin, setShowChampPin] = useState(false);
   const [champPinInput, setChampPinInput] = useState("");
@@ -1050,13 +1051,14 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   useEffect(() => {
     const handlePopState = (e: PopStateEvent) => {
       // If any modal is open, close it and prevent navigation
-      if (showLogs || showAvatarPicker || showFolder || selectedImage || selectedPhone || showClearConfirm || showMenu || showChamp || showChampPin) {
+      if (showLogs || showAvatarPicker || showFolder || selectedImage || selectedPhone || showClearConfirm || clearElevoneMsgId || showMenu || showChamp || showChampPin) {
         setShowLogs(false);
         setShowAvatarPicker(false);
         setShowFolder(false);
         setSelectedImage(null);
         setSelectedPhone(null);
         setShowClearConfirm(false);
+        setClearElevoneMsgId(null);
         setShowMenu(false);
         setShowChamp(false);
         setShowChampPin(false);
@@ -1072,7 +1074,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     window.addEventListener("popstate", handlePopState);
 
     return () => window.removeEventListener("popstate", handlePopState);
-  }, [showLogs, showAvatarPicker, showFolder, selectedImage, selectedPhone, showClearConfirm, showMenu, showChamp, showChampPin]);
+  }, [showLogs, showAvatarPicker, showFolder, selectedImage, selectedPhone, showClearConfirm, clearElevoneMsgId, showMenu, showChamp, showChampPin]);
 
   // -- Stable layout handling (anti-jitter) --
   useEffect(() => {
@@ -3654,6 +3656,18 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         <Trash2 className="w-[18px] h-[18px] opacity-60" /> Delete for Me
                       </button>
 
+                      {!contextMsg.isDeleted && contextMsg.uid === "elevone" && (
+                        <button
+                          onClick={() => {
+                            setClearElevoneMsgId(contextMsg.id);
+                            setContextMsg(null);
+                          }}
+                          className="w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium text-destructive hover:bg-destructive/5"
+                        >
+                          <Trash2 className="w-[18px] h-[18px] opacity-60" /> Clear Message
+                        </button>
+                      )}
+
                       {!contextMsg.isDeleted && contextMsg.uid === uid && (
                         <button
                           onClick={() => {
@@ -3871,6 +3885,60 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         </button>
                         <button
                           onClick={() => setShowClearConfirm(false)}
+                          className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
+                            }`}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Custom Clear Elevone Message Confirmation Modal ── */}
+            <AnimatePresence>
+              {clearElevoneMsgId && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    className={`w-full max-w-sm rounded-[32px] overflow-hidden border shadow-2xl p-8 relative ${isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/10 text-black"
+                      }`}
+                  >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
+                        <Trash2 className="w-8 h-8 text-destructive" />
+                      </div>
+                      <h3 className="text-xl font-black mb-3 tracking-tight">Clear AI Response?</h3>
+                      <p className="text-sm opacity-60 font-medium mb-8">
+                        This will permanently delete Elevone's response from the chat history for everyone.
+                      </p>
+                      <div className="flex flex-col w-full gap-3">
+                        <button
+                          onClick={async () => {
+                            try {
+                              await deleteDoc(doc(db, "ovii", ROOM, "messages", clearElevoneMsgId));
+                              addNotification("Response cleared", "success");
+                            } catch (e) {
+                              addNotification("Failed to clear response", "error");
+                            }
+                            setClearElevoneMsgId(null);
+                          }}
+                          className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-destructive/30 bg-destructive hover:bg-destructive/90 animate-gradient"
+                        >
+                          Yes, Clear Response
+                        </button>
+                        <button
+                          onClick={() => setClearElevoneMsgId(null)}
                           className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
                             }`}
                         >
