@@ -811,6 +811,9 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
   const recTimerRef = useRef<any>(null);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [clearElevoneMsgId, setClearElevoneMsgId] = useState<string | null>(null);
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
+  const [selectedMsgIds, setSelectedMsgIds] = useState<Set<string>>(new Set());
+  const [showBulkClearConfirm, setShowBulkClearConfirm] = useState(false);
   const [showChamp, setShowChamp] = useState(false);
   const [showChampPin, setShowChampPin] = useState(false);
   const [champPinInput, setChampPinInput] = useState("");
@@ -1903,6 +1906,38 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
     }
   };
 
+  const toggleSelectMessage = (msgId: string) => {
+    setSelectedMsgIds(prev => {
+      const next = new Set(prev);
+      if (next.has(msgId)) {
+        next.delete(msgId);
+      } else {
+        next.add(msgId);
+      }
+      return next;
+    });
+  };
+
+  const selectAllElevoneMessages = () => {
+    const elevoneMsgs = msgs.filter(m => m.uid === "elevone" && !m.isDeleted);
+    setSelectedMsgIds(new Set(elevoneMsgs.map(m => m.id)));
+  };
+
+  const bulkDeleteElevoneMessages = async () => {
+    try {
+      const ids = Array.from(selectedMsgIds);
+      if (ids.length === 0) return;
+      await Promise.all(ids.map(id => deleteDoc(doc(db, "ovii", ROOM, "messages", id))));
+      addNotification(`${ids.length} responses cleared`, "success");
+    } catch (e) {
+      addNotification("Failed to clear some responses", "error");
+    } finally {
+      setSelectedMsgIds(new Set());
+      setIsSelectionMode(false);
+      setShowBulkClearConfirm(false);
+    }
+  };
+
   const pinMessage = async (msgId: string, isPinned: boolean) => {
     try {
       await setDoc(doc(db, "ovii", ROOM, "messages", msgId), {
@@ -2351,12 +2386,48 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
 
           {/* ── Header ── */}
-          <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${paintTheme.headerDark
-            ? (isDarkMode ? "border-white/5 text-white" : "border-black/5 text-black")
-            : (isDarkMode ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white" : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black")
-            }`}
-            style={{ backgroundColor: paintTheme.headerDark ? (isDarkMode ? paintTheme.headerDark + "f2" : paintTheme.headerLight + "f2") : undefined }}
-          >
+          {isSelectionMode ? (
+            <header className={`px-4 py-3 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${isDarkMode ? "bg-[#202c33] border-white/10 text-white" : "bg-white border-black/10 text-black"}`}>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setIsSelectionMode(false);
+                    setSelectedMsgIds(new Set());
+                  }}
+                  className={`p-1.5 rounded-full transition-colors ${isDarkMode ? "hover:bg-white/10" : "hover:bg-black/10"}`}
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                <span className="font-bold text-sm">{selectedMsgIds.size} Selected</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={selectAllElevoneMessages}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all border ${isDarkMode ? "bg-white/5 hover:bg-white/10 border-white/10" : "bg-black/5 hover:bg-black/10 border-black/10"}`}
+                >
+                  Select All
+                </button>
+                <button
+                  onClick={() => {
+                    if (selectedMsgIds.size > 0) {
+                      setShowBulkClearConfirm(true);
+                    }
+                  }}
+                  disabled={selectedMsgIds.size === 0}
+                  className={`p-2 rounded-full transition-colors ${selectedMsgIds.size === 0 ? "opacity-30 cursor-not-allowed" : "text-destructive hover:bg-destructive/10"}`}
+                  title="Delete Selected"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </div>
+            </header>
+          ) : (
+            <header className={`px-4 py-2 flex items-center justify-between z-[60] shrink-0 border-b backdrop-blur-xl transition-all duration-500 shadow-lg ${paintTheme.headerDark
+              ? (isDarkMode ? "border-white/5 text-white" : "border-black/5 text-black")
+              : (isDarkMode ? "bg-gradient-to-r from-[#202c33]/90 via-[#2a3942]/90 to-[#202c33]/90 border-white/5 text-white" : "bg-gradient-to-r from-white/95 via-[#f0f2f5]/95 to-white/95 border-black/5 text-black")
+              }`}
+              style={{ backgroundColor: paintTheme.headerDark ? (isDarkMode ? paintTheme.headerDark + "f2" : paintTheme.headerLight + "f2") : undefined }}
+            >
             <div className="flex items-center gap-3">
               <div
                 className="h-9 w-9 rounded-full overflow-hidden border border-black/5 bg-muted shadow-sm cursor-pointer hover:ring-2 hover:ring-primary/50 transition-all active:scale-95 relative"
@@ -2729,6 +2800,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
               </div>
             </div>
           </header>
+          )}
 
           <Champ
             isOpen={showChamp}
@@ -2987,8 +3059,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         const mine = m.uid === uid;
                         const prevMsg = grouped[i - 1];
                         const isConsecutive = prevMsg && prevMsg.uid === m.uid;
-                        const nextMsg = grouped[i + 1];
-                        const isLastInGroup = !nextMsg || nextMsg.uid !== m.uid;
+                        const isLastInGroup = !grouped[i + 1] || grouped[i + 1].uid !== m.uid;
 
                         // Date grouping logic
                         const showDateHeader = !prevMsg ||
@@ -3014,13 +3085,38 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.2 }}
-                              className={`w-full flex ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
+                              className={`w-full flex items-center ${mine ? "justify-end" : "justify-start"} ${!isConsecutive ? "mt-4" : "mt-1.5"}`}
                             >
+                              {isSelectionMode && m.uid === "elevone" && !m.isDeleted && (
+                                <div
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    toggleSelectMessage(m.id);
+                                  }}
+                                  className="mr-3 cursor-pointer shrink-0 transition-all transform active:scale-90"
+                                >
+                                  <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${
+                                    selectedMsgIds.has(m.id)
+                                      ? "bg-primary border-primary text-white scale-110 shadow-md"
+                                      : isDarkMode ? "border-white/20 hover:border-white/40" : "border-black/20 hover:border-black/40"
+                                  }`}>
+                                    {selectedMsgIds.has(m.id) && (
+                                      <CheckCircle2 className="w-4 h-4 fill-white text-primary" />
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
                               <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 transition={{ duration: 0.2 }}
-                                drag={isMobileDevice() ? "x" : false}
+                                onClick={() => {
+                                  if (isSelectionMode && m.uid === "elevone" && !m.isDeleted) {
+                                    toggleSelectMessage(m.id);
+                                  }
+                                }}
+                                drag={isMobileDevice() && !isSelectionMode ? "x" : false}
                                 dragConstraints={{ left: 0, right: 0 }}
                                 dragElastic={0.2}
                                 onDragStart={() => {
@@ -3657,15 +3753,28 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                       </button>
 
                       {!contextMsg.isDeleted && contextMsg.uid === "elevone" && (
-                        <button
-                          onClick={() => {
-                            setClearElevoneMsgId(contextMsg.id);
-                            setContextMsg(null);
-                          }}
-                          className="w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium text-destructive hover:bg-destructive/5"
-                        >
-                          <Trash2 className="w-[18px] h-[18px] opacity-60" /> Clear Message
-                        </button>
+                        <>
+                          <button
+                            onClick={() => {
+                              setClearElevoneMsgId(contextMsg.id);
+                              setContextMsg(null);
+                            }}
+                            className="w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium text-destructive hover:bg-destructive/5"
+                          >
+                            <Trash2 className="w-[18px] h-[18px] opacity-60" /> Clear Message
+                          </button>
+                          
+                          <button
+                            onClick={() => {
+                              setIsSelectionMode(true);
+                              setSelectedMsgIds(new Set([contextMsg.id]));
+                              setContextMsg(null);
+                            }}
+                            className={`w-full flex items-center gap-4 px-5 py-3.5 text-[15px] font-medium ${isDarkMode ? "hover:bg-white/5 text-white" : "hover:bg-black/5 text-black"}`}
+                          >
+                            <CheckCircle2 className="w-[18px] h-[18px] opacity-60 text-primary" /> Select Multiple
+                          </button>
+                        </>
                       )}
 
                       {!contextMsg.isDeleted && contextMsg.uid === uid && (
@@ -3939,6 +4048,52 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
                         </button>
                         <button
                           onClick={() => setClearElevoneMsgId(null)}
+                          className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
+                            }`}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* ── Custom Bulk Clear Elevone Messages Confirmation Modal ── */}
+            <AnimatePresence>
+              {showBulkClearConfirm && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+                >
+                  <motion.div
+                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                    className={`w-full max-w-sm rounded-[32px] overflow-hidden border shadow-2xl p-8 relative ${isDarkMode ? "bg-[#233138] border-white/10 text-white" : "bg-white border-black/10 text-black"
+                      }`}
+                  >
+                    <div className="absolute top-0 left-0 w-full h-1 bg-destructive" />
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-6">
+                        <Trash2 className="w-8 h-8 text-destructive" />
+                      </div>
+                      <h3 className="text-xl font-black mb-3 tracking-tight">Clear selected responses?</h3>
+                      <p className="text-sm opacity-60 font-medium mb-8">
+                        This will permanently delete the {selectedMsgIds.size} selected Elevone responses for everyone.
+                      </p>
+                      <div className="flex flex-col w-full gap-3">
+                        <button
+                          onClick={bulkDeleteElevoneMessages}
+                          className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all active:scale-[0.98] shadow-lg shadow-destructive/30 bg-destructive hover:bg-destructive/90 animate-gradient"
+                        >
+                          Yes, Clear {selectedMsgIds.size} Responses
+                        </button>
+                        <button
+                          onClick={() => setShowBulkClearConfirm(false)}
                           className={`w-full py-4 rounded-2xl font-bold text-sm transition-all active:scale-[0.98] ${isDarkMode ? "bg-white/5 hover:bg-white/10 text-white/70" : "bg-black/5 hover:bg-black/10 text-black/60"
                             }`}
                         >
