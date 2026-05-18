@@ -1647,6 +1647,41 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         expectedElevoneMsgIdRef.current = null;
       }, 15000);
 
+      // Calculate time-based wishes
+      let timeBasedWish: string | null = null;
+      if (!isAutoTrigger && !editResponseMsgId) {
+        const now = new Date();
+        const todayStr = now.toDateString();
+        
+        const hasElevoneWishedToday = msgs.some(m => {
+          if (m.uid !== "elevone" || m.isDeleted) return false;
+          const msgDate = m.createdAt ? new Date(m.createdAt.toMillis?.() ?? m.createdAt) : null;
+          if (!msgDate || msgDate.toDateString() !== todayStr) return false;
+          
+          const text = m.content ? m.content.toLowerCase() : "";
+          return text.includes("morning") || text.includes("afternoon") || text.includes("evening") || text.includes("night");
+        });
+
+        // Greeting is optional and light (35% chance to wish, so it feels rare and natural)
+        if (!hasElevoneWishedToday && Math.random() < 0.35) {
+          const hour = now.getHours();
+          if (hour >= 4 && hour < 12) {
+            timeBasedWish = "morning";
+          } else if (hour >= 12 && hour < 17) {
+            timeBasedWish = "afternoon";
+          } else if (hour >= 17 && hour < 20) {
+            timeBasedWish = "evening";
+          } else {
+            const totalMinutes = hour * 60 + now.getMinutes();
+            const isAfterEightThirtyPM = totalMinutes >= 20 * 60 + 30;
+            const isBeforeFourAM = totalMinutes < 4 * 60;
+            if (isAfterEightThirtyPM || isBeforeFourAM) {
+              timeBasedWish = "night";
+            }
+          }
+        }
+      }
+
       const memoryDoc = await getDoc(doc(db, "ovii", ROOM, "elevone-memory", "context"));
       const pdfContext = memoryDoc.exists() ? memoryDoc.data().text : "";
 
@@ -1679,7 +1714,8 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
           isAutoTrigger,
           recentActions: elevoneRecentActionsRef.current.join("\n"),
           allowSharing: memoryDoc.exists() ? memoryDoc.data().allowSharing : false,
-          triggeringUserName: name
+          triggeringUserName: name,
+          timeBasedWish
         })
       });
 
@@ -1801,7 +1837,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
 
     if (type === "text") {
       const lowerContent = content.toLowerCase();
-      const isElevoneMentioned = lowerContent.includes("@elevone") || lowerContent.endsWith("@") || /\s@(\s|$)/.test(lowerContent);
+      const isElevoneMentioned = lowerContent.includes("@elevone");
       const isToxic = toxicKeywords.test(content);
       
       if (isToxic) aggressiveMsgCount.current += 1;
@@ -1871,7 +1907,7 @@ export function OViiChat({ onLock, password }: { onLock: () => void, password?: 
         triggerElevone(newContent, false, false, msgId, existingResponse.id);
       } else {
         const lowerContent = newContent.toLowerCase();
-        const isElevoneMentioned = lowerContent.includes("@elevone") || lowerContent.endsWith("@") || /\s@(\s|$)/.test(lowerContent);
+        const isElevoneMentioned = lowerContent.includes("@elevone");
         if (isElevoneMentioned) {
           triggerElevone(newContent, false, false, msgId);
         }
